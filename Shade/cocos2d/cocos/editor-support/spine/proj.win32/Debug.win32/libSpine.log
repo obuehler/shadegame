@@ -1,0 +1,99 @@
+﻿  Animation.c
+  AnimationState.c
+  AnimationStateData.c
+  Atlas.c
+  AtlasAttachmentLoader.c
+  Attachment.c
+  AttachmentLoader.c
+  Bone.c
+  BoneData.c
+  BoundingBoxAttachment.c
+  Event.c
+  EventData.c
+  extension.c
+  IkConstraint.c
+  IkConstraintData.c
+  Json.c
+  MeshAttachment.c
+  RegionAttachment.c
+  Skeleton.c
+  SkeletonBounds.c
+  SkeletonData.c
+  SkeletonJson.c
+  Skin.c
+  SkinnedMeshAttachment.c
+  Slot.c
+  SlotData.c
+  PolygonBatch.cpp
+  SkeletonAnimation.cpp
+  SkeletonRenderer.cpp
+  spine-cocos2dx.cpp
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrendercommand.h(67): warning C4068: unknown pragma (compiling source file ..\SkeletonAnimation.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrendercommand.h(68): warning C4068: unknown pragma (compiling source file ..\SkeletonAnimation.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrendercommand.h(71): warning C4068: unknown pragma (compiling source file ..\SkeletonAnimation.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrendercommand.h(67): warning C4068: unknown pragma (compiling source file ..\SkeletonRenderer.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrendercommand.h(68): warning C4068: unknown pragma (compiling source file ..\SkeletonRenderer.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrendercommand.h(71): warning C4068: unknown pragma (compiling source file ..\SkeletonRenderer.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrendercommand.h(67): warning C4068: unknown pragma (compiling source file ..\spine-cocos2dx.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\cctrianglescommand.h(96): warning C4068: unknown pragma (compiling source file ..\SkeletonAnimation.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrendercommand.h(68): warning C4068: unknown pragma (compiling source file ..\spine-cocos2dx.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\cctrianglescommand.h(97): warning C4068: unknown pragma (compiling source file ..\SkeletonAnimation.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrendercommand.h(71): warning C4068: unknown pragma (compiling source file ..\spine-cocos2dx.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\cctrianglescommand.h(100): warning C4068: unknown pragma (compiling source file ..\SkeletonAnimation.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\cctrianglescommand.h(96): warning C4068: unknown pragma (compiling source file ..\SkeletonRenderer.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\cctrianglescommand.h(97): warning C4068: unknown pragma (compiling source file ..\SkeletonRenderer.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\cctrianglescommand.h(100): warning C4068: unknown pragma (compiling source file ..\SkeletonRenderer.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\cctrianglescommand.h(96): warning C4068: unknown pragma (compiling source file ..\spine-cocos2dx.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\cctrianglescommand.h(97): warning C4068: unknown pragma (compiling source file ..\spine-cocos2dx.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\cctrianglescommand.h(100): warning C4068: unknown pragma (compiling source file ..\spine-cocos2dx.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrendercommand.h(67): warning C4068: unknown pragma (compiling source file ..\PolygonBatch.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrendercommand.h(68): warning C4068: unknown pragma (compiling source file ..\PolygonBatch.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrendercommand.h(71): warning C4068: unknown pragma (compiling source file ..\PolygonBatch.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\cctrianglescommand.h(96): warning C4068: unknown pragma (compiling source file ..\PolygonBatch.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\cctrianglescommand.h(97): warning C4068: unknown pragma (compiling source file ..\PolygonBatch.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\cctrianglescommand.h(100): warning C4068: unknown pragma (compiling source file ..\PolygonBatch.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(24): warning C4068: unknown pragma (compiling source file ..\SkeletonAnimation.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(24): warning C4068: unknown pragma (compiling source file ..\spine-cocos2dx.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(52): warning C4068: unknown pragma (compiling source file ..\SkeletonAnimation.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(52): warning C4068: unknown pragma (compiling source file ..\spine-cocos2dx.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(53): warning C4068: unknown pragma (compiling source file ..\SkeletonAnimation.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(53): warning C4068: unknown pragma (compiling source file ..\spine-cocos2dx.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(55): warning C4068: unknown pragma (compiling source file ..\SkeletonAnimation.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(55): warning C4068: unknown pragma (compiling source file ..\spine-cocos2dx.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(24): warning C4068: unknown pragma (compiling source file ..\SkeletonRenderer.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(52): warning C4068: unknown pragma (compiling source file ..\SkeletonRenderer.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(53): warning C4068: unknown pragma (compiling source file ..\SkeletonRenderer.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(55): warning C4068: unknown pragma (compiling source file ..\SkeletonRenderer.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(268): warning C4068: unknown pragma (compiling source file ..\SkeletonAnimation.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(269): warning C4068: unknown pragma (compiling source file ..\SkeletonAnimation.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(268): warning C4068: unknown pragma (compiling source file ..\spine-cocos2dx.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(285): warning C4068: unknown pragma (compiling source file ..\SkeletonAnimation.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(269): warning C4068: unknown pragma (compiling source file ..\spine-cocos2dx.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(285): warning C4068: unknown pragma (compiling source file ..\spine-cocos2dx.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(268): warning C4068: unknown pragma (compiling source file ..\SkeletonRenderer.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(269): warning C4068: unknown pragma (compiling source file ..\SkeletonRenderer.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(285): warning C4068: unknown pragma (compiling source file ..\SkeletonRenderer.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(24): warning C4068: unknown pragma (compiling source file ..\PolygonBatch.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(52): warning C4068: unknown pragma (compiling source file ..\PolygonBatch.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(53): warning C4068: unknown pragma (compiling source file ..\PolygonBatch.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(55): warning C4068: unknown pragma (compiling source file ..\PolygonBatch.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(268): warning C4068: unknown pragma (compiling source file ..\PolygonBatch.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(269): warning C4068: unknown pragma (compiling source file ..\PolygonBatch.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\renderer\ccrenderer.h(285): warning C4068: unknown pragma (compiling source file ..\PolygonBatch.cpp)
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\editor-support\spine\skeletonrenderer.cpp(252): warning C4996: 'cocos2d::DrawPrimitives::setDrawColor4B': was declared deprecated
+  c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\2d\ccdrawingprimitives.h(245): note: see declaration of 'cocos2d::DrawPrimitives::setDrawColor4B'
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\editor-support\spine\skeletonrenderer.cpp(265): warning C4996: 'cocos2d::DrawPrimitives::drawPoly': was declared deprecated
+  c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\2d\ccdrawingprimitives.h(142): note: see declaration of 'cocos2d::DrawPrimitives::drawPoly'
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\editor-support\spine\skeletonrenderer.cpp(271): warning C4996: 'cocos2d::DrawPrimitives::setDrawColor4B': was declared deprecated
+  c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\2d\ccdrawingprimitives.h(245): note: see declaration of 'cocos2d::DrawPrimitives::setDrawColor4B'
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\editor-support\spine\skeletonrenderer.cpp(276): warning C4996: 'cocos2d::DrawPrimitives::drawLine': was declared deprecated
+  c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\2d\ccdrawingprimitives.h(115): note: see declaration of 'cocos2d::DrawPrimitives::drawLine'
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\editor-support\spine\skeletonrenderer.cpp(279): warning C4996: 'cocos2d::DrawPrimitives::setPointSize': was declared deprecated
+  c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\2d\ccdrawingprimitives.h(263): note: see declaration of 'cocos2d::DrawPrimitives::setPointSize'
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\editor-support\spine\skeletonrenderer.cpp(280): warning C4996: 'cocos2d::DrawPrimitives::setDrawColor4B': was declared deprecated
+  c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\2d\ccdrawingprimitives.h(245): note: see declaration of 'cocos2d::DrawPrimitives::setDrawColor4B'
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\editor-support\spine\skeletonrenderer.cpp(283): warning C4996: 'cocos2d::DrawPrimitives::drawPoint': was declared deprecated
+  c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\2d\ccdrawingprimitives.h(100): note: see declaration of 'cocos2d::DrawPrimitives::drawPoint'
+c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\editor-support\spine\skeletonrenderer.cpp(284): warning C4996: 'cocos2d::DrawPrimitives::setDrawColor4B': was declared deprecated
+  c:\users\emre\documents\info 4152\shade\shade\cocos2d\cocos\2d\ccdrawingprimitives.h(245): note: see declaration of 'cocos2d::DrawPrimitives::setDrawColor4B'
+  libSpine.vcxproj -> C:\Users\EMRE\Documents\info 4152\shade\Shade\proj.win32\Debug.win32\libSpine.lib
