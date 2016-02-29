@@ -90,7 +90,7 @@ float BRIDGE_POS[] = {9.0f, 3.8f};
 #pragma mark -
 #pragma mark Physics Constants
 /** The new heavier gravity for this world (so it is not so floaty) */
-#define DEFAULT_GRAVITY -14.7f
+#define DEFAULT_GRAVITY -14.7f  //0.0f
 /** The density for most physics objects */
 #define BASIC_DENSITY   0.0f
 /** The density for a bullet */
@@ -111,6 +111,29 @@ float BRIDGE_POS[] = {9.0f, 3.8f};
 
 #pragma mark -
 #pragma mark Asset Constants
+
+/* ***********************************************************
+******************** CODE ADDED FOR SHADE ********************
+************************************************************ */
+
+const string buildingTextures[] = {
+	"b1",	"B1.png",	"s1",	"S1.png" ,
+	"b2",	"B2.png",	"s2",	"S2.png" ,
+	"b3",	"B3.png",	"s3",	"S3.png" ,
+	"b4",	"B4.png",	"s4",	"S4.png" ,
+	"b5",	"B5.png",	"s5",	"S5.png" ,
+	"b6",	"B6.png",	"s6",	"S6.png" ,
+	"b7",	"B7.png",	"s7",	"S7.png" ,
+	"b8",	"B8.png",	"s8",	"S8.png" ,
+	"b9",	"B9.png",	"s9",	"S9.png" ,
+	"b10",	"B10.png",	"s10",	"S10.png" ,
+	"b11",	"B11.png",	"s11",	"S11.png" 
+};
+
+/* ***********************************************************
+***************** END OF CODE ADDED FOR SHADE ****************
+************************************************************ */
+
 /** The key for the earth texture in the asset manager */
 #define EARTH_TEXTURE   "earth"
 /** The key for the win door texture in the asset manager */
@@ -476,6 +499,21 @@ void GameController::populate() {
     // Play the background music on a loop.
     Sound* source = _assets->get<Sound>(GAME_MUSIC);
     SoundEngine::getInstance()->playMusic(source, true, MUSIC_VOLUME);
+
+
+	/* *********************************************************** 
+	******************** CODE ADDED FOR SHADE ********************
+	************************************************************ */
+
+#pragma mark : Buildings and Shadows
+
+
+
+
+	/* ***********************************************************
+	***************** END OF CODE ADDED FOR SHADE ****************
+	************************************************************ */
+
 }
 
 /**
@@ -760,6 +798,22 @@ void GameController::preload() {
 
     _assets = AssetManager::getInstance()->getCurrent();
     TextureLoader* tloader = (TextureLoader*)_assets->access<Texture2D>();
+	
+	/* ***********************************************************
+	******************** CODE ADDED FOR SHADE ********************
+	************************************************************ */
+
+	for (int building_index = 0; building_index < 11; building_index++) {
+		tloader->loadAsync(buildingTextures[building_index * 4],
+			"textures/buildings/" + buildingTextures[building_index * 4 + 1]);
+		tloader->loadAsync(buildingTextures[building_index * 4 + 2],
+			"textures/buildings/" + buildingTextures[building_index * 4 + 3]);
+	}
+	
+	/* ***********************************************************
+	***************** END OF CODE ADDED FOR SHADE ****************
+	************************************************************ */
+
     tloader->loadAsync(EARTH_TEXTURE,   "textures/earthtile.png", params);
     tloader->loadAsync(DUDE_TEXTURE,    "textures/dude.png");
     tloader->loadAsync(SPINNER_TEXTURE, "textures/barrier.png");

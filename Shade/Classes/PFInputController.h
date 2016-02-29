@@ -19,6 +19,7 @@
 #include <cornell/CUKeyboardPoller.h>
 #include <cornell/CUAccelerationPoller.h>
 #include <cornell/CUTouchListener.h>
+#include <cornell/CUMouseListener.h>
 
 
 using namespace cocos2d;
@@ -60,6 +61,9 @@ protected:
     // EVENT LISTENERS
     /** Listener to process touch events */
     TouchListener* _touchListener;
+
+	/** Mouse listener */
+	//MouseListener* _mouseListener;
     
     /** Whether or not this controller is currently active. */
     bool _active;
@@ -77,6 +81,8 @@ protected:
     bool _jumpPressed;
     /** How much did we move horizontally? */
     float _horizontal;
+	/** How much did we move vertically? */
+	float _vertical;
 
     
 #pragma mark Internal Touch Management   
@@ -247,11 +253,27 @@ public:
     
 #pragma mark -
 #pragma mark Input Results
+
+
+	/* ***********************************************************
+	******************** CODE ADDED FOR SHADE ********************
+	************************************************************ */
+
+	/**
+	* Returns the amount of vertical movement.
+	* -1 = down, 1 = up, 0 = still
+	* @return the amount of vertical movement.
+	*/
+	float getVertical() const { return _vertical; }
+
+	/* ***********************************************************
+	***************** END OF CODE ADDED FOR SHADE ****************
+	************************************************************ */
+
+	
     /**
      * Returns the amount of sideways movement.
-     *
      * -1 = left, 1 = right, 0 = still
-     *
      * @return the amount of sideways movement.
      */
     float getHorizontal() const { return _horizontal; }

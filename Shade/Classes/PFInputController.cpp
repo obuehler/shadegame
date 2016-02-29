@@ -70,6 +70,7 @@ _resetPressed(false),
 _debugPressed(false),
 _exitPressed(false),
 _touchListener(nullptr)
+//_mouseListener(nullptr)
 {
     _keyReset = false;
     _keyDebug = false;
@@ -90,6 +91,7 @@ _touchListener(nullptr)
     _mtouch.count = 0;
 }
 
+
 /**
  * Disposes of this input controller, releasing all listeners.
  */
@@ -98,6 +100,10 @@ InputController::~InputController() {
         _touchListener->release();
         _touchListener = nullptr;
     }
+	/* if (_mouseListener != nullptr) {
+		_mouseListener->release();
+		_mouseListener = nullptr;
+	} */
 }
 
 /**
@@ -203,6 +209,8 @@ void InputController::update(float dt) {
     
     _keyLeft  = keys->keyDown(EventKeyboard::KeyCode::KEY_LEFT_ARROW);
     _keyRight = keys->keyDown(EventKeyboard::KeyCode::KEY_RIGHT_ARROW);
+
+	
 #endif
     // Nothing to do for MOBILE CONTROLS
 
@@ -221,6 +229,8 @@ void InputController::update(float dt) {
     if (_keyLeft) {
         _horizontal -= 1.0f;
     }
+
+	
   
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
     // Need to clear keys in the mobile state
