@@ -62,6 +62,11 @@ float WALL[WALL_COUNT][WALL_VERTS] = {
 #define PLATFORM_VERTS  8
 #define PLATFORM_COUNT  10
 
+/** The number of buildings */
+#define BUILDING_COUNT 0   // TODO Update this with the actual number
+/** The number of types of buildings */
+#define BUILDING_TYPES 11
+
 /** The outlines of all of the platforms */
 float PLATFORMS[PLATFORM_COUNT][PLATFORM_VERTS] = {
     { 1.0f, 3.0f, 6.0f, 3.0f, 6.0f, 2.5f, 1.0f, 2.5f},
@@ -76,7 +81,6 @@ float PLATFORMS[PLATFORM_COUNT][PLATFORM_VERTS] = {
     { 1.0f,12.5f, 7.0f,12.5f, 7.0f,12.0f, 1.0f,12.0f}
 };
 
-
 /** The goal door position */
 float GOAL_POS[] = { 4.0f,14.0f};
 /** The position of the spinning barrier */
@@ -90,7 +94,7 @@ float BRIDGE_POS[] = {9.0f, 3.8f};
 #pragma mark -
 #pragma mark Physics Constants
 /** The new heavier gravity for this world (so it is not so floaty) */
-#define DEFAULT_GRAVITY -14.7f  //0.0f
+#define DEFAULT_GRAVITY 0.0f  //-14.7f
 /** The density for most physics objects */
 #define BASIC_DENSITY   0.0f
 /** The density for a bullet */
@@ -134,6 +138,9 @@ const string buildingTextures[] = {
 ***************** END OF CODE ADDED FOR SHADE ****************
 ************************************************************ */
 
+#define EXPOSURE_LIMIT 1.0f
+// TODO Aaron: define EXPOSURE_INCREMENT, EXPOSURE_DECREMENT
+
 /** The key for the earth texture in the asset manager */
 #define EARTH_TEXTURE   "earth"
 /** The key for the win door texture in the asset manager */
@@ -146,6 +153,10 @@ const string buildingTextures[] = {
 #define WALL_NAME       "wall"
 /** The name of a platform (for object identification) */
 #define PLATFORM_NAME   "platform"
+/** The name of a shadow (for object identification) */
+#define SHADOW_NAME "shadow"
+/** The name of a building (for object identification) */
+#define BUILDING_NAME "building"
 /** The font for victory/failure messages */
 #define MESSAGE_FONT    "retro"
 /** The message for winning the game */
@@ -270,6 +281,13 @@ bool GameController::init(RootLayer* root, const Rect& rect, const Vec2& gravity
 
     _input.init(screen);
     _input.start();
+
+	
+	/** First value: type of building 
+		second value: number of vertices
+		third value: the vertices */
+	_buildings = new tuple<int, int, float*, float*>[BUILDING_COUNT];
+	// TODO fill in _buildings
     
     // Create the world; there are no listeners this time.
     _world = WorldController::create(rect,gravity);
@@ -304,6 +322,13 @@ bool GameController::init(RootLayer* root, const Rect& rect, const Vec2& gravity
                            root->getContentSize().height/2.0f);
     _losenode->setColor(LOSE_COLOR);
     setFailure(false);
+
+	// Starting exposure is 0
+	_exposure = 0.0f;
+
+	// TODO Aaron: Declare some sprite that will act as a display for exbuildposure in PFGameController.h.
+	// TODO Aaron: Initialize the sprite for exposure here.
+	// TODO Aaron: Update the sprite to display the current exposure in the update() method in this file.
 
     // Add everything to the root and retain
     root->addChild(_worldnode,0);
@@ -484,6 +509,7 @@ void GameController::populate() {
     sprite = PolygonNode::createWithTexture(image);
     _avatar = DudeModel::create(dudePos,_scale);
     _avatar->setDrawScale(_scale);
+	_avatar->setGrounded(true);
     
     // Add the scene graph nodes to this object
     sprite = PolygonNode::createWithTexture(image);
@@ -505,8 +531,64 @@ void GameController::populate() {
 	******************** CODE ADDED FOR SHADE ********************
 	************************************************************ */
 
-#pragma mark : Buildings and Shadows
+#pragma mark : Buildings
+	for (int buildingIndex = 0; buildingIndex < BUILDING_COUNT; buildingIndex++) {
+		image = _assets->get<Texture2D>(buildingTextures[get<0>(_buildings[buildingIndex]) * 4]);
+		PolygonObstacle* builobj;
+		Poly2 building(get<2>(_buildings[buildingIndex]), get<1>(_buildings[buildingIndex]));
+		building.triangulate();
+		builobj = PolygonObstacle::create(building);
+		builobj->setDrawScale(_scale.x, _scale.y);
+		// You cannot add constant "".  Must stringify
+		builobj->setName(std::string(BUILDING_NAME) + cocos2d::to_string(buildingIndex));
 
+		// Set the physics attributes
+		builobj->setBodyType(b2_staticBody);
+		builobj->setDensity(BASIC_DENSITY);
+		builobj->setFriction(BASIC_FRICTION);
+		builobj->setRestitution(BASIC_RESTITUTION);
+
+		// Add the scene graph nodes to this object
+		building *= _scale;
+		sprite = PolygonNode::createWithTexture(image, building);
+		builobj->setSceneNode(sprite);
+
+		draw = WireNode::create();
+		draw->setColor(DEBUG_COLOR);
+		draw->setOpacity(DEBUG_OPACITY);
+		builobj->setDebugNode(draw);
+		addObstacle(builobj, 1);
+	}
+
+#pragma mark : Shadows
+	for (int shadowIndex = 0; shadowIndex < BUILDING_COUNT; shadowIndex++) {
+		image = _assets->get<Texture2D>(buildingTextures[get<0>(_buildings[shadowIndex]) * 4 + 2]);
+		PolygonObstacle* shadobj;
+		Poly2 shadow(get<3>(_buildings[shadowIndex]), get<1>(_buildings[shadowIndex]));
+		shadow.triangulate();
+		shadobj = PolygonObstacle::create(shadow);
+		shadobj->setDrawScale(_scale.x, _scale.y);
+		// You cannot add constant "".  Must stringify
+		shadobj->setName(std::string(SHADOW_NAME) + cocos2d::to_string(shadowIndex));
+
+		// Set the physics attributes
+		shadobj->setBodyType(b2_staticBody);
+		shadobj->setDensity(0.0f);
+		shadobj->setFriction(0.0f);
+		shadobj->setRestitution(0.0f);
+		shadobj->setSensor(true);
+
+		// Add the scene graph nodes to this object
+		shadow *= _scale;
+		sprite = PolygonNode::createWithTexture(image, shadow);
+		shadobj->setSceneNode(sprite);
+
+		draw = WireNode::create();
+		draw->setColor(DEBUG_COLOR);
+		draw->setOpacity(DEBUG_OPACITY);
+		shadobj->setDebugNode(draw);
+		addObstacle(shadobj, 0);  // This should be behind buildings
+	}
 
 
 
@@ -641,8 +723,11 @@ void GameController::update(float dt) {
         createBullet();
     }
     
+   // TODO Aaron: uncomment this    inShadow ? _exposure += EXPOSURE_INCREMENT : _exposure -= EXPOSURE_DECREMENT
+
+   // TODO Aaron: replace _avatar->getY() with exposure >= EXPOSURE_LIMIT in the following code
     // Record failure if necessary.
-    if (!_failed && _avatar->getY() < 0) {
+    if (!_failed && _avatar->getY() < 0) {  
         setFailure(true);
     }
     
@@ -737,13 +822,23 @@ void GameController::beginContact(b2Contact* contact) {
         removeBullet(bd2);
     }
 
-    // See if we have landed on the ground.
+    /* // See if we have landed on the ground.
     if ((_avatar->getSensorName() == fd2 && _avatar != bd1) ||
         (_avatar->getSensorName() == fd1 && _avatar != bd2)) {
         _avatar->setGrounded(true);
+		
         // Could have more than one ground
         _sensorFixtures.emplace(_avatar == bd1 ? fix2 : fix1);
-    }
+    } */
+
+	// See if we are in a shadow. THIS IS HORRIBLY INEFFICIENT, WE'LL CHANGE THIS
+	if ((_avatar->getSensorName() == fd2 && bd1->getName().find(SHADOW_NAME) == 0) ||
+		(_avatar->getSensorName() == fd1 && bd2->getName().find(SHADOW_NAME) == 0)) {
+		_inShadow = true;
+
+		// Could have more than one ground
+		_sensorFixtures.emplace(_avatar == bd1 ? fix2 : fix1);
+	}
     
     // If we hit the "win" door, we are done
     if((bd1 == _avatar   && bd2 == _goalDoor) ||
@@ -777,7 +872,8 @@ void GameController::endContact(b2Contact* contact) {
         (_avatar->getSensorName() == fd1 && _avatar != bd2)) {
         _sensorFixtures.erase(_avatar == bd1 ? fix2 : fix1);
         if (_sensorFixtures.empty()) {
-            _avatar->setGrounded(false);
+           // _avatar->setGrounded(false);
+			_inShadow = false;
         }
     }
 }
@@ -803,7 +899,7 @@ void GameController::preload() {
 	******************** CODE ADDED FOR SHADE ********************
 	************************************************************ */
 
-	for (int building_index = 0; building_index < 11; building_index++) {
+	for (int building_index = 0; building_index < BUILDING_TYPES; building_index++) {
 		tloader->loadAsync(buildingTextures[building_index * 4],
 			"textures/buildings/" + buildingTextures[building_index * 4 + 1]);
 		tloader->loadAsync(buildingTextures[building_index * 4 + 2],

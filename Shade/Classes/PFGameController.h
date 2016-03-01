@@ -22,13 +22,13 @@
 
 #include "cocos2d.h"
 #include <vector>
+#include <tuple>
 #include <Box2D/Dynamics/b2WorldCallbacks.h>
 #include <Box2D/Dynamics/Joints/b2MouseJoint.h>
 #include <Box2D/Dynamics/b2Body.h>
 #include <Box2D/Dynamics/b2Fixture.h>
 #include "PFInputController.h"
 #include <unordered_set>
-#include <vector>
 
 // We need a lot of forward references to the classes used by this controller
 // These forward declarations are in cocos2d namespace
@@ -63,6 +63,17 @@ using namespace std;
  */
 class GameController {
 protected:
+	/**	
+	* Arrays of tuples holding building and shadow data.
+	*
+	* In each tuple,
+	* - first value: type of building
+	* - second value: number of vertices
+	* - third value: the building vertices
+	* - fourth value: the shadow vertices
+	*/
+	tuple<int, int, float*, float*> * _buildings;
+
     /** The scene manager for this game demo */
     SceneManager* _assets;
     
@@ -103,6 +114,10 @@ protected:
     bool _debug;
     /** Whether we have failed at this world (and need a reset) */
     bool _failed;
+	/** Whether we are in a shadow */
+	bool _inShadow;
+	/** The current level of exposure */
+	float _exposure;
     /** Countdown active for winning or losing */
     int _countdown;
     
