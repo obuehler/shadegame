@@ -90,6 +90,10 @@ protected:
     Label* _winnode;
     /** Reference to the lose message label */
     Label* _losenode;
+	/** Reference to the timer message label */
+	Label* _timernode;
+	/** Reference to the exposure message label */
+	Label* _exposurenode;
 
     /** The Box2D world */
     WorldController* _world;

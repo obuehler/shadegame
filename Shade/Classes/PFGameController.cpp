@@ -138,8 +138,7 @@ const string buildingTextures[] = {
 ***************** END OF CODE ADDED FOR SHADE ****************
 ************************************************************ */
 
-#define EXPOSURE_LIMIT 1.0f
-// TODO Aaron: define EXPOSURE_INCREMENT, EXPOSURE_DECREMENT
+#define EXPOSURE_LIMIT 3.0f // seconds before you die
 
 /** The key for the earth texture in the asset manager */
 #define EARTH_TEXTURE   "earth"
@@ -328,6 +327,19 @@ bool GameController::init(RootLayer* root, const Rect& rect, const Vec2& gravity
 
 	// TODO Aaron: Declare some sprite that will act as a display for exbuildposure in PFGameController.h.
 	// TODO Aaron: Initialize the sprite for exposure here.
+	_timernode = Label::create();
+	_timernode->setTTFConfig(_assets->get<TTFont>(MESSAGE_FONT)->getTTF());
+	_timernode->setString("");
+	_timernode->setPosition(60, root->getContentSize().height - 30);
+	_timernode->setColor(WIN_COLOR);
+	_timernode->setVisible(true);
+
+	_exposurenode = Label::create();
+	_exposurenode->setTTFConfig(_assets->get<TTFont>(MESSAGE_FONT)->getTTF());
+	_exposurenode->setString("");
+	_exposurenode->setPosition(root->getContentSize().width - 30, root->getContentSize().height - 30);
+	_exposurenode->setColor(WIN_COLOR);
+	_exposurenode->setVisible(true);
 	// TODO Aaron: Update the sprite to display the current exposure in the update() method in this file.
 
     // Add everything to the root and retain
@@ -335,6 +347,8 @@ bool GameController::init(RootLayer* root, const Rect& rect, const Vec2& gravity
     root->addChild(_debugnode,1);
     root->addChild(_winnode,3);
     root->addChild(_losenode,4);
+	//root->addChild(_timernode, 5);
+	root->addChild(_exposurenode, 6);
     _rootnode = root;
     _rootnode->retain();
     
@@ -366,6 +380,8 @@ void GameController::dispose() {
     _worldnode = nullptr;
     _debugnode = nullptr;
     _winnode = nullptr;
+	_timernode = nullptr;
+	_exposurenode = nullptr;
     _rootnode->removeAllChildren();
     _rootnode->release();
     _rootnode = nullptr;
@@ -634,6 +650,7 @@ void GameController::reset() {
     _worldnode->removeAllChildren();
     _debugnode->removeAllChildren();
     
+	_exposure = 0;
     setFailure(false);
     setComplete(false);
     populate();
@@ -723,13 +740,18 @@ void GameController::update(float dt) {
         createBullet();
     }
     
-   // TODO Aaron: uncomment this    inShadow ? _exposure += EXPOSURE_INCREMENT : _exposure -= EXPOSURE_DECREMENT
+    // Check for exposure or cover
+	if (_inShadow)
+		_exposure = max(_exposure - dt, 0.0f);
+	else
+		_exposure += dt;
 
-   // TODO Aaron: replace _avatar->getY() with exposure >= EXPOSURE_LIMIT in the following code
-    // Record failure if necessary.
-    if (!_failed && _avatar->getY() < 0) {  
-        setFailure(true);
-    }
+	if (!_failed && !_complete)
+		_exposurenode->setString(std::to_string((int)_exposure));
+   
+	if (!_failed && _exposure > EXPOSURE_LIMIT)
+		setFailure(true);
+
     
     // Reset the game if we win or lose.
     if (_countdown > 0) {
