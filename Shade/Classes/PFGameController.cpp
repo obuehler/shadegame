@@ -102,7 +102,7 @@ float BRIDGE_POS[] = {9.0f, 3.8f};
 /** Friction of most platforms */
 #define BASIC_FRICTION  0.4f
 /** The restitution for all physics objects */
-#define BASIC_RESTITUTION   0.1f
+#define BASIC_RESTITUTION   0.0f
 /** The width of the rope bridge */
 #define BRIDGE_WIDTH    14.0f
 /** Offset for bullet when firing */
