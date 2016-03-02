@@ -63,7 +63,7 @@ float WALL[WALL_COUNT][WALL_VERTS] = {
 #define PLATFORM_COUNT  10
 
 /** The number of buildings */
-#define BUILDING_COUNT 0   // TODO Update this with the actual number
+#define BUILDING_COUNT 1   // TODO Update this with the actual number
 /** The number of types of buildings */
 #define BUILDING_TYPES 11
 
@@ -138,7 +138,7 @@ const string buildingTextures[] = {
 ***************** END OF CODE ADDED FOR SHADE ****************
 ************************************************************ */
 
-#define EXPOSURE_LIMIT 5.0f // seconds before you die
+#define EXPOSURE_LIMIT 5555555555.0f // seconds before you die
 
 /** The key for the earth texture in the asset manager */
 #define EARTH_TEXTURE   "earth"
@@ -286,6 +286,9 @@ bool GameController::init(RootLayer* root, const Rect& rect, const Vec2& gravity
 		second value: number of vertices
 		third value: the vertices */
 	_buildings = new tuple<int, int, float*, float*>[BUILDING_COUNT];
+	float b[8] = { 1.0, 10.0, 5.0, 10.0, 5.0, 8.0, 1.0, 8.0 };
+	float s[8] = { 1.0, 10.0, 5.0, 10.0, 5.0, 6.0, 1.0, 6.0 };
+	_buildings[0] = make_tuple(0, 8, b, s);
 	// TODO fill in _buildings
     
     // Create the world; there are no listeners this time.
