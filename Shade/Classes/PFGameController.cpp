@@ -63,7 +63,7 @@ float WALL[WALL_COUNT][WALL_VERTS] = {
 #define PLATFORM_COUNT  10
 
 /** The number of buildings */
-#define BUILDING_COUNT 1   // TODO Update this with the actual number
+#define BUILDING_COUNT 2   // TODO Update this with the actual number
 /** The number of types of buildings */
 #define BUILDING_TYPES 11
 
@@ -138,7 +138,7 @@ const string buildingTextures[] = {
 ***************** END OF CODE ADDED FOR SHADE ****************
 ************************************************************ */
 
-#define EXPOSURE_LIMIT 5555555555.0f // seconds before you die
+#define EXPOSURE_LIMIT 5.0f // seconds before you die
 
 /** The key for the earth texture in the asset manager */
 #define EARTH_TEXTURE   "earth"
@@ -289,7 +289,9 @@ bool GameController::init(RootLayer* root, const Rect& rect, const Vec2& gravity
 	float b[8] = { 1.0, 10.0, 5.0, 10.0, 5.0, 8.0, 1.0, 8.0 };
 	float s[8] = { 1.0, 10.0, 5.0, 10.0, 5.0, 6.0, 1.0, 6.0 };
 	_buildings[0] = make_tuple(0, 8, b, s);
-	// TODO fill in _buildings
+	float b2[8] = { 12, 10, 16, 14, 16, 10, 12, 8 };
+	float s2[8] = { 12, 10, 16, 14, 16, 8, 12, 6 };
+	_buildings[1] = make_tuple(0, 8, b2, s2);
     
     // Create the world; there are no listeners this time.
     _world = WorldController::create(rect,gravity);
@@ -439,6 +441,7 @@ void GameController::populate() {
     
 #pragma mark : Walls
     // All walls and platforms share the same texture
+	/*
     image  = _assets->get<Texture2D>(EARTH_TEXTURE);
     string wname = "wall";
     for (int ii = 0; ii < WALL_COUNT; ii++) {
@@ -521,6 +524,7 @@ void GameController::populate() {
     _ropebridge->setSceneNode(node);
     _ropebridge->setDebugNode(draw);
     addObstacle(_ropebridge, 3);
+	*/
 
 #pragma mark : Dude
     Vec2 dudePos = DUDE_POS;
