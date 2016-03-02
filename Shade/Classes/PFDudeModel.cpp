@@ -45,6 +45,7 @@
 #include <cornell/CUPolygonNode.h>
 #include <cornell/CUAssetManager.h>
 #include <cornell/CUSceneManager.h>
+#include <math.h>
 
 #define SIGNUM(x)  ((x > 0) - (x < 0))
 
@@ -202,10 +203,10 @@ bool DudeModel::init(const Vec2& pos, const Vec2& scale) {
  *
  * @param value left/right movement of this character.
  */
-void DudeModel::setMovement(float value) {
-    _movement = value;
-    bool face = _movement > 0;
-    if (_movement == 0 || _faceRight == face) {
+void DudeModel::setHorizontalMovement(float value) {
+    _horizontalMovement = value;
+    bool face = _horizontalMovement > 0;
+    if (_horizontalMovement == 0 || _faceRight == face) {
         return;
     }
     
@@ -214,7 +215,11 @@ void DudeModel::setMovement(float value) {
     if (image != nullptr) {
         image->flipHorizontal(!image->isFlipHorizontal());
     }
-    _faceRight = (_movement > 0);
+    _faceRight = (_horizontalMovement > 0);
+}
+
+void DudeModel::setVerticalMovement(float value) {
+	_verticalMovement = value;
 }
 
 
@@ -282,16 +287,23 @@ void DudeModel::applyForce() {
     }
     
     // Don't want to be moving. Damp out player motion
-    if (getMovement() == 0.0f) {
+    if (getHorizontalMovement() == 0.0f) {
         b2Vec2 force(-getDamping()*getVX(),0);
         _body->ApplyForce(force,_body->GetPosition(),true);
     }
+
+	if (getVerticalMovement() == 0.0f) {
+		b2Vec2 force(0, -getDamping()*getVY());
+		_body->ApplyForce(force, _body->GetPosition(), true);
+	}
     
     // Velocity too high, clamp it
-    if (fabs(getVX()) >= getMaxSpeed()) {
-        setVX(SIGNUM(getVX())*getMaxSpeed());
+    if ((pow(pow(getVX(), 2) + pow(getVY(), 2), 0.5)) >= getMaxSpeed()) {
+        //setVX(SIGNUM(getVX())*getMaxSpeed());
+		setVX((getVX() / pow(pow(getVX(), 2) + pow(getVY(), 2), 0.5)) * getMaxSpeed());
+		setVY((getVY() / pow(pow(getVX(), 2) + pow(getVY(), 2), 0.5)) * getMaxSpeed());
     } else {
-        b2Vec2 force(getMovement(),0);
+        b2Vec2 force(getHorizontalMovement(),getVerticalMovement());
         _body->ApplyForce(force,_body->GetPosition(),true);
     }
     

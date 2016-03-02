@@ -55,6 +55,9 @@ private:
     bool  _keyExit;
     bool  _keyLeft;
     bool  _keyRight;
+	bool  _keyUp;
+	bool  _keyDown;
+
 
     
 protected:

@@ -84,7 +84,9 @@ private:
 
 protected:
     /** The current horizontal movement of the character */
-    float _movement;
+    float _horizontalMovement;
+	/** The current horizontal movement of the character */
+	float _verticalMovement;
     /** Which direction is the character facing */
     bool _faceRight;
     /** How long until we can jump again */
@@ -171,7 +173,16 @@ public:
      *
      * @return left/right movement of this character.
      */
-    float getMovement() const { return _movement; }
+    float getHorizontalMovement() const { return _horizontalMovement; }
+
+	/**
+	* Returns left/right movement of this character.
+	*
+	* This is the result of input times dude force.
+	*
+	* @return left/right movement of this character.
+	*/
+	float getVerticalMovement() const { return _verticalMovement; }
     
     /**
      * Sets left/right movement of this character.
@@ -180,7 +191,16 @@ public:
      *
      * @param value left/right movement of this character.
      */
-    void setMovement(float value);
+    void setHorizontalMovement(float value);
+
+	/**
+	* Sets up/down movement of this character.
+	*
+	* This is the result of input times dude force.
+	*
+	* @param value up/down movement of this character.
+	*/
+	void setVerticalMovement(float value);
     
     /**
      * Returns true if the dude is actively firing.

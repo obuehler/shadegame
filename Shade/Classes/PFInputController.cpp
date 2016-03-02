@@ -209,6 +209,8 @@ void InputController::update(float dt) {
     
     _keyLeft  = keys->keyDown(EventKeyboard::KeyCode::KEY_LEFT_ARROW);
     _keyRight = keys->keyDown(EventKeyboard::KeyCode::KEY_RIGHT_ARROW);
+	_keyUp = keys->keyDown(EventKeyboard::KeyCode::KEY_UP_ARROW);
+	_keyDown = keys->keyDown(EventKeyboard::KeyCode::KEY_DOWN_ARROW);
 
 	
 #endif
@@ -223,12 +225,19 @@ void InputController::update(float dt) {
     
     // Directional controls
     _horizontal = 0.0f;
+	_vertical = 0.0f;
     if (_keyRight) {
         _horizontal += 1.0f;
     }
     if (_keyLeft) {
         _horizontal -= 1.0f;
     }
+	if (_keyUp) {
+		_vertical += 1.0f;
+	}
+	if (_keyDown) {
+		_vertical -= 1.0f;
+	}
 
 	
   

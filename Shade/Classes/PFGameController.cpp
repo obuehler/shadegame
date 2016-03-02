@@ -138,7 +138,7 @@ const string buildingTextures[] = {
 ***************** END OF CODE ADDED FOR SHADE ****************
 ************************************************************ */
 
-#define EXPOSURE_LIMIT 3.0f // seconds before you die
+#define EXPOSURE_LIMIT 5.0f // seconds before you die
 
 /** The key for the earth texture in the asset manager */
 #define EARTH_TEXTURE   "earth"
@@ -337,7 +337,7 @@ bool GameController::init(RootLayer* root, const Rect& rect, const Vec2& gravity
 	_exposurenode = Label::create();
 	_exposurenode->setTTFConfig(_assets->get<TTFont>(MESSAGE_FONT)->getTTF());
 	_exposurenode->setString("");
-	_exposurenode->setPosition(root->getContentSize().width - 30, root->getContentSize().height - 30);
+	_exposurenode->setPosition(root->getContentSize().width - 50, root->getContentSize().height - 30);
 	_exposurenode->setColor(WIN_COLOR);
 	_exposurenode->setVisible(true);
 	// TODO Aaron: Update the sprite to display the current exposure in the update() method in this file.
@@ -708,24 +708,34 @@ void GameController::setFailure(bool value) {
  * @param  delta    Number of seconds since last animation frame
  */
 void GameController::update(float dt) {
-    _input.update(dt);
-    
-    // Process the toggled key commands
-    if (_input.didDebug()) { setDebug(!isDebug()); }
-    if (_input.didReset()) { reset(); }
-    if (_input.didExit())  {
-        _rootnode->shutdown();
-    }
-    
-    // Process the movement
-    _avatar->setMovement(_input.getHorizontal()*_avatar->getForce());
-    _avatar->setJumping( _input.didJump());
-    _avatar->applyForce();
+	_input.update(dt);
 
-    if (_avatar->isJumping()) {
+	// Process the toggled key commands
+	if (_input.didDebug()) { setDebug(!isDebug()); }
+	if (_input.didReset()) { reset(); }
+	if (_input.didExit()) {
+		_rootnode->shutdown();
+	}
+
+	if (!_failed && !_complete) {
+	
+		// Process the movement
+		_avatar->setHorizontalMovement(_input.getHorizontal()*_avatar->getForce());
+		_avatar->setVerticalMovement(_input.getVertical()*_avatar->getForce());
+		//_avatar->setJumping( _input.didJump());
+		_avatar->applyForce();
+
+	}
+	else {
+		_avatar->setVX(0.0f);
+		_avatar->setVY(0.0f);
+		_avatar->setAngularVelocity(0.0f);
+	}
+
+    /* if (_avatar->isJumping()) {
         Sound* source = _assets->get<Sound>(JUMP_EFFECT);
         SoundEngine::getInstance()->playEffect(JUMP_EFFECT,source,false,EFFECT_VOLUME);
-    }
+     */
 
     // Turn the physics engine crank.
     _world->update(dt);
@@ -746,11 +756,12 @@ void GameController::update(float dt) {
 	else
 		_exposure += dt;
 
-	if (!_failed && !_complete)
-		_exposurenode->setString(std::to_string((int)_exposure));
-   
-	if (!_failed && _exposure > EXPOSURE_LIMIT)
-		setFailure(true);
+	if (!_failed && !_complete) {
+		_exposurenode->setString(std::to_string((int)(
+			(_exposure / EXPOSURE_LIMIT) * 100)) + "%");
+		if (_exposure > EXPOSURE_LIMIT)
+			setFailure(true);
+	}
 
     
     // Reset the game if we win or lose.
