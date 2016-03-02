@@ -68,7 +68,7 @@ protected:
 	*
 	* In each tuple,
 	* - first value: type of building
-	* - second value: number of vertices
+	* - second value: number of vertices * 2
 	* - third value: the building vertices
 	* - fourth value: the shadow vertices
 	*/

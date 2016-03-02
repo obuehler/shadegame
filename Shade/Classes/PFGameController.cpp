@@ -283,11 +283,11 @@ bool GameController::init(RootLayer* root, const Rect& rect, const Vec2& gravity
 
 	
 	/** First value: type of building 
-		second value: number of vertices
+		second value: number of vertices * 2
 		third value: the vertices */
 	_buildings = new tuple<int, int, float*, float*>[BUILDING_COUNT];
-	float b[8] = { 1.0, 10.0, 5.0, 10.0, 5.0, 8.0, 1.0, 8.0 };
-	float s[8] = { 1.0, 10.0, 5.0, 10.0, 5.0, 6.0, 1.0, 6.0 };
+	float b[8] = { 1.0, 11.0, 5.0, 11.0, 5.0, 3.0, 1.0, 3.0 };
+	float s[8] = { 11.0, 11.0, 12.0, 11.0, 12.0, 10.0, 11.0, 10.0 };
 	_buildings[0] = make_tuple(0, 8, b, s);
 	float b2[8] = { 12, 10, 16, 14, 16, 10, 12, 8 };
 	float s2[8] = { 12, 10, 16, 14, 16, 8, 12, 6 };
@@ -557,11 +557,17 @@ void GameController::populate() {
 #pragma mark : Buildings
 	for (int buildingIndex = 0; buildingIndex < BUILDING_COUNT; buildingIndex++) {
 		image = _assets->get<Texture2D>(buildingTextures[get<0>(_buildings[buildingIndex]) * 4]);
+		Size buildingSize(image->getContentSize().width*cscale / _scale.x,
+			image->getContentSize().height*cscale / _scale.y);
+		
 		PolygonObstacle* builobj;
-		Poly2 building(get<2>(_buildings[buildingIndex]), get<1>(_buildings[buildingIndex]));
+		float * verts = get<2>(_buildings[buildingIndex]);
+		Poly2 building(verts, get<1>(_buildings[buildingIndex]));
 		building.triangulate();
 		builobj = PolygonObstacle::create(building);
+
 		builobj->setDrawScale(_scale.x, _scale.y);
+
 		// You cannot add constant "".  Must stringify
 		builobj->setName(std::string(BUILDING_NAME) + cocos2d::to_string(buildingIndex));
 
