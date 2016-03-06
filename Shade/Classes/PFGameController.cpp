@@ -63,7 +63,7 @@ float WALL[WALL_COUNT][WALL_VERTS] = {
 #define PLATFORM_COUNT  10
 
 /** The number of buildings */
-#define BUILDING_COUNT 2   // TODO Update this with the actual number
+#define BUILDING_COUNT 5   // TODO Update this with the actual number
 /** The number of types of buildings */
 #define BUILDING_TYPES 11
 
@@ -282,16 +282,25 @@ bool GameController::init(RootLayer* root, const Rect& rect, const Vec2& gravity
     _input.start();
 
 	
-	/** First value: type of building 
-		second value: number of vertices * 2
-		third value: the vertices */
+	/** First value: type of building
+	second value: number of vertices
+	third value: the vertices */
 	_buildings = new tuple<int, int, float*, float*>[BUILDING_COUNT];
-	float b[8] = { 1.0, 11.0, 5.0, 11.0, 5.0, 3.0, 1.0, 3.0 };
-	float s[8] = { 11.0, 11.0, 12.0, 11.0, 12.0, 10.0, 11.0, 10.0 };
+	float b[8] = { 1.0, 10.0, 5.0, 10.0, 5.0, 8.0, 1.0, 8.0 };
+	float s[8] = { 1.0, 10.0, 5.0, 10.0, 5.0, 6.0, 1.0, 6.0 };
 	_buildings[0] = make_tuple(0, 8, b, s);
 	float b2[8] = { 12, 10, 16, 14, 16, 10, 12, 8 };
 	float s2[8] = { 12, 10, 16, 14, 16, 8, 12, 6 };
 	_buildings[1] = make_tuple(0, 8, b2, s2);
+	float b3[8] = { 16, 12, 19, 12, 19, 10, 16, 10 };
+	float s3[8] = { 16, 12, 19, 12, 19, 4, 16, 4 };
+	_buildings[2] = make_tuple(0, 8, b3, s3);
+	float b4[8] = { 20, 12, 25, 12, 25, 8, 20, 8 };
+	float s4[8] = { 20, 12, 25, 12, 25, 5, 20, 5 };
+	_buildings[3] = make_tuple(0, 8, b4, s4);
+	float b5[8] = { 0, 11, 1, 12, 1, 9, 0, 8 };
+	float s5[8] = { 0, 11, 1, 12, 1, 8, 0, 7 };
+	_buildings[4] = make_tuple(0, 8, b5, s5);
     
     // Create the world; there are no listeners this time.
     _world = WorldController::create(rect,gravity);
@@ -557,17 +566,12 @@ void GameController::populate() {
 #pragma mark : Buildings
 	for (int buildingIndex = 0; buildingIndex < BUILDING_COUNT; buildingIndex++) {
 		image = _assets->get<Texture2D>(buildingTextures[get<0>(_buildings[buildingIndex]) * 4]);
-		Size buildingSize(image->getContentSize().width*cscale / _scale.x,
-			image->getContentSize().height*cscale / _scale.y);
-		
+
 		PolygonObstacle* builobj;
-		float * verts = get<2>(_buildings[buildingIndex]);
-		Poly2 building(verts, get<1>(_buildings[buildingIndex]));
+		Poly2 building(get<2>(_buildings[buildingIndex]), get<1>(_buildings[buildingIndex]));
 		building.triangulate();
 		builobj = PolygonObstacle::create(building);
-
 		builobj->setDrawScale(_scale.x, _scale.y);
-
 		// You cannot add constant "".  Must stringify
 		builobj->setName(std::string(BUILDING_NAME) + cocos2d::to_string(buildingIndex));
 
@@ -577,7 +581,12 @@ void GameController::populate() {
 		builobj->setFriction(BASIC_FRICTION);
 		builobj->setRestitution(BASIC_RESTITUTION);
 
-		// Add the scene graph nodes to this object
+		// Add the scene graph nodes to this object		
+		/* float b22[8] = { 0, 141, 241, 141, 241, 50, 0, 50 };
+		Poly2 building2(b22, 8);
+		building2.triangulate();
+		sprite = PolygonNode::createWithTexture(image, building2);
+		sprite->setScale((3.0f /241.0f) * _scale.x, (2.0f / 92.0f) * _scale.y); */
 		building *= _scale;
 		sprite = PolygonNode::createWithTexture(image, building);
 		builobj->setSceneNode(sprite);
@@ -969,4 +978,11 @@ void GameController::preload() {
     _assets->loadAsync<Sound>(PEW_EFFECT,   "sounds/pew.mp3");
     _assets->loadAsync<Sound>(POP_EFFECT,   "sounds/plop.mp3");
     _assets->loadAsync<TTFont>(MESSAGE_FONT,"fonts/RetroGame.ttf");
+}
+
+/**
+* Clear all memory when exiting.
+*/
+void GameController::stop() {
+	delete _buildings[];
 }

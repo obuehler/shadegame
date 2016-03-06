@@ -62,6 +62,7 @@ void PlatformRoot::stop() {
 
     SoundEngine::getInstance()->stopAll();
     AssetManager::getInstance()->stopScene(scene);
+	_gameplay.stop();
 }
 
 /**

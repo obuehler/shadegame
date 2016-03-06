@@ -359,6 +359,11 @@ public:
      */
     void removeBullet(Obstacle* bullet);
 
+	/**
+	* Clear all memory when exiting.
+	*/
+	void stop();
+
 };
 
 #endif /* defined(__PF_GAME_CONTROLLER_H__) */
