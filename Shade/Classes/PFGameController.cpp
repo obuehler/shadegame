@@ -984,5 +984,5 @@ void GameController::preload() {
 * Clear all memory when exiting.
 */
 void GameController::stop() {
-	delete _buildings[];
+	delete[] _buildings;
 }
