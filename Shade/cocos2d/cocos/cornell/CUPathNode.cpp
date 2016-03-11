@@ -128,7 +128,7 @@ PathNode* PathNode::createWithLine(const Vec2 &origin, const Vec2 &dest, float s
     GLfloat verts[4];
     verts[0] = origin.x; verts[1] = origin.y;
     verts[2] = dest.x;   verts[3] = dest.y;
-    node->_polygon.set(verts,0,4);
+    node->_polygon.set(verts,4,0);
     
     if (node->init(node->_polygon)) {
         node->autorelease();
@@ -176,7 +176,7 @@ PathNode* PathNode::createWithCircle(const Vec2& center, const Size& size, float
         verts[2 * ii] = 0.5f * size.width  * cosf(rads) + center.x;
         verts[2 * ii + 1] = 0.5f * size.height * sinf(rads) + center.y;
     }
-    node->_polygon.set(verts, 0, counts);
+    node->_polygon.set(verts, counts, 0);
 #endif
     
     if (node->init(node->_polygon)) {

@@ -285,7 +285,7 @@ bool TexturedNode::initWithTexture(Texture2D *texture, const Poly2& poly) {
         // Update texture (calls updateBlendFunc)
         setTexture(texture);
         setPolygon(poly);
-        
+
         result = true;
     }
     
@@ -619,10 +619,12 @@ TrianglesCommand::Triangles& TexturedNode::allocTriangles(const Poly2& poly) {
 void TexturedNode::clearRenderData() {
     if (_triangles.verts != nullptr) {
         delete[] _triangles.verts;
+        _triangles.verts = nullptr;
     }
     _triangles.vertCount = 0;
     if (_triangles.indices != nullptr) {
         delete[] _triangles.indices;
+        _triangles.indices = nullptr;
     }
     _triangles.indexCount = 0;
 }

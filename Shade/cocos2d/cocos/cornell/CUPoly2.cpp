@@ -525,7 +525,7 @@ Poly2* Poly2::extrude(Poly2& poly, float stroke, bool closed, Joint joint, Cap c
     
     // Closed paths have no cap;
     if (closed && count > 2) {
-        count += 2;
+        count += 1;
         cap = Cap::NONE;
     }
     
@@ -581,10 +581,12 @@ Poly2* Poly2::extrude(Poly2& poly, float stroke, bool closed, Joint joint, Cap c
     unsigned int pos, ppos, p2pos;
     
     angle = sangle = 0;
+    pangle = pangle2 = 0;
     pos = ppos = p2pos = 0;
+    int mod = (int)_vertices.size();
     for(int ii = 0; ii < count-1; ii++) {
-        Vec2 a = _vertices[  ii   % count];
-        Vec2 b = _vertices[(ii+1) % count];
+        Vec2 a = _vertices[  ii   % mod];
+        Vec2 b = _vertices[(ii+1) % mod];
         
         if (ii > 0 && joint != Joint::NONE) {
             pc = c;
@@ -822,6 +824,120 @@ Poly2* Poly2::extrude(Poly2& poly, float stroke, bool closed, Joint joint, Cap c
             // Nothing to do.
             break;
     }
+    
+    // Add one last bevel if closed
+    if (closed && mod > 2) {
+        Vec2 a = _vertices[0];
+        Vec2 b = _vertices[1];
+        pc = c; c = b-a;
+
+        float jangle = atan2(c.x * pc.y - c.y * pc.x,c.x * pc.x + c.y * pc.y);
+        switch (joint) {
+            case Joint::BEVEL:
+            {
+                edgeverts.push_back(a);
+                if (jangle < 0) {
+                    edgeindx.push_back(pos-4);
+                    edgeindx.push_back(0    );
+                    edgeindx.push_back(pos  );
+                } else {
+                    edgeindx.push_back(pos-3);
+                    edgeindx.push_back(3    );
+                    edgeindx.push_back(pos  );
+                }
+                pos += 1;
+                break;
+            }
+            case Joint::MITRE:
+            {
+                p1 = v1; p2 = v2; p3 = v3; p4 = v4;
+                angle = atan2(c.y, c.x);
+                float a1 = angle - PI_2;
+                float a2 = angle + PI_2;
+                
+                // Calculate the position of the segment
+                Vec2 temp1 = Vec2(cos(a1) * stroke, sin(a1) * stroke);
+                Vec2 temp2 = Vec2(cos(a2) * stroke, sin(a2) * stroke);
+                
+                v1 = a+temp1; v4 = a+temp2;
+                v2 = b+temp1; v3 = b+temp2;
+                
+                edgeverts.push_back(a);
+                if (jangle < 0) {
+                    Vec2 temp;
+                    if (line_intersect(p1, p2, v1, v2, temp)) {
+                        edgeverts.push_back(temp);
+                        edgeindx.push_back(pos    );
+                        edgeindx.push_back(pos-5  );
+                        edgeindx.push_back(pos+1  );
+                        edgeindx.push_back(pos    );
+                        edgeindx.push_back(0      );
+                        edgeindx.push_back(pos+1  );
+                        pos += 2;
+                    }
+                } else {
+                    Vec2 temp;
+                    if (line_intersect(p3, p4, v3, v4, temp)) {
+                        edgeverts.push_back(temp);
+                        edgeindx.push_back(pos    );
+                        edgeindx.push_back(pos+1  );
+                        edgeindx.push_back(pos-4  );
+                        edgeindx.push_back(pos    );
+                        edgeindx.push_back(3      );
+                        edgeindx.push_back(pos+1  );
+                        pos += 2;
+                    }
+                }
+                break;
+            }
+            case Joint::ROUND:
+            {
+                // cap end
+                float a0, step;
+                unsigned int s_pos, e_pos;
+
+                angle = atan2(c.y, c.x);
+                
+                // Go back to position of joint
+                unsigned int bpos = pos-JOINT_PRECISION;
+                if (jangle < 0) {
+                    a0 = angle + PI_2;
+                    step = (abs(jangle)) / (float)JOINT_PRECISION;
+                    s_pos = 3;
+                    e_pos = bpos-3;
+                } else {
+                    a0 = angle - PI_2;
+                    step = -(abs(jangle)) / (float)JOINT_PRECISION;
+                    s_pos = 0;
+                    e_pos = bpos-2;
+                }
+                unsigned int opos = pos;
+                edgeverts.push_back(a);
+                pos += 1;
+                for(int j = 0; j <  JOINT_PRECISION - 1; j++) {
+                    edgeverts.push_back(a-Vec2(cos(a0 - step * j) * stroke,sin(a0 - step * j) * stroke));
+                    if (j == 0) {
+                        edgeindx.push_back(opos );
+                        edgeindx.push_back(s_pos);
+                        edgeindx.push_back(pos);
+                    } else {
+                        edgeindx.push_back(opos );
+                        edgeindx.push_back(pos-1);
+                        edgeindx.push_back(pos);
+                    }
+                    pos += 1;
+                }
+                edgeindx.push_back(opos );
+                edgeindx.push_back(pos-1);
+                edgeindx.push_back(e_pos);
+                break;
+            }
+            case Joint::NONE:
+                // Nothing to do
+                break;
+        }
+    }
+    
     poly._vertices.assign(edgeverts.begin(), edgeverts.end());
     poly._indices.assign(edgeindx.begin(), edgeindx.end());
     poly.computeBounds();
@@ -1196,6 +1312,7 @@ Poly2* Poly2::extrude(Poly2& poly, float stroke, bool closed, Joint joint, Cap c
             // Nothing to do.
             break;
     }
+ 
     Vec2* verts = (Vec2*)edgeverts;
     poly._vertices.assign(verts, verts+vcount);
     poly._indices.assign(edgeindx, edgeindx+icount);

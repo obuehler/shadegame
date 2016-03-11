@@ -132,6 +132,10 @@ bool RootLayer::initWithColor(const Color4B& color, const Size& size) {
         updateColor();
         setContentSize(size);
         
+        // We need to gain ownership of the texture
+        if (_texture) {
+            CC_SAFE_RETAIN(_texture);
+        }
         return true;
     }
     return false;
