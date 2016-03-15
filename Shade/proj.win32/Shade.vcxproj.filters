@@ -39,9 +39,6 @@
     <ClCompile Include="..\Classes\PFGameRoot.cpp">
       <Filter>src\view</Filter>
     </ClCompile>
-    <ClCompile Include="..\Classes\ShadeRoot.cpp">
-      <Filter>src\view</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -60,9 +57,6 @@
       <Filter>src\model</Filter>
     </ClInclude>
     <ClInclude Include="..\Classes\PFGameRoot.h">
-      <Filter>src\view</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Classes\ShadeRoot.h">
       <Filter>src\view</Filter>
     </ClInclude>
     <ClInclude Include="M_Level.h">

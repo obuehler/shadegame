@@ -80,7 +80,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <DisableSpecificWarnings>4267;4251;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4068;4267;4251;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -149,7 +149,6 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
     <ClCompile Include="..\Classes\C_Gameplay.cpp" />
     <ClCompile Include="..\Classes\PFGameRoot.cpp" />
     <ClCompile Include="..\Classes\C_Input.cpp" />
-    <ClCompile Include="..\Classes\ShadeRoot.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -159,7 +158,6 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
     <ClInclude Include="..\Classes\M_Shadow.h" />
     <ClInclude Include="..\Classes\C_Gameplay.h" />
     <ClInclude Include="..\Classes\C_Input.h" />
-    <ClInclude Include="..\Classes\ShadeRoot.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="MovingObject.h" />
     <ClInclude Include="M_Level.h" />
