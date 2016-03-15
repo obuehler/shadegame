@@ -3,6 +3,7 @@
 
 #include "cocos2d.h"
 #include <cornell/CUCapsuleObstacle.h>
+using namespace cocos2d;
 
 enum PowerupType {};  // TODO fill this
 

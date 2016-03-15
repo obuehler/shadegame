@@ -10,7 +10,7 @@
 *
 * @return  An autoreleased physics object
 */
-Powerup* Powerup::create(const Vec2& pos, const PowerupType& t, int i = 0) {
+Powerup* Powerup::create(const Vec2& pos, const PowerupType& t, int i) {
 	Powerup* p = new (std::nothrow) Powerup();
 	if (p && p->init(pos, t, i)) {
 		p->autorelease();
