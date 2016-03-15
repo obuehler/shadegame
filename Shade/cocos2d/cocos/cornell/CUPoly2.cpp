@@ -515,6 +515,7 @@ Poly2& Poly2::traverse(Traversal traversal) {
 * @return Reference to the newly initialized polygon
 */
 Poly2* Poly2::extrude(Poly2& poly, float stroke, bool closed, Joint joint, Cap cap) {
+<<<<<<< HEAD
 	CCASSERT(stroke > 0, "invalid stroke value");
 	poly._vertices.clear();
 	poly._indices.clear();
@@ -953,6 +954,436 @@ Poly2* Poly2::extrude(Poly2& poly, float stroke, bool closed, Joint joint, Cap c
 	poly._indices.assign(edgeindx.begin(), edgeindx.end());
 	poly.computeBounds();
 	return &poly;
+=======
+    CCASSERT(stroke > 0, "invalid stroke value");
+    poly._vertices.clear();
+    poly._indices.clear();
+    if (_vertices.size() == 0) {
+        return &poly;
+    }
+    
+    int count = (int)_vertices.size();
+    
+    // Closed paths have no cap;
+    if (closed && count > 2) {
+        count += 1;
+        cap = Cap::NONE;
+    }
+    
+    // Determine the number of vertices and indices we need.
+    int vcount = (count - 1) * 4;
+    int icount = (count - 1) * 6;
+    
+    switch (joint) {
+        case Joint::BEVEL:
+            icount += (count - 2) * 3;
+            vcount += (count - 2);
+            break;
+        case Joint::ROUND:
+            icount += (JOINT_PRECISION * 3) * (count - 2);
+            vcount += (JOINT_PRECISION) * (count - 2);
+            break;
+        case Joint::MITRE:
+            icount += (count - 2) * 6;
+            vcount += (count - 2) * 2;
+            break;
+        case Joint::NONE:
+            // Nothing to do.
+            break;
+    }
+    
+    switch (cap) {
+        case Cap::SQUARE:
+            icount += 12;
+            vcount += 4;
+            break;
+        case Cap::ROUND:
+            icount += (CAP_PRECISION * 3) * 2;
+            vcount += (CAP_PRECISION) * 2;
+            break;
+        case Cap::NONE:
+            // Nothing to do.
+            break;
+    }
+    
+    vector<Vec2> edgeverts;
+    vector<unsigned short> edgeindx;
+    edgeverts.reserve(vcount*2);
+    edgeindx.reserve(icount);
+    
+    // Calculation time
+    // Thanks Kivy guys for all the hard work.
+    Vec2 c, pc;
+    Vec2 s1, s4;
+    Vec2 v1, v2, v3, v4;
+    Vec2 p1, p2, p3, p4;
+    
+    float angle, sangle, pangle, pangle2;
+    unsigned int pos, ppos, p2pos;
+    
+    angle = sangle = 0;
+    pangle = pangle2 = 0;
+    pos = ppos = p2pos = 0;
+    int mod = (int)_vertices.size();
+    for(int ii = 0; ii < count-1; ii++) {
+        Vec2 a = _vertices[  ii   % mod];
+        Vec2 b = _vertices[(ii+1) % mod];
+        
+        if (ii > 0 && joint != Joint::NONE) {
+            pc = c;
+            p1 = v1; p2 = v2; p3 = v3; p4 = v4;
+        }
+        
+        p2pos = ppos; ppos = pos;
+        pangle2 = pangle; pangle = angle;
+        
+        // Calculate the orientation of the segment, between pi and -pi
+        c = b - a;
+        angle = atan2(c.y, c.x);
+        float a1 = angle - PI_2;
+        float a2 = angle + PI_2;
+        
+        // Calculate the position of the segment
+        Vec2 temp1 = Vec2(cos(a1) * stroke, sin(a1) * stroke);
+        Vec2 temp2 = Vec2(cos(a2) * stroke, sin(a2) * stroke);
+        
+        v1 = a+temp1;
+        v4 = a+temp2;
+        v2 = b+temp1;
+        v3 = b+temp2;
+        
+        if (ii == 0) {
+            s1 = v1; s4 = v4;
+            sangle = angle;
+        }
+        
+        edgeindx.push_back(pos  );
+        edgeindx.push_back(pos+1);
+        edgeindx.push_back(pos+2);
+        edgeindx.push_back(pos  );
+        edgeindx.push_back(pos+2);
+        edgeindx.push_back(pos+3);
+        
+        // Textures, colors are set later.  Just initialize to safe values.
+        edgeverts.push_back(v1);
+        edgeverts.push_back(v2);
+        edgeverts.push_back(v3);
+        edgeverts.push_back(v4);
+        pos += 4;
+        
+        // joint generation
+        if (ii == 0 || joint == Joint::NONE) {
+            continue; // Sigh
+        }
+        
+        // calculate the angle of the previous and current segment
+        float jangle = atan2(c.x * pc.y - c.y * pc.x,c.x * pc.x + c.y * pc.y);
+        
+        // in case of the angle is NULL, avoid the generation
+        if (jangle == 0) {
+            continue; // Sigh
+        }
+        
+        switch (joint) {
+            case Joint::BEVEL:
+            {
+                edgeverts.push_back(a);
+                if (jangle < 0) {
+                    edgeindx.push_back(p2pos+1);
+                    edgeindx.push_back(ppos   );
+                    edgeindx.push_back(pos    );
+                } else {
+                    edgeindx.push_back(p2pos+2);
+                    edgeindx.push_back(ppos +3);
+                    edgeindx.push_back(pos    );
+                }
+                pos += 1;
+                break;
+            }
+            case Joint::MITRE:
+            {
+                edgeverts.push_back(a);
+                if (jangle < 0) {
+                    Vec2 temp;
+                    if (!line_intersect(p1, p2, v1, v2, temp)) {
+                        continue; // Sigh
+                    }
+                    edgeverts.push_back(temp);
+                    edgeindx.push_back(pos    );
+                    edgeindx.push_back(pos+1  );
+                    edgeindx.push_back(p2pos+1);
+                    edgeindx.push_back(pos    );
+                    edgeindx.push_back(ppos   );
+                    edgeindx.push_back(pos+1  );
+                    pos += 2;
+                } else {
+                    Vec2 temp;
+                    if (!line_intersect(p3, p4, v3, v4, temp)) {
+                        continue; // Sigh
+                    }
+                    edgeverts.push_back(temp);
+                    edgeindx.push_back(pos    );
+                    edgeindx.push_back(pos+1  );
+                    edgeindx.push_back(p2pos+2);
+                    edgeindx.push_back(pos    );
+                    edgeindx.push_back(ppos+3 );
+                    edgeindx.push_back(pos+1  );
+                    pos += 2;
+                }
+                break;
+            }
+            case Joint::ROUND:
+            {
+                // cap end
+                float a0, step;
+                unsigned int s_pos, e_pos;
+                if (jangle < 0) {
+                    a1 = pangle2 - PI_2;
+                    a2 = angle + PI_2;
+                    a0 = a2;
+                    step = (abs(jangle)) / (float)JOINT_PRECISION;
+                    s_pos = ppos + 3;
+                    e_pos = p2pos + 1;
+                } else {
+                    a1 = angle - PI_2;
+                    a2 = pangle2 + PI_2;
+                    a0 = a1;
+                    step = -(abs(jangle)) / (float)JOINT_PRECISION;
+                    s_pos = ppos;
+                    e_pos = p2pos + 2;
+                }
+                unsigned int opos = pos;
+                edgeverts.push_back(a);
+                pos += 1;
+                for(int j = 0; j <  JOINT_PRECISION - 1; j++) {
+                    edgeverts.push_back(a-Vec2(cos(a0 - step * j) * stroke,sin(a0 - step * j) * stroke));
+                    if (j == 0) {
+                        edgeindx.push_back(opos );
+                        edgeindx.push_back(s_pos);
+                        edgeindx.push_back(pos);
+                    } else {
+                        edgeindx.push_back(opos );
+                        edgeindx.push_back(pos-1);
+                        edgeindx.push_back(pos);
+                    }
+                    pos += 1;
+                }
+                edgeindx.push_back(opos );
+                edgeindx.push_back(pos-1);
+                edgeindx.push_back(e_pos);
+                break;
+            }
+            case Joint::NONE:
+                // Nothing to do
+                break;
+        }
+    }
+    
+    // Process the caps
+    switch (cap) {
+        case Cap::SQUARE:
+        {
+            Vec2 temp = Vec2(cos(angle) * stroke,sin(angle) * stroke);
+            edgeverts.push_back(v2+temp);
+            edgeverts.push_back(v3+temp);
+            edgeindx.push_back(ppos + 1);
+            edgeindx.push_back(ppos + 2);
+            edgeindx.push_back(pos  + 1);
+            edgeindx.push_back(ppos + 1);
+            edgeindx.push_back(pos);
+            edgeindx.push_back(pos + 1);
+            pos += 2;
+            
+            temp = Vec2(cos(sangle) * stroke,sin(sangle) * stroke);
+            edgeverts.push_back(s1-temp);
+            edgeverts.push_back(s4-temp);
+            edgeindx.push_back(0);
+            edgeindx.push_back(3);
+            edgeindx.push_back(pos + 1 );
+            edgeindx.push_back(0);
+            edgeindx.push_back(pos);
+            edgeindx.push_back(pos + 1 );
+            pos += 2;
+            break;
+        }
+        case Cap::ROUND:
+        {
+            // cap start
+            float a1 = sangle - PI_2;
+            float a2 = sangle + PI_2;
+            float step = (a1 - a2) / (float)CAP_PRECISION;
+            unsigned int opos = pos;
+            c = _vertices[0];
+            edgeverts.push_back(c);
+            pos += 1;
+            for(int i = 0; i < CAP_PRECISION - 1; i++) {
+                Vec2 temp = Vec2(cos(a1 + step * i) * stroke,sin(a1 + step * i) * stroke);
+                edgeverts.push_back(c+temp);
+                if (i == 0) {
+                    edgeindx.push_back(opos);
+                    edgeindx.push_back(0);
+                    edgeindx.push_back(pos);
+                } else {
+                    edgeindx.push_back(opos);
+                    edgeindx.push_back(pos-1);
+                    edgeindx.push_back(pos);
+                }
+                pos += 1;
+            }
+            edgeindx.push_back(opos );
+            edgeindx.push_back(pos-1);
+            edgeindx.push_back(3);
+            
+            // cap end
+            a1 = angle - PI_2;
+            a2 = angle + PI_2;
+            step = (a2 - a1) / (float)CAP_PRECISION;
+            opos = pos;
+            c = _vertices[count-1];
+            edgeverts.push_back(c);
+            pos += 1;
+            for(int i = 0; i < CAP_PRECISION - 1; i++) {
+                Vec2 temp =  Vec2(cos(a1 + step * i) * stroke,sin(a1 + step * i) * stroke);
+                edgeverts.push_back(c+temp);
+                if (i == 0) {
+                    edgeindx.push_back(opos  );
+                    edgeindx.push_back(ppos+1);
+                    edgeindx.push_back(pos);
+                } else {
+                    edgeindx.push_back(opos );
+                    edgeindx.push_back(pos-1);
+                    edgeindx.push_back(pos);
+                }
+                pos += 1;
+            }
+            edgeindx.push_back(opos);
+            edgeindx.push_back(pos-1);
+            edgeindx.push_back(ppos+2);
+            break;
+        }
+        case Cap::NONE:
+            // Nothing to do.
+            break;
+    }
+    
+    // Add one last bevel if closed
+    if (closed && mod > 2) {
+        Vec2 a = _vertices[0];
+        Vec2 b = _vertices[1];
+        pc = c; c = b-a;
+
+        float jangle = atan2(c.x * pc.y - c.y * pc.x,c.x * pc.x + c.y * pc.y);
+        switch (joint) {
+            case Joint::BEVEL:
+            {
+                edgeverts.push_back(a);
+                if (jangle < 0) {
+                    edgeindx.push_back(pos-4);
+                    edgeindx.push_back(0    );
+                    edgeindx.push_back(pos  );
+                } else {
+                    edgeindx.push_back(pos-3);
+                    edgeindx.push_back(3    );
+                    edgeindx.push_back(pos  );
+                }
+                pos += 1;
+                break;
+            }
+            case Joint::MITRE:
+            {
+                p1 = v1; p2 = v2; p3 = v3; p4 = v4;
+                angle = atan2(c.y, c.x);
+                float a1 = angle - PI_2;
+                float a2 = angle + PI_2;
+                
+                // Calculate the position of the segment
+                Vec2 temp1 = Vec2(cos(a1) * stroke, sin(a1) * stroke);
+                Vec2 temp2 = Vec2(cos(a2) * stroke, sin(a2) * stroke);
+                
+                v1 = a+temp1; v4 = a+temp2;
+                v2 = b+temp1; v3 = b+temp2;
+                
+                edgeverts.push_back(a);
+                if (jangle < 0) {
+                    Vec2 temp;
+                    if (line_intersect(p1, p2, v1, v2, temp)) {
+                        edgeverts.push_back(temp);
+                        edgeindx.push_back(pos    );
+                        edgeindx.push_back(pos-5  );
+                        edgeindx.push_back(pos+1  );
+                        edgeindx.push_back(pos    );
+                        edgeindx.push_back(0      );
+                        edgeindx.push_back(pos+1  );
+                        pos += 2;
+                    }
+                } else {
+                    Vec2 temp;
+                    if (line_intersect(p3, p4, v3, v4, temp)) {
+                        edgeverts.push_back(temp);
+                        edgeindx.push_back(pos    );
+                        edgeindx.push_back(pos+1  );
+                        edgeindx.push_back(pos-4  );
+                        edgeindx.push_back(pos    );
+                        edgeindx.push_back(3      );
+                        edgeindx.push_back(pos+1  );
+                        pos += 2;
+                    }
+                }
+                break;
+            }
+            case Joint::ROUND:
+            {
+                // cap end
+                float a0, step;
+                unsigned int s_pos, e_pos;
+
+                angle = atan2(c.y, c.x);
+                
+                // Go back to position of joint
+                unsigned int bpos = pos-JOINT_PRECISION;
+                if (jangle < 0) {
+                    a0 = angle + PI_2;
+                    step = (abs(jangle)) / (float)JOINT_PRECISION;
+                    s_pos = 3;
+                    e_pos = bpos-3;
+                } else {
+                    a0 = angle - PI_2;
+                    step = -(abs(jangle)) / (float)JOINT_PRECISION;
+                    s_pos = 0;
+                    e_pos = bpos-2;
+                }
+                unsigned int opos = pos;
+                edgeverts.push_back(a);
+                pos += 1;
+                for(int j = 0; j <  JOINT_PRECISION - 1; j++) {
+                    edgeverts.push_back(a-Vec2(cos(a0 - step * j) * stroke,sin(a0 - step * j) * stroke));
+                    if (j == 0) {
+                        edgeindx.push_back(opos );
+                        edgeindx.push_back(s_pos);
+                        edgeindx.push_back(pos);
+                    } else {
+                        edgeindx.push_back(opos );
+                        edgeindx.push_back(pos-1);
+                        edgeindx.push_back(pos);
+                    }
+                    pos += 1;
+                }
+                edgeindx.push_back(opos );
+                edgeindx.push_back(pos-1);
+                edgeindx.push_back(e_pos);
+                break;
+            }
+            case Joint::NONE:
+                // Nothing to do
+                break;
+        }
+    }
+    
+    poly._vertices.assign(edgeverts.begin(), edgeverts.end());
+    poly._indices.assign(edgeindx.begin(), edgeindx.end());
+    poly.computeBounds();
+    return &poly;
+>>>>>>> 136cf0348962ea43f20cb5acb087c19c859a4a57
 }
 
 /*
@@ -966,6 +1397,7 @@ return &poly;
 
 #define _x(a) (2*(a))
 #define _y(a) (2*(a)+1)
+<<<<<<< HEAD
 
 int count = (int)_vertices.size();
 
@@ -1329,6 +1761,371 @@ poly._vertices.assign(verts, verts+vcount);
 poly._indices.assign(edgeindx, edgeindx+icount);
 poly.computeBounds();
 return &poly;
+=======
+    
+    int count = (int)_vertices.size();
+    
+    // Closed paths have no cap;
+    if (closed and count > 2) {
+        count += 2;
+        cap = Cap::NONE;
+    }
+    
+    // Determine the number of vertices and indices we need.
+    int vcount = (count - 1) * 4;
+    int icount = (count - 1) * 6;
+    
+    switch (joint) {
+        case Joint::BEVEL:
+            icount += (count - 2) * 3;
+            vcount += (count - 2);
+            break;
+        case Joint::ROUND:
+            icount += (JOINT_PRECISION * 3) * (count - 2);
+            vcount += (JOINT_PRECISION) * (count - 2);
+            break;
+        case Joint::MITRE:
+            icount += (count - 2) * 6;
+            vcount += (count - 2) * 2;
+            break;
+        case Joint::NONE:
+            // Nothing to do.
+            break;
+    }
+    
+    switch (cap) {
+        case Cap::SQUARE:
+            icount += 12;
+            vcount += 4;
+            break;
+        case Cap::ROUND:
+            icount += (CAP_PRECISION * 3) * 2;
+            vcount += (CAP_PRECISION) * 2;
+            break;
+        case Cap::NONE:
+            // Nothing to do.
+            break;
+    }
+    
+    float edgeverts[vcount*2];
+    unsigned short edgeindx[icount];
+    
+    // Calculation time
+    // Thanks Kivy guys for all the hard work.
+    double ax, ay, bx, by, cx, cy, angle, a1, a2;
+    double x1, y1, x2, y2, x3, y3, x4, y4;
+    double sx1, sy1, sx4, sy4, sangle;
+    double pcx, pcy, px1, py1, px2, py2, px3, py3, px4, py4, pangle, pangle2;
+    double w = stroke;
+    double ix, iy;
+    unsigned int pos, p_pos, p_pos2, ipos;
+    double jangle;
+    
+    angle = sangle = 0;
+    pcx = pcy = cx = cy = ix = iy = 0;
+    px1 = px2 = px3 = px4 = py1 = py2 = py3 = py4 = 0;
+    sx1 = sy1 = sx4 = sy4 = 0;
+    x1 = x2 = x3 = x4 = y1 = y2 = y3 = y4 = 0;
+    double cos1 = 0, cos2 = 0, sin1 = 0, sin2 = 0;
+    
+    ipos = pos = p_pos = p_pos2 = 0;
+    for(int i = 0; i < count-1; i++) {
+        ax = _vertices[(i  ) % count].x;
+        ay = _vertices[(i  ) % count].y;
+        bx = _vertices[(i+1) % count].x;
+        by = _vertices[(i+1) % count].y;
+        
+        if (i > 0 and joint != Joint::NONE) {
+            pcx = cx; pcy = cy;
+            px1 = x1; px2 = x2; px3 = x3; px4 = x4;
+            py1 = y1; py2 = y2; py3 = y3; py4 = y4;
+        }
+        
+        p_pos2 = p_pos; p_pos = pos;
+        pangle2 = pangle; pangle = angle;
+        
+        // Calculate the orientation of the segment, between pi and -pi
+        cx = bx - ax; cy = by - ay;
+        angle = atan2(cy, cx);
+        a1 = angle - PI_2; a2 = angle + PI_2;
+        
+        // Calculate the position of the segment
+        cos1 = cos(a1) * w; sin1 = sin(a1) * w;
+        cos2 = cos(a2) * w; sin2 = sin(a2) * w;
+        x1 = ax + cos1; y1 = ay + sin1;
+        x4 = ax + cos2; y4 = ay + sin2;
+        x2 = bx + cos1; y2 = by + sin1;
+        x3 = bx + cos2; y3 = by + sin2;
+        
+        if (i == 0) {
+            sx1 = x1; sy1 = y1;
+            sx4 = x4; sy4 = y4;
+            sangle = angle;
+        }
+        
+        edgeindx[ipos    ] = pos;
+        edgeindx[ipos + 1] = pos + 1;
+        edgeindx[ipos + 2] = pos + 2;
+        edgeindx[ipos + 3] = pos;
+        edgeindx[ipos + 4] = pos + 2;
+        edgeindx[ipos + 5] = pos + 3;
+        ipos += 6;
+        
+        // Textures, colors are set later.  Just initialize to safe values.
+        edgeverts[_x(pos)] = x1;
+        edgeverts[_y(pos)] = y1;
+        pos += 1;
+        edgeverts[_x(pos)] = x2;
+        edgeverts[_y(pos)] = y2;
+        pos += 1;
+        edgeverts[_x(pos)] = x3;
+        edgeverts[_y(pos)] = y3;
+        pos += 1;
+        edgeverts[_x(pos)] = x4;
+        edgeverts[_y(pos)] = y4;
+        pos += 1;
+        
+        // joint generation
+        if (i == 0 or joint == Joint::NONE) {
+            continue; // Sigh
+        }
+        
+        // calculate the angle of the previous and current segment
+        jangle = atan2(cx * pcy - cy * pcx,cx * pcx + cy * pcy);
+        
+        // in case of the angle is NULL, avoid the generation
+        if (jangle == 0) {
+            switch (joint) {
+                case Joint::ROUND:
+                    vcount -= JOINT_PRECISION;
+                    icount -= JOINT_PRECISION * 3;
+                    break;
+                case Joint::BEVEL:
+                    vcount -= 1;
+                    icount -= 3;
+                    break;
+                case Joint::MITRE:
+                    vcount -= 2;
+                    icount -= 6;
+                    break;
+                case Joint::NONE:
+                    // Nothing to do.
+                    break;
+            }
+            continue; // Sigh
+        }
+        
+        switch (joint) {
+            case Joint::BEVEL:
+            {
+                edgeverts[_x(pos)] = ax;
+                edgeverts[_y(pos)] = ay;
+                if (jangle < 0) {
+                    edgeindx[ipos  ] = p_pos2 + 1;
+                    edgeindx[ipos+1] = p_pos;
+                    edgeindx[ipos+2] = pos;
+                } else {
+                    edgeindx[ipos  ] = p_pos2+ 2;
+                    edgeindx[ipos+1] = p_pos + 3;
+                    edgeindx[ipos+2] = pos;
+                }
+                ipos += 3;
+                pos += 1;
+                break;
+            }
+            case Joint::MITRE:
+            {
+                edgeverts[_x(pos)] = ax;
+                edgeverts[_y(pos)] = ay;
+                if (jangle < 0) {
+                    if (line_intersection(px1, py1, px2, py2, x1, y1, x2, y2, &ix, &iy) == 0) {
+                        vcount -= 2;
+                        icount -= 6;
+                        continue; // Sigh
+                    }
+                    edgeverts[_x(pos+1)] = ix;
+                    edgeverts[_y(pos+1)] = iy;
+                    edgeindx[ipos  ] = pos;
+                    edgeindx[ipos+1] = pos+1;
+                    edgeindx[ipos+2] = p_pos2+1;
+                    edgeindx[ipos+3] = pos;
+                    edgeindx[ipos+4] = p_pos;
+                    edgeindx[ipos+5] = pos+1;
+                    ipos += 6;
+                    pos += 2;
+                } else {
+                    if (line_intersection(px3, py3, px4, py4, x3, y3, x4, y4, &ix, &iy) == 0) {
+                        vcount -= 2;
+                        icount -= 6;
+                        continue; // Sigh
+                    }
+                    edgeverts[_x(pos+1)] = ix;
+                    edgeverts[_y(pos+1)] = iy;
+                    edgeindx[ipos  ] = pos;
+                    edgeindx[ipos+1] = pos+1;
+                    edgeindx[ipos+2] = p_pos2+2;
+                    edgeindx[ipos+3] = pos;
+                    edgeindx[ipos+4] = p_pos+3;
+                    edgeindx[ipos+5] = pos+1;
+                    ipos += 6;
+                    pos += 2;
+                }
+                break;
+            }
+            case Joint::ROUND:
+            {
+                // cap end
+                double a0, step;
+                double p_pos_str, p_pos_end;
+                if (jangle < 0) {
+                    a1 = pangle2 - PI_2;
+                    a2 = angle + PI_2;
+                    a0 = a2;
+                    step = (abs(jangle)) / (float)JOINT_PRECISION;
+                    p_pos_str = p_pos + 3;
+                    p_pos_end = p_pos2 + 1;
+                } else {
+                    a1 = angle - PI_2;
+                    a2 = pangle2 + PI_2;
+                    a0 = a1;
+                    step = -(abs(jangle)) / (float)JOINT_PRECISION;
+                    p_pos_str = p_pos;
+                    p_pos_end = p_pos2 + 2;
+                }
+                unsigned int s_pos = pos;
+                edgeverts[_x(pos)] = ax;
+                edgeverts[_y(pos)] = ay;
+                pos += 1;
+                for(int j = 0; j <  JOINT_PRECISION - 1; j++) {
+                    edgeverts[_x(pos)] = ax - cos(a0 - step * j) * w;
+                    edgeverts[_y(pos)] = ay - sin(a0 - step * j) * w;
+                    if (j == 0) {
+                        edgeindx[ipos  ] = s_pos;
+                        edgeindx[ipos+1] = p_pos_str;
+                        edgeindx[ipos+2] = pos;
+                    } else {
+                        edgeindx[ipos  ] = s_pos;
+                        edgeindx[ipos+1] = pos-1;
+                        edgeindx[ipos+2] = pos;
+                    }
+                    pos += 1;
+                    ipos += 3;
+                }
+                edgeindx[ipos  ] = s_pos;
+                edgeindx[ipos+1] = pos - 1;
+                edgeindx[ipos+2] = p_pos_end;
+                ipos += 3;
+                break;
+            }
+            case Joint::NONE:
+                // Nothing to do
+                break;
+        }
+    }
+    
+    // Process the caps
+    switch (cap) {
+        case Cap::SQUARE:
+        {
+            edgeverts[_x(pos  )] = x2 + cos(angle) * w;
+            edgeverts[_y(pos  )] = y2 + sin(angle) * w;
+            edgeverts[_x(pos+1)] = x3 + cos(angle) * w;
+            edgeverts[_y(pos+1)] = y3 + sin(angle) * w;
+            edgeindx[ipos  ] = p_pos + 1;
+            edgeindx[ipos+1] = p_pos + 2;
+            edgeindx[ipos+2] = pos + 1;
+            edgeindx[ipos+3] = p_pos + 1;
+            edgeindx[ipos+4] = pos;
+            edgeindx[ipos+5] = pos + 1;
+            ipos += 6;
+            pos += 2;
+            edgeverts[_x(pos)  ] = sx1 - cos(sangle) * w;
+            edgeverts[_y(pos)  ] = sy1 - sin(sangle) * w;
+            edgeverts[_x(pos+1)] = sx4 - cos(sangle) * w;
+            edgeverts[_y(pos+1)] = sy4 - sin(sangle) * w;
+            edgeindx[ipos  ] = 0;
+            edgeindx[ipos+1] = 3;
+            edgeindx[ipos+2] = pos + 1;
+            edgeindx[ipos+3] = 0;
+            edgeindx[ipos+4] = pos;
+            edgeindx[ipos+5] = pos + 1;
+            ipos += 6;
+            pos += 2;
+            break;
+        }
+        case Cap::ROUND:
+        {
+            // cap start
+            a1 = sangle - PI_2;
+            a2 = sangle + PI_2;
+            float step = (a1 - a2) / (float)CAP_PRECISION;
+            unsigned int s_pos = pos;
+            cx = _vertices[0].x; cy = _vertices[0].y;
+            edgeverts[_x(pos)] = cx;
+            edgeverts[_y(pos)] = cy;
+            pos += 1;
+            for(int i = 0; i < CAP_PRECISION - 1; i++) {
+                edgeverts[_x(pos)] = cx + cos(a1 + step * i) * w;
+                edgeverts[_y(pos)] = cy + sin(a1 + step * i) * w;
+                if (i == 0) {
+                    edgeindx[ipos  ] = s_pos;
+                    edgeindx[ipos+1] = 0;
+                    edgeindx[ipos+2] = pos;
+                } else {
+                    edgeindx[ipos  ] = s_pos;
+                    edgeindx[ipos+1] = pos - 1;
+                    edgeindx[ipos+2] = pos;
+                }
+                pos += 1;
+                ipos += 3;
+            }
+            edgeindx[ipos  ] = s_pos;
+            edgeindx[ipos+1] = pos - 1;
+            edgeindx[ipos+2] = 3;
+            ipos += 3;
+            
+            // cap end
+            a1 = angle - PI_2;
+            a2 = angle + PI_2;
+            step = (a2 - a1) / (float)CAP_PRECISION;
+            s_pos = pos;
+            cx = _vertices[count-1].x;
+            cy = _vertices[count-1].y;
+            edgeverts[_x(pos)] = cx;
+            edgeverts[_y(pos)] = cy;
+            pos += 1;
+            for(int i = 0; i < CAP_PRECISION - 1; i++) {
+                edgeverts[_x(pos)] = cx + cos(a1 + step * i) * w;
+                edgeverts[_y(pos)] = cy + sin(a1 + step * i) * w;
+                if (i == 0) {
+                    edgeindx[ipos  ] = s_pos;
+                    edgeindx[ipos+1] = p_pos + 1;
+                    edgeindx[ipos+2] = pos;
+                } else {
+                    edgeindx[ipos  ] = s_pos;
+                    edgeindx[ipos+1] = pos - 1;
+                    edgeindx[ipos+2] = pos;
+                }
+                pos += 1;
+                ipos += 3;
+            }
+            edgeindx[ipos  ] = s_pos;
+            edgeindx[ipos+1] = pos - 1;
+            edgeindx[ipos+2] = p_pos + 2;
+            ipos += 3;
+            break;
+        }
+        case Cap::NONE:
+            // Nothing to do.
+            break;
+    }
+ 
+    Vec2* verts = (Vec2*)edgeverts;
+    poly._vertices.assign(verts, verts+vcount);
+    poly._indices.assign(edgeindx, edgeindx+icount);
+    poly.computeBounds();
+    return &poly;
+>>>>>>> 136cf0348962ea43f20cb5acb087c19c859a4a57
 }
 */
 

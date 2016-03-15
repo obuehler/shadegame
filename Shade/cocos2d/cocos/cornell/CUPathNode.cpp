@@ -119,6 +119,7 @@ PathNode* PathNode::createWithRect(const Rect& rect, float stroke) {
 * @return  An autoreleased path node
 */
 PathNode* PathNode::createWithLine(const Vec2 &origin, const Vec2 &dest, float stroke) {
+<<<<<<< HEAD
 	PathNode *node = new (std::nothrow) PathNode(stroke, false);
 	if (!node) {
 		CC_SAFE_DELETE(node);
@@ -136,6 +137,25 @@ PathNode* PathNode::createWithLine(const Vec2 &origin, const Vec2 &dest, float s
 	}
 	CC_SAFE_DELETE(node);
 	return nullptr;
+=======
+    PathNode *node = new (std::nothrow) PathNode(stroke,false);
+    if (!node) {
+        CC_SAFE_DELETE(node);
+        return nullptr;
+    }
+    
+    GLfloat verts[4];
+    verts[0] = origin.x; verts[1] = origin.y;
+    verts[2] = dest.x;   verts[3] = dest.y;
+    node->_polygon.set(verts,4,0);
+    
+    if (node->init(node->_polygon)) {
+        node->autorelease();
+        return node;
+    }
+    CC_SAFE_DELETE(node);
+    return nullptr;
+>>>>>>> 136cf0348962ea43f20cb5acb087c19c859a4a57
 }
 
 /**
@@ -170,6 +190,7 @@ PathNode* PathNode::createWithCircle(const Vec2& center, const Size& size, float
 	node->_polygon.set(verts, 0, counts);
 	delete[] verts;
 #else
+<<<<<<< HEAD
 	GLfloat verts[counts];
 	for (unsigned int ii = 0; ii <= segments; ii++) {
 		float rads = ii*coef;
@@ -177,6 +198,15 @@ PathNode* PathNode::createWithCircle(const Vec2& center, const Size& size, float
 		verts[2 * ii + 1] = 0.5f * size.height * sinf(rads) + center.y;
 	}
 	node->_polygon.set(verts, counts, 0);
+=======
+    GLfloat verts[counts];
+    for (unsigned int ii = 0; ii <= segments; ii++) {
+        float rads = ii*coef;
+        verts[2 * ii] = 0.5f * size.width  * cosf(rads) + center.x;
+        verts[2 * ii + 1] = 0.5f * size.height * sinf(rads) + center.y;
+    }
+    node->_polygon.set(verts, counts, 0);
+>>>>>>> 136cf0348962ea43f20cb5acb087c19c859a4a57
 #endif
 
 	if (node->init(node->_polygon)) {

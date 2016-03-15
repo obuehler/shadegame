@@ -269,6 +269,7 @@ bool TexturedNode::initWithTexture(Texture2D *texture, float* vertices, int size
 * @return  true if the sprite is initialized properly, false otherwise.
 */
 bool TexturedNode::initWithTexture(Texture2D *texture, const Poly2& poly) {
+<<<<<<< HEAD
 	bool result = false;
 	if (Node::init()) {
 		_opacityModifyRGB = true;
@@ -290,6 +291,29 @@ bool TexturedNode::initWithTexture(Texture2D *texture, const Poly2& poly) {
 	}
 
 	return result;
+=======
+    bool result = false;
+    if (Node::init()) {
+        _opacityModifyRGB = true;
+        _blendFunc = BlendFunc::ALPHA_PREMULTIPLIED;
+        
+        // default transform anchor: center
+        setAnchorPoint(Vec2(0.5f, 0.5f));
+        
+        // shader state
+        setGLProgramState(GLProgramState::getOrCreateWithGLProgramName(
+                            GLProgram::SHADER_NAME_POSITION_TEXTURE_COLOR_NO_MVP)
+                          );
+        
+        // Update texture (calls updateBlendFunc)
+        setTexture(texture);
+        setPolygon(poly);
+
+        result = true;
+    }
+    
+    return result;
+>>>>>>> 136cf0348962ea43f20cb5acb087c19c859a4a57
 }
 
 /**
@@ -618,6 +642,7 @@ TrianglesCommand::Triangles& TexturedNode::allocTriangles(const Poly2& poly) {
 * Clears the render data, releasing all vertices and indices.
 */
 void TexturedNode::clearRenderData() {
+<<<<<<< HEAD
 	if (_triangles.verts != nullptr) {
 		delete[] _triangles.verts;
 		_triangles.verts = nullptr;
@@ -628,6 +653,18 @@ void TexturedNode::clearRenderData() {
 		_triangles.indices = nullptr;
 	}
 	_triangles.indexCount = 0;
+=======
+    if (_triangles.verts != nullptr) {
+        delete[] _triangles.verts;
+        _triangles.verts = nullptr;
+    }
+    _triangles.vertCount = 0;
+    if (_triangles.indices != nullptr) {
+        delete[] _triangles.indices;
+        _triangles.indices = nullptr;
+    }
+    _triangles.indexCount = 0;
+>>>>>>> 136cf0348962ea43f20cb5acb087c19c859a4a57
 }
 
 

@@ -93,6 +93,7 @@ bool RootLayer::initWithSize(const Size& size) {
 * @return  true if the layer is initialized properly, false otherwise.
 */
 bool RootLayer::initWithColor(const Color4B& color, const Size& size) {
+<<<<<<< HEAD
 	if (Layer::init()) {
 		// default blend function
 		_blendFunc = BlendFunc::ALPHA_NON_PREMULTIPLIED;
@@ -139,6 +140,54 @@ bool RootLayer::initWithColor(const Color4B& color, const Size& size) {
 		return true;
 	}
 	return false;
+=======
+    if (Layer::init()) {
+        // default blend function
+        _blendFunc = BlendFunc::ALPHA_NON_PREMULTIPLIED;
+        _displayedColor.r = _realColor.r = color.r;
+        _displayedColor.g = _realColor.g = color.g;
+        _displayedColor.b = _realColor.b = color.b;
+        _displayedOpacity = _realOpacity = color.a;
+        
+        // Gets the texture by key firstly.
+        _texture = Director::getInstance()->getTextureCache()->getTextureForKey(CC_2x2_WHITE_IMAGE_KEY);
+            
+        // If texture wasn't in cache, create it from RAW data.
+        if (_texture == nullptr) {
+            Image* image = new (std::nothrow) Image();
+            bool isOK = image->initWithRawData(cc_2x2_white_image, sizeof(cc_2x2_white_image), 2, 2, 8);
+            CC_UNUSED_PARAM(isOK);
+            CCASSERT(isOK, "The 2x2 empty texture was created unsuccessfully.");
+            _texture = Director::getInstance()->getTextureCache()->addImage(image, CC_2x2_WHITE_IMAGE_KEY);
+            CC_SAFE_RELEASE(image);
+        }
+
+        _triangles.vertCount = 4;
+        _triangles.verts  = new V3F_C4B_T2F[_triangles.vertCount];
+
+        _triangles.indexCount = 6;
+        _triangles.indices = new unsigned short[6];
+        _triangles.indices[0] = 0;
+        _triangles.indices[1] = 1;
+        _triangles.indices[2] = 2;
+        _triangles.indices[3] = 2;
+        _triangles.indices[4] = 1;
+        _triangles.indices[5] = 3;
+        
+        setGLProgramState(GLProgramState::getOrCreateWithGLProgramName(
+                            GLProgram::SHADER_NAME_POSITION_TEXTURE_COLOR_NO_MVP)
+                          );
+        updateColor();
+        setContentSize(size);
+        
+        // We need to gain ownership of the texture
+        if (_texture) {
+            CC_SAFE_RETAIN(_texture);
+        }
+        return true;
+    }
+    return false;
+>>>>>>> 136cf0348962ea43f20cb5acb087c19c859a4a57
 }
 
 /**
