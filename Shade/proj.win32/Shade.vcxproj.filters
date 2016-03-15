@@ -10,6 +10,15 @@
     <Filter Include="src">
       <UniqueIdentifier>{bb6c862e-70e9-49d9-81b7-3829a6f50471}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\model">
+      <UniqueIdentifier>{46082be9-277d-44fc-83bb-07c5899f0d26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\controller">
+      <UniqueIdentifier>{a875b6ea-c89b-49fd-8868-155dbb63b858}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\view">
+      <UniqueIdentifier>{625895c5-47ab-4d60-b9d7-ff3c0dda0779}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -18,23 +27,20 @@
     <ClCompile Include="..\Classes\AppDelegate.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\Classes\PFDudeModel.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="..\Classes\C_Gameplay.cpp">
+      <Filter>src\controller</Filter>
     </ClCompile>
-    <ClCompile Include="..\Classes\PFGameController.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="..\Classes\C_Input.cpp">
+      <Filter>src\controller</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\M_Shadow.cpp">
+      <Filter>src\model</Filter>
     </ClCompile>
     <ClCompile Include="..\Classes\PFGameRoot.cpp">
-      <Filter>src</Filter>
+      <Filter>src\view</Filter>
     </ClCompile>
-    <ClCompile Include="..\Classes\PFInputController.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Classes\PFRopeBridge.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Classes\PFSpinner.cpp">
-      <Filter>src</Filter>
+    <ClCompile Include="..\Classes\ShadeRoot.cpp">
+      <Filter>src\view</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -44,23 +50,32 @@
     <ClInclude Include="..\Classes\AppDelegate.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\Classes\PFDudeModel.h">
-      <Filter>src</Filter>
+    <ClInclude Include="..\Classes\C_Gameplay.h">
+      <Filter>src\controller</Filter>
     </ClInclude>
-    <ClInclude Include="..\Classes\PFGameController.h">
-      <Filter>src</Filter>
+    <ClInclude Include="..\Classes\C_Input.h">
+      <Filter>src\controller</Filter>
     </ClInclude>
-    <ClInclude Include="..\Classes\PFInputController.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Classes\PFRopeBridge.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Classes\PFSpinner.h">
-      <Filter>src</Filter>
+    <ClInclude Include="..\Classes\M_Shadow.h">
+      <Filter>src\model</Filter>
     </ClInclude>
     <ClInclude Include="..\Classes\PFGameRoot.h">
-      <Filter>src</Filter>
+      <Filter>src\view</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\ShadeRoot.h">
+      <Filter>src\view</Filter>
+    </ClInclude>
+    <ClInclude Include="M_Level.h">
+      <Filter>src\model</Filter>
+    </ClInclude>
+    <ClInclude Include="M_Powerup.h">
+      <Filter>src\model</Filter>
+    </ClInclude>
+    <ClInclude Include="MovingObject.h">
+      <Filter>src\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\M_Caster.h">
+      <Filter>src\model</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

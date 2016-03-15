@@ -17,7 +17,7 @@
 
 #include <cocos2d.h>
 #include <cornell.h>
-#include "PFGameController.h"
+#include "C_Gameplay.h"
 
 
 using namespace cocos2d;
