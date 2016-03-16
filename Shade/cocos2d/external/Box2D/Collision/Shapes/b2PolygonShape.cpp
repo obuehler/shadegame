@@ -150,6 +150,7 @@ void b2PolygonShape::Set(const b2Vec2* vertices, int32 count)
 			ps[tempCount++] = v;
 		}
 	}
+
 	n = tempCount;
 	if (n < 3)
 	{

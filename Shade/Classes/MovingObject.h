@@ -10,7 +10,7 @@ using namespace std;
 
 template <class T>
 class MovingObject : public PolygonObstacle {
-public:
+protected:
 	struct ActionNode {
 		int _id;
 		T::ActionType _type;
@@ -42,6 +42,7 @@ public:
 		// The head of the default cycle
 		shared_ptr<ActionNode> _initialHead;
 
+		// The ActionQueue constructor
 		ActionQueue() {}
 
 	public:
@@ -136,12 +137,12 @@ public:
 
 	};
 
-	ActionQueue* actionQueue;
+	ActionQueue* actionQueue;  // TODO friend of AIController
 
 	/** Whether the actions in actionQueue cycle back */
-	bool cycleActions;
+	bool cycleActions;   // TODO friend of AIController
 
-
+public:
 	/**
 	* Executes the next move in the actionQueue.
 	*/
@@ -172,26 +173,6 @@ public:
 			action->_counter--;
 		}
 	}
-
-	/**
-	* Static constructor with position and index. Objects should be created with
-	* this method once dynamic level loading is implemented.
-	*
-	* @param	pos	The initial position in world coordinates
-	* @param	i	The index in the list of power-up metadata
-	*
-	* @return  An autoreleased physics object
-	*/
-	static Powerup* create(const Vec2& pos, const PowerupType& t, int i = 0);
-
-	/** Initializes a new power-up object with the supplied position and index. */
-	bool init(const Vec2& pos, const PowerupType& t, int i);
-
-	/** Returns the type */
-	PowerupType getType() const { return _type; };
-
-	/** Sets the type */
-	void setType(PowerupType t) { _type = t; };
 
 };
 
