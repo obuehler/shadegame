@@ -449,13 +449,12 @@ void GameController::populate() {
 #pragma mark : Dude
     Vec2 dudePos = DUDE_POS;
     image  = _assets->get<Texture2D>(DUDE_TEXTURE);
-    sprite = PolygonNode::createWithTexture(image);
-    _avatar = Shadow::create(dudePos,_scale);
+    _avatar = Shadow::create(dudePos,_scale*DUDE_SCALE);
     _avatar->setDrawScale(_scale);
     
     // Add the scene graph nodes to this object
     sprite = PolygonNode::createWithTexture(image);
-    sprite->setScale(cscale);
+    sprite->setScale(cscale/DUDE_SCALE);
     _avatar->setSceneNode(sprite);
     
     draw = WireNode::create();
@@ -875,7 +874,7 @@ void GameController::preload() {
 	************************************************************ */
 
     tloader->loadAsync(EARTH_TEXTURE,   "textures/earthtile.png", params);
-    tloader->loadAsync(DUDE_TEXTURE,    "textures/dude.png");
+    tloader->loadAsync(DUDE_TEXTURE,    "textures/ShadeDude.png");
     tloader->loadAsync(BULLET_TEXTURE,  "textures/bullet.png");
     tloader->loadAsync(GOAL_TEXTURE,    "textures/goaldoor.png");
     _assets->loadAsync<Sound>(GAME_MUSIC,   "sounds/DD_Main.mp3");

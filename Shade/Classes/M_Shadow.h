@@ -34,6 +34,8 @@ using namespace cocos2d;
 #pragma mark Drawing Constants
 /** The texture for the character avatar */
 #define DUDE_TEXTURE    "dude"
+/** The factor by which to scale down the avatar image */
+#define DUDE_SCALE		7.0f
 /** Identifier to allow us to track the sensor in ContactListener */
 #define SENSOR_NAME     "dudesensor"
 
