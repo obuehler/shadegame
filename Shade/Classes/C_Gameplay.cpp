@@ -670,7 +670,7 @@ void GameController::update(float dt) {
 		_exposure += dt;
 
 	if (!_failed && !_complete) {
-		_exposurenode->setString(std::to_string((int)(
+		_exposurenode->setString(cocos2d::to_string((int)(
 			(_exposure / EXPOSURE_LIMIT) * 100)) + "%");
 		if (_exposure > EXPOSURE_LIMIT)
 			setFailure(true);
