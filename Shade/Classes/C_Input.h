@@ -12,8 +12,8 @@
 //  Author: Walker White
 //  Version: 1/15/15
 //
-#ifndef __C_INPUT_H__
-#define __C_INPUT_H__
+#ifndef __PF_INPUT_CONTROLLER_H__
+#define __PF_INPUT_CONTROLLER_H__
 
 #include <cocos2d.h>
 #include <cornell/CUKeyboardPoller.h>
@@ -55,18 +55,20 @@ private:
     bool  _keyExit;
     bool  _keyLeft;
     bool  _keyRight;
-	bool  _keyUp;
-	bool  _keyDown;
-
-
+    bool  _keyUp;
+    bool  _keyDown;
+    
+    bool  _keyMove;
+    
+    
     
 protected:
     // EVENT LISTENERS
     /** Listener to process touch events */
     TouchListener* _touchListener;
-
-	/** Mouse listener */
-	//MouseListener* _mouseListener;
+    
+    /** Mouse listener */
+    //MouseListener* _mouseListener;
     
     /** Whether or not this controller is currently active. */
     bool _active;
@@ -84,11 +86,13 @@ protected:
     bool _jumpPressed;
     /** How much did we move horizontally? */
     float _horizontal;
-	/** How much did we move vertically? */
-	float _vertical;
-
+    /** How much did we move vertically? */
+    float _vertical;
     
-#pragma mark Internal Touch Management   
+    bool _isTouching;
+    
+    
+#pragma mark Internal Touch Management
     // The screen is divided into four zones: Left, Bottom, Right and Main/
     // These are all shown in the diagram below.
     //
@@ -111,7 +115,7 @@ protected:
         /** The number of fingers for this touch */
         int  count;
     };
-
+    
     /** Enumeration identifying a zone for the current touch */
     enum class Zone {
         /** The touch was not inside the screen bounds */
@@ -144,6 +148,7 @@ protected:
     TouchInstance _btouch;
     /** The current touch location for the bottom zone */
     TouchInstance _mtouch;
+    TouchInstance _touch;
     
     /** The timestamp for the beginning of the current swipe gesture */
     timestamp_t _swipetime;
@@ -177,7 +182,7 @@ protected:
      *
      * @return true if this is a jump swipe.
      */
-    bool checkJump(const Vec2& start, const Vec2& stop, timestamp_t current);
+    bool checkTap(const Vec2& start, const Vec2& stop);
     
     /**
      * Returns a nonzero value if this is a quick left or right swipe
@@ -191,8 +196,8 @@ protected:
      * @return a nonzero value if this is a quick left or right swipe
      */
     int  checkSwipe(const Vec2& start, const Vec2& stop, timestamp_t current);
-
-
+    
+    
 #pragma mark -
 #pragma mark Input Control
 public:
@@ -256,24 +261,24 @@ public:
     
 #pragma mark -
 #pragma mark Input Results
-
-
-	/* ***********************************************************
-	******************** CODE ADDED FOR SHADE ********************
-	************************************************************ */
-
-	/**
-	* Returns the amount of vertical movement.
-	* -1 = down, 1 = up, 0 = still
-	* @return the amount of vertical movement.
-	*/
-	float getVertical() const { return _vertical; }
-
-	/* ***********************************************************
-	***************** END OF CODE ADDED FOR SHADE ****************
-	************************************************************ */
-
-	
+    
+    
+    /* ***********************************************************
+     ******************** CODE ADDED FOR SHADE ********************
+     ************************************************************ */
+    
+    /**
+     * Returns the amount of vertical movement.
+     * -1 = down, 1 = up, 0 = still
+     * @return the amount of vertical movement.
+     */
+    float getVertical() const { return _vertical; }
+    
+    /* ***********************************************************
+     ***************** END OF CODE ADDED FOR SHADE ****************
+     ************************************************************ */
+    
+    
     /**
      * Returns the amount of sideways movement.
      * -1 = left, 1 = right, 0 = still
@@ -287,14 +292,14 @@ public:
      * @return if the jump button was pressed.
      */
     float didJump() const { return _jumpPressed; }
-
+    
     /**
      * Returns true if the fire button was pressed.
      *
      * @return true if the fire button was pressed.
      */
     bool didFire() const { return _firePressed; }
-
+    
     /**
      * Returns true if the reset button was pressed.
      *
@@ -315,6 +320,23 @@ public:
      * @return true if the exit button was pressed.
      */
     bool didExit() const { return _exitPressed; }
+    
+    /**
+          * Returns true if the screen is currently being touched.
+          *
+          * @return true if the screen is currently being touched.
+          */
+    bool isTouching() const { return _isTouching; }
+    
+    /**
+          * Returns the location in screen space that is currently being touched.
+          * If the screen is not being touched, then this returns the most
+          * recently touched location.
+          *
+          * @return location being touched or most recently touched, in screen
+          * coordinates.
+          */
+    
     
     
 #pragma mark -
@@ -358,4 +380,5 @@ public:
     void    touchCancelCB(Touch* t, timestamp_t time);
 };
 
-#endif /* defined(__C_INPUT_H__) */
+#endif /* defined(__PF_INPUT_CONTROLLER_H__) */
+
