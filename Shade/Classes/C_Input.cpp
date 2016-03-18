@@ -315,30 +315,7 @@ bool InputController::checkJump(const Vec2& start, const Vec2& stop, timestamp_t
     return false;
 }
 
-/**
- * Returns a nonzero value if this is a quick left or right swipe
- *
- * The function returns -1 if it is left swipe and 1 if it is a right swipe.
- *
- * @param  start    the start position of the candidate swipe
- * @param  stop     the end position of the candidate swipe
- * @param  current  the current timestamp of the gesture
- *
- * @return a nonzero value if this is a quick left or right swipe
- */
-int InputController::checkSwipe(const Vec2& start, const Vec2& stop, timestamp_t current) {
-    // Look for swipes up that are "long enough"
-    float xdiff = (stop.x-start.x);
-    if (elapsed_millis(_swipetime,current) < EVENT_SWIPE_TIME) {
-        float thresh = EVENT_SWIPE_LENGTH*_bounds.size.width;
-        if (xdiff > thresh) {
-            return 1;
-        } else if (xdiff < thresh) {
-            return -1;
-        }
-    }
-    return 0;
-}
+
 
 
 #pragma mark -
@@ -471,5 +448,7 @@ void InputController::touchCancelCB(Touch* t, timestamp_t current) {
     _ltouch.count = 0;
     _rtouch.count = 0;
     _btouch.count = 0;
-    _utouch.count = 0;   
+    _utouch.count = 0;
+    
 }
+
