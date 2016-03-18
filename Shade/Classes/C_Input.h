@@ -1,5 +1,5 @@
 //
-//  PFInputController.cpp
+//  PFInputController.h
 //  PlatformerDemo
 //
 //  This input controller is primarily designed for keyboard control.  On mobile
@@ -12,443 +12,327 @@
 //  Author: Walker White
 //  Version: 1/15/15
 //
-#include "C_Input.h"
+#ifndef __C_INPUT_H__
+#define __C_INPUT_H__
+
+#include <cocos2d.h>
+#include <cornell/CUKeyboardPoller.h>
+#include <cornell/CUAccelerationPoller.h>
+#include <cornell/CUTouchListener.h>
+#include <cornell/CUMouseListener.h>
 
 
-#pragma mark -
-#pragma mark Input Settings
-/** The key to use for reseting the game */
-#define RESET_KEY EventKeyboard::KeyCode::KEY_R
-/** The key for toggling the debug display */
-#define DEBUG_KEY EventKeyboard::KeyCode::KEY_D
-/** The key for exitting the game */
-#define EXIT_KEY  EventKeyboard::KeyCode::KEY_ESCAPE
-/** The key for firing a bullet */
-#define FIRE_KEY EventKeyboard::KeyCode::KEY_SPACE
-/** The key for jumping up */
-#define JUMP_KEY EventKeyboard::KeyCode::KEY_UP_ARROW
-
-/** How fast a double click must be in milliseconds */
-#define EVENT_DOUBLE_CLICK  400
-/** How fast we must swipe left or right for a gesture */
-#define EVENT_SWIPE_TIME    1000
-/** How far we must swipe left or right for a gesture (as ratio of screen) */
-#define EVENT_SWIPE_LENGTH  0.05f
-
-// The screen is divided into four zones: Left, Bottom, Right and Main/
-// These are all shown in the diagram below.
-//
-//   |---------------|
-//   |   |       |   |
-//   | L |   M   | R |
-//   |   |       |   |
-//   -----------------
-//   |       B       |
-//   -----------------
-//
-// The meaning of any touch depends on the zone it begins in.
-
-/** The portion of the screen used for the left zone */
-#define LEFT_ZONE       0.2f
-/** The portion of the screen used for the right zone */
-#define RIGHT_ZONE      0.2f
-/** The portion of the screen used for the bottom zone */
-#define BOTTOM_ZONE     0.2f
-
-#define TOP_ZONE     0.2f
-
+using namespace cocos2d;
 
 #pragma mark -
-#pragma mark Input Controller
+#pragma mark Polled Input
 /**
- * Creates a new input controller.
+ * Class to represent player input in the rocket demo.
  *
- * This constructor does NOT do any initialzation.  It simply allocates the
- * object. This makes it safe to use this class without a pointer.
+ * This input handler uses the polling input API provided by the Cornell Extensions
+ * (in contrast to the callback API required by Cocos2d).  However, there is some
+ * callback functionality for touch support.  This allows us to handle gestures.
+ *
+ * Unlike handlers like the Keyboard poller, this class is not a singleton.  It
+ * must be allocated before use.  However, you will notice that we do not do any
+ * input initialization in the constructor.  This allows us to allocate this controller
+ * as a field without using pointers. We simply add the class to the header file
+ * of its owner, and delay initialization (via the method start()) until later.
+ * This is one of the main reasons we like to avoid initialization in the constructor.
  */
-InputController::InputController() :
-_active(false),
-_resetPressed(false),
-_debugPressed(false),
-_exitPressed(false),
-_touchListener(nullptr)
-//_mouseListener(nullptr)
-{
-    _keyReset = false;
-    _keyDebug = false;
-    _keyExit  = false;
+class InputController {
+private:
+    // KEYBOARD EMULATION
+    /** Whether the jump key is down */
+    bool  _keyJump;
+    /** Whether the fire key is down */
+    bool  _keyFire;
+    /** Whether the reset key is down */
+    bool  _keyReset;
+    /** Whether the debug key is down */
+    bool  _keyDebug;
+    /** Whether the exit key is down */
+    bool  _keyExit;
+    bool  _keyLeft;
+    bool  _keyRight;
+    bool  _keyUp;
+    bool  _keyDown;
     
-    _horizontal = 0.0f;
-    _keyFire  = false;
-    _keyJump  = false;
     
-    // Initialize the touch values.
-    _ltouch.touchid = -1;
-    _rtouch.touchid = -1;
-    _btouch.touchid = -1;
-    _utouch.touchid = -1;
-    _ltouch.count = 0;
-    _rtouch.count = 0;
-    _btouch.count = 0;
-    _utouch.count = 0;
-}
-
-
-/**
- * Disposes of this input controller, releasing all listeners.
- */
-InputController::~InputController() {
-    if (_touchListener != nullptr) {
-        _touchListener->release();
-        _touchListener = nullptr;
-    }
-    /* if (_mouseListener != nullptr) {
-     _mouseListener->release();
-     _mouseListener = nullptr;
-     } */
-}
-
-/**
- * Initializes the input control for the given drawing scale and bounds.
- *
- * This method works like a proper constructor, initializing the input
- * controller and allocating memory.  However, it still does not activate
- * the listeners.  You must call start() do that.
- *
- * The meaning of touch events depends on the screen size. The parameter
- * bounds allows the input controller to identify the bounds of the screen.
- *
- * @param  bounds   the bounds of the touch device
- *
- * @return true if the controller was initialized successfully
- */
-bool InputController::init(const Rect& bounds) {
-    _bounds = bounds;
-    createZones();
     
-    _swipetime = current_time();
-    _dbtaptime = current_time();
-    // Create the touch listener. This is an autorelease object.
-    _touchListener = TouchListener::create();
-    if (_touchListener != nullptr) {
-        _touchListener->retain();
-        _touchListener->onTouchBegan = [this](Touch* t, timestamp_t time) {
-            return touchBeganCB(t,time);
-        };
-        _touchListener->onTouchMoved = [=](Touch* t, timestamp_t time) {
-            return this->touchMovedCB(t,time);
-        };
-        _touchListener->onTouchEnded = [=](Touch* t, timestamp_t time) {
-            return this->touchEndedCB(t,time);
-        };
-        _touchListener->onTouchCancelled = [=](Touch* t, timestamp_t time) {
-            return this->touchCancelCB(t,time);
-        };
-        return true;
-    }
-    return false;
-}
+protected:
+    // EVENT LISTENERS
+    /** Listener to process touch events */
+    TouchListener* _touchListener;
+    
+    /** Mouse listener */
+    //MouseListener* _mouseListener;
+    
+    /** Whether or not this controller is currently active. */
+    bool _active;
+    
+    // Input results
+    /** Whether the reset action was chosen. */
+    bool _resetPressed;
+    /** Whether the debug toggle was chosen. */
+    bool _debugPressed;
+    /** Whether the exit action was chosen. */
+    bool _exitPressed;
+    /** Whether the fire action was chosen. */
+    bool _firePressed;
+    /** Whether the jump action was chosen. */
+    bool _jumpPressed;
+    /** How much did we move horizontally? */
+    float _horizontal;
+    /** How much did we move vertically? */
+    float _vertical;
+    
+    
+#pragma mark Internal Touch Management
+    // The screen is divided into four zones: Left, Bottom, Right and Main/
+    // These are all shown in the diagram below.
+    //
+    //   |---------------|
+    //   |   |       |   |
+    //   | L |   M   | R |
+    //   |   |       |   |
+    //   -----------------
+    //   |       B       |
+    //   -----------------
+    //
+    // The meaning of any touch depends on the zone it begins in.
+    
+    /** Information representing a single "touch" (possibly multi-finger) */
+    struct TouchInstance {
+        /** The current touch position */
+        Vec2 position;
+        /** The touch id for future reference */
+        int  touchid;
+        /** The number of fingers for this touch */
+        int  count;
+    };
+    
+    /** Enumeration identifying a zone for the current touch */
+    enum class Zone {
+        /** The touch was not inside the screen bounds */
+        UNDEFINED,
+        /** The touch was in the left zone (as shown above) */
+        LEFT,
+        /** The touch was in the right zone (as shown above) */
+        RIGHT,
+        /** The touch was in the bottom zone (as shown above) */
+        BOTTOM,
+        /** The touch was in the up zone (as shown above) */
+        TOP
+    };
+    
+    /** The bounds of the entire game screen */
+    Rect _bounds;
+    /** The bounds of the left touch zone */
+    Rect _lzone;
+    /** The bounds of the right touch zone */
+    Rect _rzone;
+    /** The bounds of the bottom touch zone */
+    Rect _bzone;
+    Rect _uzone;
+    
+    // Each zone can have only one touch
+    /** The current touch location for the left zone */
+    TouchInstance _ltouch;
+    /** The current touch location for the right zone */
+    TouchInstance _rtouch;
+    /** The current touch location for the up zone */
+    TouchInstance _utouch;
+    /** The current touch location for the bottom zone */
+    TouchInstance _btouch;
+    
+    /** The timestamp for the beginning of the current swipe gesture */
+    timestamp_t _swipetime;
+    /** The timestamp for a double tap (main zone only) */
+    timestamp_t _dbtaptime;
+    
+    /**
+     * Defines the zone boundaries, so we can quickly categorize touches.
+     */
+    void createZones();
+    
+    /**
+     * Returns the correct zone for the given position.
+     *
+     * See the comments above for a description of how zones work.
+     *
+     * @param  pos  a position in screen coordinates
+     *
+     * @return the correct zone for the given position.
+     */
+    Zone getZone(const Vec2& pos);
+    
+    bool checkJump(const Vec2& start, const Vec2& stop, timestamp_t current);
 
-/**
- * Starts the input processing for this input controller.
- *
- * This method must be called AFTER the input controller is initialized
- */
-void InputController::start() {
-    if (!_active) {
-        _active = true;
-        // Prioritize the input
-        // BUG: Cocos2D always prioritizes touch
-        KeyboardPoller::start(1);
-        _touchListener->start(2);
-    }
-}
-
-/**
- * Stops the input processing for this input controller.
- *
- * This method will not dispose of the input controller. It can be restarted.
- */
-void InputController::stop() {
-    if (_active) {
-        _active = false;
-        _touchListener->stop();
-        KeyboardPoller::stop();
-    }
-}
-
-
+    
 #pragma mark -
-#pragma mark Input Handling
-
-/**
- * Processes the currently cached inputs.
- *
- * This method is used to to poll the current input state.  This will poll the
- * keyboad and accelerometer.
- *
- * This method also gathers the delta difference in the touches. Depending on
- * the OS, we may see multiple updates of the same touch in a single animation
- * frame, so we need to accumulate all of the data together.
- */
-void InputController::update(float dt) {
-    if (!_active) {
-        return;
-    }
+#pragma mark Input Control
+public:
+    /**
+     * Creates a new input controller.
+     *
+     * This constructor does NOT do any initialzation.  It simply allocates the
+     * object. This makes it safe to use this class without a pointer.
+     */
+    InputController(); // Don't initialize.  Allow stack based
     
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32) || (CC_TARGET_PLATFORM == CC_PLATFORM_MAC) || (CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
-    // DESKTOP CONTROLS
-    KeyboardPoller* keys = KeyboardPoller::getInstance();
-    keys->update();
+    /**
+     * Disposes of this input controller, releasing all listeners.
+     */
+    ~InputController();
     
-    // Map "keyboard" events to the current frame boundary
-    _keyReset  = keys->keyPressed(RESET_KEY);
-    _keyDebug  = keys->keyPressed(DEBUG_KEY);
-    _keyExit   = keys->keyPressed(EXIT_KEY);
+    /**
+     * Initializes the input control for the given drawing scale and bounds.
+     *
+     * This method works like a proper constructor, initializing the input
+     * controller and allocating memory.  However, it still does not activate
+     * the listeners.  You must call start() do that.
+     *
+     * The drawing scale is the difference in size between the layer (which
+     * is receiving the touch) and the physics world.  This allows us to better
+     * associate a touch with an object.
+     *
+     * @param  bounds   the bounds of the touch device
+     * @param  scale    the drawing scale
+     *
+     * @return true if the controller was initialized successfully
+     */
+    bool init(const Rect& bounds);
     
-    _keyFire   = keys->keyPressed(FIRE_KEY);
-    _keyJump   = keys->keyPressed(JUMP_KEY);
+    /**
+     * Starts the input processing for this input controller.
+     *
+     * This method must be called AFTER the input controller is initialized
+     */
+    void    start();
     
-    _keyLeft  = keys->keyDown(EventKeyboard::KeyCode::KEY_LEFT_ARROW);
-    _keyRight = keys->keyDown(EventKeyboard::KeyCode::KEY_RIGHT_ARROW);
-    _keyUp = keys->keyDown(EventKeyboard::KeyCode::KEY_UP_ARROW);
-    _keyDown = keys->keyDown(EventKeyboard::KeyCode::KEY_DOWN_ARROW);
+    /**
+     * Stops the input processing for this input controller.
+     *
+     * This method will not dispose of the input controller. It can be restarted.
+     */
+    void    stop();
     
-    
-#endif
-    // Nothing to do for MOBILE CONTROLS
-    
-    // Capture the current state
-    _resetPressed = _keyReset;
-    _debugPressed = _keyDebug;
-    _exitPressed  = _keyExit;
-    _firePressed  = _keyFire;
-    _jumpPressed  = _keyJump;
-    
-    // Directional controls
-    _horizontal = 0.0f;
-    _vertical = 0.0f;
-    if (_keyRight) {
-        _horizontal += 1.0f;
-    }
-    if (_keyLeft) {
-        _horizontal -= 1.0f;
-    }
-    if (_keyUp) {
-        _vertical += 1.0f;
-    }
-    if (_keyDown) {
-        _vertical -= 1.0f;
-    }
+    /**
+     * Processes the currently cached inputs.
+     *
+     * This method is used to to poll the current input state.  This will poll the
+     * keyboad and accelerometer.
+     *
+     * This method also gathers the delta difference in the touches. Depending on
+     * the OS, we may see multiple updates of the same touch in a single animation
+     * frame, so we need to accumulate all of the data together.
+     */
+    void  update(float dt);
     
     
-    
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
-    // Need to clear keys in the mobile state
-    _keyDebug = false;
-    _keyReset = false;
-    _keyExit  = false;
-    _keyJump  = false;
-    _keyFire  = false;
-#endif
-}
-
-
-/**
- * Defines the zone boundaries, so we can quickly categorize touches.
- */
-void InputController::createZones() {
-    _lzone = _bounds;
-    _lzone.size.width *= LEFT_ZONE;
-    _rzone = _bounds;
-    _rzone.size.width *= RIGHT_ZONE;
-    _rzone.origin.x = _bounds.origin.x+_bounds.size.width-_rzone.size.width;
-    
-    _uzone = _bounds;
-    _uzone.size.height *= TOP_ZONE;
-    _uzone.origin.y = _bounds.origin.y+_bounds.size.height-_uzone.size.height;
-    _bzone = _bounds;
-    _bzone.size.height *= BOTTOM_ZONE;
+#pragma mark -
+#pragma mark Input Results
     
     
-}
-
-/**
- * Returns the correct zone for the given position.
- *
- * See the comments above for a description of how zones work.
- *
- * @param  pos  a position in screen coordinates
- *
- * @return the correct zone for the given position.
- */
-InputController::Zone InputController::getZone(const Vec2& pos) {
-    if (_lzone.containsPoint(pos)) {
-        return Zone::LEFT;
-    } else if (_rzone.containsPoint(pos)) {
-        return Zone::RIGHT;
-    } else if (_bzone.containsPoint(pos)) {
-        return Zone::BOTTOM;
-    } else if (_bounds.containsPoint(pos)) {
-        return Zone::TOP;
-    }
-    return Zone::UNDEFINED;
-}
-
-/**
- * Returns true if this is a jump swipe.
- *
- * A jump swipe is a quick swipe up in either the left or right zone.
- *
- * @param  start    the start position of the candidate swipe
- * @param  stop     the end position of the candidate swipe
- * @param  current  the current timestamp of the gesture
- *
- * @return true if this is a jump swipe.
- */
-bool InputController::checkJump(const Vec2& start, const Vec2& stop, timestamp_t current) {
-    // Look for swipes up that are "long enough"
-    float ydiff = (stop.y-start.y);
-    if (elapsed_millis(_swipetime,current) < EVENT_SWIPE_TIME) {
-        return (ydiff > EVENT_SWIPE_LENGTH*_bounds.size.height);
-    }
-    return false;
-}
-
-
-
-
+    /* ***********************************************************
+     ******************** CODE ADDED FOR SHADE ********************
+     ************************************************************ */
+    
+    /**
+     * Returns the amount of vertical movement.
+     * -1 = down, 1 = up, 0 = still
+     * @return the amount of vertical movement.
+     */
+    float getVertical() const { return _vertical; }
+    
+    /* ***********************************************************
+     ***************** END OF CODE ADDED FOR SHADE ****************
+     ************************************************************ */
+    
+    
+    /**
+     * Returns the amount of sideways movement.
+     * -1 = left, 1 = right, 0 = still
+     * @return the amount of sideways movement.
+     */
+    float getHorizontal() const { return _horizontal; }
+    
+    /**
+     * Returns if the jump button was pressed.
+     *
+     * @return if the jump button was pressed.
+     */
+    float didJump() const { return _jumpPressed; }
+    
+    /**
+     * Returns true if the fire button was pressed.
+     *
+     * @return true if the fire button was pressed.
+     */
+    bool didFire() const { return _firePressed; }
+    
+    /**
+     * Returns true if the reset button was pressed.
+     *
+     * @return true if the reset button was pressed.
+     */
+    bool didReset() const { return _resetPressed; }
+    
+    /**
+     * Returns true if the player wants to go toggle the debug mode.
+     *
+     * @return true if the player wants to go toggle the debug mode.
+     */
+    bool didDebug() const { return _debugPressed; }
+    
+    /**
+     * Returns true if the exit button was pressed.
+     *
+     * @return true if the exit button was pressed.
+     */
+    bool didExit() const { return _exitPressed; }
+    
+    
 #pragma mark -
 #pragma mark Touch Callbacks
-/**
- * Callback for the beginning of a touch event
- *
- * @param t     The touch information
- * @param event The associated event
- *
- * @return True if the touch was processed; false otherwise.
- */
-bool InputController::touchBeganCB(Touch* t, timestamp_t current) {
-    Vec2 pos = t->getLocation();
-    Zone zone = getZone(pos);
-    switch (zone) {
-        case Zone::LEFT:
-            CCLOG("Zone left");
-            // Only process if no touch in zone
-            if (_ltouch.touchid == -1) {
-                _ltouch.position = pos;
-                _ltouch.touchid = t->getID();
-                // Cannot do both.
-                _keyLeft = _rtouch.touchid == -1;
-            }
-            break;
-        case Zone::RIGHT:
-            CCLOG("Zone right");
-            // Only process if no touch in zone
-            if (_rtouch.touchid == -1) {
-                _rtouch.position = pos;
-                _rtouch.touchid = t->getID();
-                _keyRight = _ltouch.touchid == -1;
-            }
-            break;
-        case Zone::BOTTOM:
-            CCLOG("Zone bottom");
-            // Only process if no touch in zone
-            if (_btouch.touchid == -1) {
-                _btouch.position = pos;
-                _btouch.touchid = t->getID();
-                // Cannot do both.
-                _keyDown = _btouch.touchid == -1;
-            }
-            break;
-        case Zone::TOP:
-            CCLOG("Zone up");
-            // Only process if no touch in zone
-            if (_utouch.touchid == -1) {
-                _utouch.position = pos;
-                _utouch.touchid = t->getID();
-                // Cannot do both.
-                _keyUp = _utouch.touchid == -1;
-            }
-            break;
-        default:
-            CCASSERT(false, "Touch is out of bounds");
-            break;
-    }
-    _swipetime = current;
-    return true;
-}
-
-/**
- * Callback for the end of a touch event
- *
- * @param t     The touch information
- * @param event The associated event
- */
-void InputController::touchEndedCB(Touch* t, timestamp_t current) {
-    // Reset all keys that might have been set
-    CCLOG("Touch is up %d", t->getID());
-    if (_ltouch.touchid == t->getID()) {
-        _ltouch.touchid = -1;
-        _ltouch.count = 0;
-        _keyLeft = false;
-    } else if (_rtouch.touchid == t->getID()) {
-        _rtouch.touchid = -1;
-        _rtouch.count = 0;
-        _keyRight = false;
-    } else if (_btouch.touchid == t->getID()) {
-        _btouch.touchid = -1;
-        _btouch.count = 0;
-        _keyDown = false;
-    }else if (_utouch.touchid == t->getID()) {
-        _utouch.touchid = -1;
-        _utouch.count = 0;
-        _keyUp = false;
-    _dbtaptime = current;
-    }
-}
-
-/**
- * Callback for a touch movement event
- *
- * @param t     The touch information
- * @param event The associated event
- */
-void InputController::touchMovedCB(Touch* t, timestamp_t current) {
-    if (t->getID() == _ltouch.touchid && getZone(t->getLocation()) == Zone::LEFT)  {
-        _keyJump = checkJump(_ltouch.position, t->getLocation(), current);
-    } else if (t->getID() == _rtouch.touchid && getZone(t->getLocation()) == Zone::RIGHT)  {
-        _keyJump = checkJump(_rtouch.position, t->getLocation(), current);
-    } else if (t->getID() == _btouch.touchid && getZone(t->getLocation()) == Zone::BOTTOM)  {
-        _keyJump = checkJump(_btouch.position, t->getLocation(), current);
-    } else if (t->getID() == _utouch.touchid && getZone(t->getLocation()) == Zone::TOP)  {
-        _keyJump = checkJump(_utouch.position, t->getLocation(), current);
-    }
-    // More complex checks go here
-}
-
-/**
- * Callback for the cancellation of a touch event
- *
- * Cancellation occurs when an external event—for example,
- * an incoming phone call—disrupts the current app’s event
- * processing.
- *
- * @param t     The touch information
- * @param event The associated event
- */
-void InputController::touchCancelCB(Touch* t, timestamp_t current) {
-    // Update the timestamp
-    _dbtaptime = current;
-    _swipetime = current;
-    _ltouch.touchid = -1;
-    _rtouch.touchid = -1;
-    _btouch.touchid = -1;
-    _utouch.touchid = -1;
-    _ltouch.count = 0;
-    _rtouch.count = 0;
-    _btouch.count = 0;
-    _utouch.count = 0;
+    /**
+     * Callback for the beginning of a touch event
+     *
+     * @param t     The touch information
+     * @param event The associated event
+     *
+     * @return True if the touch was processed; false otherwise.
+     */
+    bool    touchBeganCB(Touch* t, timestamp_t time);
     
-}
+    /**
+     * Callback for the end of a touch event
+     *
+     * @param t     The touch information
+     * @param event The associated event
+     */
+    void    touchEndedCB(Touch* t, timestamp_t time);
+    
+    /**
+     * Callback for a touch movement event
+     *
+     * @param t     The touch information
+     * @param event The associated event
+     */
+    void    touchMovedCB(Touch* t, timestamp_t time);
+    
+    /**
+     * Callback for the cancellation of a touch event
+     *
+     * Cancellation occurs when an external event—for example,
+     * an incoming phone call—disrupts the current app’s event
+     * processing.
+     *
+     * @param t     The touch information
+     * @param event The associated event
+     */
+    void    touchCancelCB(Touch* t, timestamp_t time);
+};
 
+#endif /* defined(__C_INPUT_H__) */
