@@ -545,6 +545,9 @@ void GameController::reset() {
     setFailure(false);
     setComplete(false);
     populate();
+    
+    
+    
 }
 
 /**
@@ -862,3 +865,4 @@ void GameController::preload() {
 */
 void GameController::stop() {
 }
+
