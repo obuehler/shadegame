@@ -19,7 +19,6 @@
 #include <cornell/CUKeyboardPoller.h>
 #include <cornell/CUAccelerationPoller.h>
 #include <cornell/CUTouchListener.h>
-#include <cornell/CUMouseListener.h>
 
 
 using namespace cocos2d;
@@ -59,14 +58,10 @@ private:
     bool  _keyDown;
     
     
-    
 protected:
     // EVENT LISTENERS
     /** Listener to process touch events */
     TouchListener* _touchListener;
-    
-    /** Mouse listener */
-    //MouseListener* _mouseListener;
     
     /** Whether or not this controller is currently active. */
     bool _active;
@@ -122,8 +117,8 @@ protected:
         RIGHT,
         /** The touch was in the bottom zone (as shown above) */
         BOTTOM,
-        /** The touch was in the up zone (as shown above) */
-        TOP
+        /** The touch was in the main zone (as shown above) */
+        MAIN
     };
     
     /** The bounds of the entire game screen */
@@ -134,17 +129,19 @@ protected:
     Rect _rzone;
     /** The bounds of the bottom touch zone */
     Rect _bzone;
-    Rect _uzone;
     
     // Each zone can have only one touch
     /** The current touch location for the left zone */
     TouchInstance _ltouch;
     /** The current touch location for the right zone */
     TouchInstance _rtouch;
-    /** The current touch location for the up zone */
-    TouchInstance _utouch;
-    /** The current touch location for the bottom zone */
+    /** The current touch location for the main zone */
     TouchInstance _btouch;
+    /** The current touch location for the bottom zone */
+    TouchInstance _mtouch;
+    
+    TouchInstance _oneFinger;
+    TouchInstance _twoFingers;
     
     /** The timestamp for the beginning of the current swipe gesture */
     timestamp_t _swipetime;
@@ -165,10 +162,34 @@ protected:
      *
      * @return the correct zone for the given position.
      */
-    Zone getZone(const Vec2& pos);
+    //Zone getZone(const Vec2& pos);
     
+    /**
+     * Returns true if this is a jump swipe.
+     *
+     * A jump swipe is a quick swipe up in either the left or right zone.
+     *
+     * @param  start    the start position of the candidate swipe
+     * @param  stop     the end position of the candidate swipe
+     * @param  current  the current timestamp of the gesture
+     *
+     * @return true if this is a jump swipe.
+     */
     bool checkJump(const Vec2& start, const Vec2& stop, timestamp_t current);
-
+    
+    /**
+     * Returns a nonzero value if this is a quick left or right swipe
+     *
+     * The function returns -1 if it is left swipe and 1 if it is a right swipe.
+     *
+     * @param  start    the start position of the candidate swipe
+     * @param  stop     the end position of the candidate swipe
+     * @param  current  the current timestamp of the gesture
+     *
+     * @return a nonzero value if this is a quick left or right swipe
+     */
+    int  checkSwipe(const Vec2& start, const Vec2& stop, timestamp_t current);
+    
     
 #pragma mark -
 #pragma mark Input Control
@@ -204,6 +225,11 @@ public:
      */
     bool init(const Rect& bounds);
     
+    void setZero() {
+        _vertical = 0;
+        _horizontal = 0;
+    }
+    
     /**
      * Starts the input processing for this input controller.
      *
@@ -233,12 +259,6 @@ public:
     
 #pragma mark -
 #pragma mark Input Results
-    
-    
-    /* ***********************************************************
-     ******************** CODE ADDED FOR SHADE ********************
-     ************************************************************ */
-    
     /**
      * Returns the amount of vertical movement.
      * -1 = down, 1 = up, 0 = still
@@ -246,14 +266,11 @@ public:
      */
     float getVertical() const { return _vertical; }
     
-    /* ***********************************************************
-     ***************** END OF CODE ADDED FOR SHADE ****************
-     ************************************************************ */
-    
-    
     /**
      * Returns the amount of sideways movement.
+     *
      * -1 = left, 1 = right, 0 = still
+     *
      * @return the amount of sideways movement.
      */
     float getHorizontal() const { return _horizontal; }
@@ -325,8 +342,8 @@ public:
     /**
      * Callback for the cancellation of a touch event
      *
-     * Cancellation occurs when an external event—for example,
-     * an incoming phone call—disrupts the current app’s event
+     * Cancellation occurs when an external eventâ€”for example,
+     * an incoming phone callâ€”disrupts the current appâ€™s event
      * processing.
      *
      * @param t     The touch information
