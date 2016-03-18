@@ -63,17 +63,19 @@ using namespace std;
  * desired aspect ratio).
  */
 class GameController {
-protected:
-	/**	
-	* Arrays of tuples holding building and shadow data.
-	*
-	* In each tuple,
-	* - first value: type of building
-	* - second value: number of vertices * 2
-	* - third value: the building vertices
-	* - fourth value: the shadow vertices
+private:
+	/**
+	* Add a horizontal building and shadow to the world.
+	* pos is the position of the upper left corner of the building and shadow.
+	* The size of the building and shadow will be the size of their source
+	* images scaled by scale.
 	*/
-	tuple<int, int, float*, float*> * _buildings;
+	void addBuilding(const char* bname,
+		const char* sname,
+		const Vec2& pos,
+		float scale);
+
+protected:
 
     /** The scene manager for this game demo */
     SceneManager* _assets;

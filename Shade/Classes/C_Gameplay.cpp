@@ -278,27 +278,6 @@ bool GameController::init(RootLayer* root, const Rect& rect, const Vec2& gravity
 
     _input.init(screen);
     _input.start();
-
-	
-	/** First value: type of building
-	second value: number of vertices
-	third value: the vertices */
-	_buildings = new tuple<int, int, float*, float*>[BUILDING_COUNT];
-	float b[8] = { 1.0, 10.0, 5.0, 10.0, 5.0, 8.0, 1.0, 8.0 };
-	float s[8] = { 1.0, 10.0, 5.0, 10.0, 5.0, 6.0, 1.0, 6.0 };
-	_buildings[0] = make_tuple(0, 8, b, s);
-	float b2[8] = { 12, 10, 16, 14, 16, 10, 12, 8 };
-	float s2[8] = { 12, 10, 16, 14, 16, 8, 12, 6 };
-	_buildings[1] = make_tuple(0, 8, b2, s2);
-	float b3[8] = { 16, 12, 19, 12, 19, 10, 16, 10 };
-	float s3[8] = { 16, 12, 19, 12, 19, 4, 16, 4 };
-	_buildings[2] = make_tuple(0, 8, b3, s3);
-	float b4[8] = { 20, 12, 25, 12, 25, 8, 20, 8 };
-	float s4[8] = { 20, 12, 25, 12, 25, 5, 20, 5 };
-	_buildings[3] = make_tuple(0, 8, b4, s4);
-	float b5[8] = { 0, 11, 1, 12, 1, 9, 0, 8 };
-	float s5[8] = { 0, 11, 1, 12, 1, 8, 0, 7 };
-	_buildings[4] = make_tuple(0, 8, b5, s5);
     
     // Create the world; there are no listeners this time.
     _world = WorldController::create(rect,gravity);
@@ -422,7 +401,6 @@ void GameController::populate() {
     
     // Create obstacle
     Vec2 goalPos = GOAL_POS;
-    sprite = PolygonNode::createWithTexture(image);
     Size goalSize(image->getContentSize().width*cscale/_scale.x,
                   image->getContentSize().height*cscale/_scale.y);
     _goalDoor = BoxObstacle::create(goalPos,goalSize);
@@ -468,70 +446,63 @@ void GameController::populate() {
     SoundEngine::getInstance()->playMusic(source, true, MUSIC_VOLUME);
 
 #pragma mark : Buildings
-	for (int buildingIndex = 0; buildingIndex < BUILDING_COUNT; buildingIndex++) {
-		image = _assets->get<Texture2D>(buildingTextures[get<0>(_buildings[buildingIndex]) * 4]);
 
-		PolygonObstacle* builobj;
-		Poly2 building(get<2>(_buildings[buildingIndex]), get<1>(_buildings[buildingIndex]));
-		building.triangulate();
-		builobj = PolygonObstacle::create(building);
-		builobj->setDrawScale(_scale.x, _scale.y);
-		// You cannot add constant "".  Must stringify
-		builobj->setName(std::string(BUILDING_NAME) + cocos2d::to_string(buildingIndex));
+	addBuilding("b1", "s1", Vec2(10, 10), 0.7);
+	addBuilding("b5", "s5", Vec2(8, 15), 0.5);
+}
 
-		// Set the physics attributes
-		builobj->setBodyType(b2_staticBody);
-		builobj->setDensity(BASIC_DENSITY);
-		builobj->setFriction(BASIC_FRICTION);
-		builobj->setRestitution(BASIC_RESTITUTION);
+/**
+ * Add a rectangular building and shadow to the world.
+ * bname and sname are the names used when the building and shadow textures
+ * were loaded by the asset loader.
+ * pos is the position of the upper left corner of the building and shadow.
+ * The size of the building and shadow will be the size of their source
+ * images scaled by scale.
+ */
+void GameController::addBuilding(const char* bname,
+	                             const char* sname,
+	                             const Vec2& pos,
+	                             float scale) {
+	auto* image = _assets->get<Texture2D>(bname);
+	auto* sprite = PolygonNode::createWithTexture(image);
+	sprite->setScale(scale);
+	Size bs(image->getContentSize().width*scale / _scale.x,
+		image->getContentSize().height*scale / _scale.y);
+	Vec2 bpos(pos.x + bs.width / 2, pos.y - bs.height / 2);
+	auto* box = BoxObstacle::create(bpos, bs);
+	box->setDrawScale(_scale.x, _scale.y);
+	box->setName(std::string(BUILDING_NAME));
+	box->setBodyType(b2_staticBody);
+	box->setDensity(BASIC_DENSITY);
+	box->setFriction(BASIC_FRICTION);
+	box->setRestitution(BASIC_RESTITUTION);
+	box->setSceneNode(sprite);
+	auto* draw = WireNode::create();
+	draw->setColor(DEBUG_COLOR);
+	draw->setOpacity(DEBUG_OPACITY);
+	box->setDebugNode(draw);
+	addObstacle(box, 2);
 
-		// Add the scene graph nodes to this object		
-		/* float b22[8] = { 0, 141, 241, 141, 241, 50, 0, 50 };
-		Poly2 building2(b22, 8);
-		building2.triangulate();
-		sprite = PolygonNode::createWithTexture(image, building2);
-		sprite->setScale((3.0f /241.0f) * _scale.x, (2.0f / 92.0f) * _scale.y); */
-		building *= _scale;
-		sprite = PolygonNode::createWithTexture(image, building);
-		builobj->setSceneNode(sprite);
-
-		draw = WireNode::create();
-		draw->setColor(DEBUG_COLOR);
-		draw->setOpacity(DEBUG_OPACITY);
-		builobj->setDebugNode(draw);
-		addObstacle(builobj, 2);
-	}
-
-#pragma mark : Shadows
-	for (int shadowIndex = 0; shadowIndex < BUILDING_COUNT; shadowIndex++) {
-		image = _assets->get<Texture2D>(buildingTextures[get<0>(_buildings[shadowIndex]) * 4 + 2]);
-		PolygonObstacle* shadobj;
-		Poly2 shadow(get<3>(_buildings[shadowIndex]), get<1>(_buildings[shadowIndex]));
-		shadow.triangulate();
-		shadobj = PolygonObstacle::create(shadow);
-		shadobj->setDrawScale(_scale.x, _scale.y);
-		// You cannot add constant "".  Must stringify
-		shadobj->setName(std::string(SHADOW_NAME) + cocos2d::to_string(shadowIndex));
-
-		// Set the physics attributes
-		shadobj->setBodyType(b2_staticBody);
-		shadobj->setDensity(0.0f);
-		shadobj->setFriction(0.0f);
-		shadobj->setRestitution(0.0f);
-		shadobj->setSensor(true);
-
-		// Add the scene graph nodes to this object
-		shadow *= _scale;
-		sprite = PolygonNode::createWithTexture(image, shadow);
-		shadobj->setSceneNode(sprite);
-
-		draw = WireNode::create();
-		draw->setColor(DEBUG_COLOR);
-		draw->setOpacity(DEBUG_OPACITY);
-		shadobj->setDebugNode(draw);
-		addObstacle(shadobj, 1);  // This should be behind buildings
-	}
-
+	image = _assets->get<Texture2D>(sname);
+	sprite = PolygonNode::createWithTexture(image);
+	sprite->setScale(scale);
+	Size ss(image->getContentSize().width*scale / _scale.x,
+		image->getContentSize().height*scale / _scale.y);
+	Vec2 spos(pos.x + ss.width / 2, pos.y - ss.height / 2);
+	box = BoxObstacle::create(spos, ss);
+	box->setDrawScale(_scale.x, _scale.y);
+	box->setName(std::string(SHADOW_NAME));
+	box->setBodyType(b2_staticBody);
+	box->setDensity(0);
+	box->setFriction(0);
+	box->setRestitution(0);
+	box->setSensor(true);
+	box->setSceneNode(sprite);
+	draw = WireNode::create();
+	draw->setColor(DEBUG_COLOR);
+	draw->setOpacity(DEBUG_OPACITY);
+	box->setDebugNode(draw);
+	addObstacle(box, 1);
 }
 
 /**
@@ -890,5 +861,4 @@ void GameController::preload() {
 * Clear all memory when exiting.
 */
 void GameController::stop() {
-	delete[] _buildings;
 }
