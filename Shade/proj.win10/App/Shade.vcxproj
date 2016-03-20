@@ -125,7 +125,10 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <PackageCertificateKeyFile>Shade_TemporaryKey.pfx</PackageCertificateKeyFile>
-    <PackageCertificateThumbprint>69E61EED9D75298C20C00383913E70404878E922</PackageCertificateThumbprint>
+    <PackageCertificateThumbprint>82622660A81EE73F75989CACB0BFBD33CA1517EF</PackageCertificateThumbprint>
+    <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
+    <AppxBundle>Always</AppxBundle>
+    <AppxBundlePlatforms>x86</AppxBundlePlatforms>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -215,8 +218,19 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Classes\ActionQueue.h" />
     <ClInclude Include="..\..\Classes\AppDelegate.h" />
-    <ClInclude Include="..\..\Classes\HelloWorld.h" />
+    <ClInclude Include="..\..\Classes\C_AI.h" />
+    <ClInclude Include="..\..\Classes\C_Gameplay.h" />
+    <ClInclude Include="..\..\Classes\C_Input.h" />
+    <ClInclude Include="..\..\Classes\MovingObjectMetadata.h" />
+    <ClInclude Include="..\..\Classes\M_Caster.h" />
+    <ClInclude Include="..\..\Classes\M_Level.h" />
+    <ClInclude Include="..\..\Classes\M_MovingObject.h" />
+    <ClInclude Include="..\..\Classes\M_Pedestrian.h" />
+    <ClInclude Include="..\..\Classes\M_Powerup.h" />
+    <ClInclude Include="..\..\Classes\M_Shadow.h" />
+    <ClInclude Include="..\..\Classes\PFGameRoot.h" />
     <ClInclude Include="App.xaml.h">
       <DependentUpon>App.xaml</DependentUpon>
     </ClInclude>
@@ -240,7 +254,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Classes\AppDelegate.cpp" />
-    <ClCompile Include="..\..\Classes\HelloWorld.cpp" />
+    <ClCompile Include="..\..\Classes\C_Gameplay.cpp" />
+    <ClCompile Include="..\..\Classes\C_Input.cpp" />
+    <ClCompile Include="..\..\Classes\M_Powerup.cpp" />
+    <ClCompile Include="..\..\Classes\M_Shadow.cpp" />
+    <ClCompile Include="..\..\Classes\PFGameRoot.cpp" />
     <ClCompile Include="App.xaml.cpp">
       <DependentUpon>App.xaml</DependentUpon>
     </ClCompile>
