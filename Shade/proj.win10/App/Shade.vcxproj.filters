@@ -31,7 +31,19 @@
     <ClCompile Include="..\..\Classes\AppDelegate.cpp">
       <Filter>Classes</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Classes\HelloWorld.cpp">
+    <ClCompile Include="..\..\Classes\C_Gameplay.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\C_Input.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\M_Powerup.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\M_Shadow.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Classes\PFGameRoot.cpp">
       <Filter>Classes</Filter>
     </ClCompile>
   </ItemGroup>
@@ -45,10 +57,43 @@
     </ClInclude>
     <ClInclude Include="pch.h" />
     <ClInclude Include="Cocos2dEngine\OpenGLESPage.xaml.h" />
+    <ClInclude Include="..\..\Classes\ActionQueue.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Classes\AppDelegate.h">
       <Filter>Classes</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Classes\HelloWorld.h">
+    <ClInclude Include="..\..\Classes\C_AI.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\C_Gameplay.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\C_Input.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\M_Caster.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\M_Level.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\M_MovingObject.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\M_Pedestrian.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\M_Powerup.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\M_Shadow.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\MovingObjectMetadata.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Classes\PFGameRoot.h">
       <Filter>Classes</Filter>
     </ClInclude>
   </ItemGroup>

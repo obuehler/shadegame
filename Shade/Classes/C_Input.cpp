@@ -1,4 +1,4 @@
-//
+﻿//
 //  PFInputController.cpp
 //  PlatformerDemo
 //
@@ -438,7 +438,7 @@ void InputController::touchEndedCB(Touch* t, timestamp_t current) {
  * @param event The associated event
  */
 void InputController::touchMovedCB(Touch* t, timestamp_t current) {
-     if (t->getID() == _ltouch.touchid && getZone(t->getLocation()) == Zone::LEFT)  {
+     /*if (t->getID() == _ltouch.touchid && getZone(t->getLocation()) == Zone::LEFT)  {
      _keyJump = checkJump(_ltouch.position, t->getLocation(), current);
      } else if (t->getID() == _rtouch.touchid && getZone(t->getLocation()) == Zone::RIGHT)  {
      _keyJump = checkJump(_rtouch.position, t->getLocation(), current);
