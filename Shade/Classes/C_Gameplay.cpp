@@ -541,6 +541,7 @@ void GameController::reset() {
     _worldnode->removeAllChildren();
     _debugnode->removeAllChildren();
     
+	_input.setZero();
 	_exposure = 0;
     setFailure(false);
     setComplete(false);

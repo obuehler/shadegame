@@ -77,6 +77,7 @@ _touchListener(nullptr)
     _keyExit  = false;
     
     _horizontal = 0.0f;
+	_vertical = 0.0f;
     _keyFire  = false;
     _keyJump  = false;
     
