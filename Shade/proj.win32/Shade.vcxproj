@@ -145,6 +145,8 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Classes\AppDelegate.cpp" />
+    <ClCompile Include="..\Classes\M_Car.cpp" />
+    <ClCompile Include="..\Classes\M_Pedestrian.cpp" />
     <ClCompile Include="..\Classes\M_Powerup.cpp" />
     <ClCompile Include="..\Classes\M_Shadow.cpp" />
     <ClCompile Include="..\Classes\C_Gameplay.cpp" />
@@ -157,9 +159,11 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
     <ClInclude Include="..\Classes\C_AI.h" />
     <ClInclude Include="..\Classes\MovingObjectMetadata.h" />
     <ClInclude Include="..\Classes\ActionQueue.h" />
+    <ClInclude Include="..\Classes\M_Car.h" />
     <ClInclude Include="..\Classes\M_MovingObject.h" />
     <ClInclude Include="..\Classes\M_Caster.h" />
     <ClInclude Include="..\Classes\M_Level.h" />
+    <ClInclude Include="..\Classes\M_Pedestrian.h" />
     <ClInclude Include="..\Classes\M_Powerup.h" />
     <ClInclude Include="..\Classes\PFGameRoot.h" />
     <ClInclude Include="..\Classes\M_Shadow.h" />

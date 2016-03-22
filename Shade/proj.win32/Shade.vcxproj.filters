@@ -18,6 +18,12 @@
     <ClCompile Include="..\Classes\PFGameRoot.cpp">
       <Filter>view</Filter>
     </ClCompile>
+    <ClCompile Include="..\Classes\M_Car.cpp">
+      <Filter>model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\M_Pedestrian.cpp">
+      <Filter>model</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Classes\AppDelegate.h" />
@@ -54,6 +60,12 @@
     </ClInclude>
     <ClInclude Include="..\Classes\ActionQueue.h">
       <Filter>abstractions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\M_Car.h">
+      <Filter>model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\M_Pedestrian.h">
+      <Filter>model</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

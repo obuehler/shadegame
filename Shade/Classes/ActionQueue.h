@@ -14,10 +14,13 @@ using namespace std;
 
 template <class T>
 class ActionQueue {
+
 private:
 	class ActionNode;
 
 public:
+
+	typedef typename T::ActionType ActionType;
 
 	friend class AIController;
 	friend class MovingObject;
@@ -334,28 +337,28 @@ private:
 		friend const bool ActionQueue::tailHasNext() const;
 		//friend void ActionQueue::printContents();  // TODO remove this
 
-		T::ActionType _type;
+		ActionType _type;
 		int _length;
 		int _counter;
 		float _bearing;
 
 		// CONSTRUCTORS
 
-		ActionNode(T::ActionType type) : _length(DEFAULT_ACTION_LENGTH), _counter(
+		ActionNode(ActionType type) : _length(DEFAULT_ACTION_LENGTH), _counter(
 			DEFAULT_ACTION_LENGTH), _type(type), _next(nullptr
 				), _bearing(0.0f) {}
 
-		ActionNode(T::ActionType type, int length, int counter) : _type(type
+		ActionNode(ActionType type, int length, int counter) : _type(type
 			), _length(length), _counter(counter), _next(nullptr), _bearing(
 				DEFAULT_BEARING) {}
 
-		ActionNode(T::ActionType type, int length) : _counter(length), _type(
+		ActionNode(ActionType type, int length) : _counter(length), _type(
 			type), _length(length), _next(nullptr), _bearing(DEFAULT_BEARING) {}
 
-		ActionNode(T::ActionType type, int length, float bearing) : _counter(length
+		ActionNode(ActionType type, int length, float bearing) : _counter(length
 			), _type(type), _length(length), _next(nullptr), _bearing(bearing) {}
 
-		ActionNode(T::ActionType type, int length, int counter, float bearing
+		ActionNode(ActionType type, int length, int counter, float bearing
 			) : _counter(counter), _type(type), _length(length), _next(nullptr
 				), _bearing(bearing) {}
 
