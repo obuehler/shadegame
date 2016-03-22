@@ -332,7 +332,7 @@ private:
 		friend void ActionQueue::setTailNext(shared_ptr<ActionNode> next) const;
 		friend bool ActionQueue::tailLinksTo(shared_ptr<ActionNode> action);
 		friend const bool ActionQueue::tailHasNext() const;
-		friend void ActionQueue::printContents();  // TODO remove this
+		//friend void ActionQueue::printContents();  // TODO remove this
 
 		T::ActionType _type;
 		int _length;

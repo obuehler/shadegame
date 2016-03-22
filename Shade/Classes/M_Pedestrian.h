@@ -4,10 +4,12 @@
 #include <map>
 #include <string>
 
-struct Pedestrian {
-	enum { WALK_FAST, WALK_SLOW, STAND, LOOK_AROUND };
+using namespace std;
 
-	Map<string, 
+struct Pedestrian {
+	typedef enum ActionType { WALK_FAST, WALK_SLOW, STAND, LOOK_AROUND };
+
+	static map<string, ActionType> actionMap;
 };
 
 #endif /* __M_PEDESTRIAN_H__ */

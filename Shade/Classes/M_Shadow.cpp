@@ -40,9 +40,9 @@
 /** The amount to shrink the body fixture (horizontally) relative to the image */
 #define DUDE_HSHRINK  0.7f
 /** The amount to shrink the sensor fixture (horizontally) relative to the image */
-#define DUDE_SSHRINK  0.6f
+#define DUDE_SSHRINK  1.0f//0.6f
 /** Height of the sensor attached to the player's feet */
-#define SENSOR_HEIGHT   0.1f
+#define SENSOR_HEIGHT   1.0f//0.1f
 /** The density of the character */
 #define DUDE_DENSITY    1.0f
 /** The impulse for the character jump */
@@ -270,7 +270,7 @@ void Shadow::applyForce() {
     
 
     // Don't want to be moving. Damp out player motion
-    if (getHorizontalMovement() == 0.0f) {
+    /*if (getHorizontalMovement() == 0.0f) {
         b2Vec2 force(-getDamping()*getVX(),0);
         _body->ApplyForce(force,_body->GetPosition(),true);
     }
@@ -288,7 +288,8 @@ void Shadow::applyForce() {
 		//setVX(SIGNUM(getVX())*getMaxSpeed());
 		setVX((getVX() / pow(pow(getVX(), 2) + pow(getVY(), 2), 0.5)) * getMaxSpeed());
 		setVY((getVY() / pow(pow(getVX(), 2) + pow(getVY(), 2), 0.5)) * getMaxSpeed());
-	}
+	} */
+	_body->SetLinearVelocity(b2Vec2(getHorizontalMovement(), getVerticalMovement()));
 }
 
 /**
@@ -326,6 +327,3 @@ void Shadow::resetDebugNode() {
     _sensorNode->setPosition(Vec2(_debug->getContentSize().width/2.0f, 0.0f));
     _debug->addChild(_sensorNode);
 }
-
-
-

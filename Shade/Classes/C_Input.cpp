@@ -55,8 +55,6 @@
 /** The portion of the screen used for the bottom zone */
 #define BOTTOM_ZONE     0.2f
 
-#define TOP_ZONE     0.2f
-
 
 #pragma mark -
 #pragma mark Input Controller
@@ -86,11 +84,11 @@ _touchListener(nullptr)
     _ltouch.touchid = -1;
     _rtouch.touchid = -1;
     _btouch.touchid = -1;
-    _utouch.touchid = -1;
+    _mtouch.touchid = -1;
     _ltouch.count = 0;
     _rtouch.count = 0;
     _btouch.count = 0;
-    _utouch.count = 0;
+    _mtouch.count = 0;
 }
 
 
@@ -226,8 +224,8 @@ void InputController::update(float dt) {
     _jumpPressed  = _keyJump;
     
     // Directional controls
-    _horizontal = 0.0f;
-    _vertical = 0.0f;
+    //_horizontal = 0.0f;
+    //_vertical = 0.0f;
     if (_keyRight) {
         _horizontal += 1.0f;
     }
@@ -263,14 +261,8 @@ void InputController::createZones() {
     _rzone = _bounds;
     _rzone.size.width *= RIGHT_ZONE;
     _rzone.origin.x = _bounds.origin.x+_bounds.size.width-_rzone.size.width;
-    
-    _uzone = _bounds;
-    _uzone.size.height *= TOP_ZONE;
-    _uzone.origin.y = _bounds.origin.y+_bounds.size.height-_uzone.size.height;
     _bzone = _bounds;
     _bzone.size.height *= BOTTOM_ZONE;
-    
-    
 }
 
 /**
@@ -282,18 +274,18 @@ void InputController::createZones() {
  *
  * @return the correct zone for the given position.
  */
-InputController::Zone InputController::getZone(const Vec2& pos) {
-    if (_lzone.containsPoint(pos)) {
-        return Zone::LEFT;
-    } else if (_rzone.containsPoint(pos)) {
-        return Zone::RIGHT;
-    } else if (_bzone.containsPoint(pos)) {
-        return Zone::BOTTOM;
-    } else if (_bounds.containsPoint(pos)) {
-        return Zone::TOP;
-    }
-    return Zone::UNDEFINED;
-}
+/*InputController::Zone InputController::getZone(const Vec2& pos) {
+ if (_lzone.containsPoint(pos)) {
+ return Zone::LEFT;
+ } else if (_rzone.containsPoint(pos)) {
+ return Zone::RIGHT;
+ } else if (_bzone.containsPoint(pos)) {
+ return Zone::BOTTOM;
+ } else if (_bounds.containsPoint(pos)) {
+ return Zone::MAIN;
+ }
+ return Zone::UNDEFINED;
+ } */
 
 /**
  * Returns true if this is a jump swipe.
@@ -315,7 +307,30 @@ bool InputController::checkJump(const Vec2& start, const Vec2& stop, timestamp_t
     return false;
 }
 
-
+/**
+ * Returns a nonzero value if this is a quick left or right swipe
+ *
+ * The function returns -1 if it is left swipe and 1 if it is a right swipe.
+ *
+ * @param  start    the start position of the candidate swipe
+ * @param  stop     the end position of the candidate swipe
+ * @param  current  the current timestamp of the gesture
+ *
+ * @return a nonzero value if this is a quick left or right swipe
+ */
+int InputController::checkSwipe(const Vec2& start, const Vec2& stop, timestamp_t current) {
+    // Look for swipes up that are "long enough"
+    float xdiff = (stop.x-start.x);
+    if (elapsed_millis(_swipetime,current) < EVENT_SWIPE_TIME) {
+        float thresh = EVENT_SWIPE_LENGTH*_bounds.size.width;
+        if (xdiff > thresh) {
+            return 1;
+        } else if (xdiff < thresh) {
+            return -1;
+        }
+    }
+    return 0;
+}
 
 
 #pragma mark -
@@ -330,51 +345,56 @@ bool InputController::checkJump(const Vec2& start, const Vec2& stop, timestamp_t
  */
 bool InputController::touchBeganCB(Touch* t, timestamp_t current) {
     Vec2 pos = t->getLocation();
-    Zone zone = getZone(pos);
-    switch (zone) {
-        case Zone::LEFT:
-            CCLOG("Zone left");
-            // Only process if no touch in zone
-            if (_ltouch.touchid == -1) {
-                _ltouch.position = pos;
-                _ltouch.touchid = t->getID();
-                // Cannot do both.
-                _keyLeft = _rtouch.touchid == -1;
-            }
-            break;
-        case Zone::RIGHT:
-            CCLOG("Zone right");
-            // Only process if no touch in zone
-            if (_rtouch.touchid == -1) {
-                _rtouch.position = pos;
-                _rtouch.touchid = t->getID();
-                _keyRight = _ltouch.touchid == -1;
-            }
-            break;
-        case Zone::BOTTOM:
-            CCLOG("Zone bottom");
-            // Only process if no touch in zone
-            if (_btouch.touchid == -1) {
-                _btouch.position = pos;
-                _btouch.touchid = t->getID();
-                // Cannot do both.
-                _keyDown = _btouch.touchid == -1;
-            }
-            break;
-        case Zone::TOP:
-            CCLOG("Zone up");
-            // Only process if no touch in zone
-            if (_utouch.touchid == -1) {
-                _utouch.position = pos;
-                _utouch.touchid = t->getID();
-                // Cannot do both.
-                _keyUp = _utouch.touchid == -1;
-            }
-            break;
-        default:
-            CCASSERT(false, "Touch is out of bounds");
-            break;
-    }
+    _vertical = (pos.y - _bounds.getMidY()) / (_bounds.size.height / 2.0f);
+    _horizontal = (pos.x - _bounds.getMidX()) / (_bounds.size.width / 2.0f);
+    
+    /*Zone zone = getZone(pos);
+     switch (zone) {
+     case Zone::LEFT:
+     CCLOG("Zone left");
+     // Only process if no touch in zone
+     if (_ltouch.touchid == -1) {
+     _ltouch.position = pos;
+     _ltouch.touchid = t->getID();
+     // Cannot do both.
+     _keyLeft = _rtouch.touchid == -1;
+     }
+     break;
+     case Zone::RIGHT:
+     CCLOG("Zone right");
+     // Only process if no touch in zone
+     if (_rtouch.touchid == -1) {
+     _rtouch.position = pos;
+     _rtouch.touchid = t->getID();
+     _keyRight = _ltouch.touchid == -1;
+     }
+     break;
+     case Zone::BOTTOM:
+     CCLOG("Zone bottom");
+     // Only process if no touch in zone
+     if (_btouch.touchid == -1) {
+     _btouch.position = pos;
+     _btouch.touchid = t->getID();
+     }
+     _keyFire = true;
+     break;
+     case Zone::MAIN:
+     // Only check for double tap in Main if nothing else down
+     if (_ltouch.touchid == -1 && _rtouch.touchid == -1 && _btouch.touchid == -1 && _mtouch.touchid == -1) {
+     _keyDebug = (elapsed_millis(_dbtaptime,current) <= EVENT_DOUBLE_CLICK);
+     }
+     
+     // Keep count of touches in Main zone.
+     if (_mtouch.touchid == -1) {
+     _mtouch.position = pos;
+     _mtouch.touchid = t->getID();
+     }
+     _mtouch.count++;
+     break;
+     default:
+     CCASSERT(false, "Touch is out of bounds");
+     break;
+     } */
     _swipetime = current;
     return true;
 }
@@ -388,25 +408,28 @@ bool InputController::touchBeganCB(Touch* t, timestamp_t current) {
 void InputController::touchEndedCB(Touch* t, timestamp_t current) {
     // Reset all keys that might have been set
     CCLOG("Touch is up %d", t->getID());
-    if (_ltouch.touchid == t->getID()) {
-        _ltouch.touchid = -1;
-        _ltouch.count = 0;
-        _keyLeft = false;
-    } else if (_rtouch.touchid == t->getID()) {
-        _rtouch.touchid = -1;
-        _rtouch.count = 0;
-        _keyRight = false;
-    } else if (_btouch.touchid == t->getID()) {
-        _btouch.touchid = -1;
-        _btouch.count = 0;
-        _keyDown = false;
-    }else if (_utouch.touchid == t->getID()) {
-        _utouch.touchid = -1;
-        _utouch.count = 0;
-        _keyUp = false;
+    /*if (_ltouch.touchid == t->getID()) {
+     _ltouch.touchid = -1;
+     _ltouch.count = 0;
+     _keyLeft = false;
+     } else if (_rtouch.touchid == t->getID()) {
+     _rtouch.touchid = -1;
+     _rtouch.count = 0;
+     _keyRight = false;
+     } else if (_btouch.touchid == t->getID()) {
+     _btouch.touchid = -1;
+     _btouch.count = 0;
+     // Fire is made false by update
+     } else if (_mtouch.touchid == t->getID()) {
+     _mtouch.count--;
+     if (_mtouch.count == 0) {
+     _mtouch.touchid = -1;
+     }
+     // Reset, debug is made false by update
+     } */
     _dbtaptime = current;
-    }
 }
+
 
 /**
  * Callback for a touch movement event
@@ -415,15 +438,21 @@ void InputController::touchEndedCB(Touch* t, timestamp_t current) {
  * @param event The associated event
  */
 void InputController::touchMovedCB(Touch* t, timestamp_t current) {
-    if (t->getID() == _ltouch.touchid && getZone(t->getLocation()) == Zone::LEFT)  {
-        _keyJump = checkJump(_ltouch.position, t->getLocation(), current);
-    } else if (t->getID() == _rtouch.touchid && getZone(t->getLocation()) == Zone::RIGHT)  {
-        _keyJump = checkJump(_rtouch.position, t->getLocation(), current);
-    } else if (t->getID() == _btouch.touchid && getZone(t->getLocation()) == Zone::BOTTOM)  {
-        _keyJump = checkJump(_btouch.position, t->getLocation(), current);
-    } else if (t->getID() == _utouch.touchid && getZone(t->getLocation()) == Zone::TOP)  {
-        _keyJump = checkJump(_utouch.position, t->getLocation(), current);
-    }
+     if (t->getID() == _ltouch.touchid && getZone(t->getLocation()) == Zone::LEFT)  {
+     _keyJump = checkJump(_ltouch.position, t->getLocation(), current);
+     } else if (t->getID() == _rtouch.touchid && getZone(t->getLocation()) == Zone::RIGHT)  {
+     _keyJump = checkJump(_rtouch.position, t->getLocation(), current);
+     } else if (t->getID() == _btouch.touchid && getZone(t->getLocation()) == Zone::BOTTOM)  {
+     // Allow the fire "key" to be held down
+     _keyFire = true;
+     } else if (t->getID() == _mtouch.touchid && _mtouch.count > 1) {
+     int swipe = checkSwipe(_mtouch.position, t->getLocation(), current);
+     if (swipe == -1) {
+     _keyReset = true;
+     } else if (swipe == 1) {
+     _keyExit = true;
+     }
+     } */
     // More complex checks go here
 }
 
@@ -444,11 +473,10 @@ void InputController::touchCancelCB(Touch* t, timestamp_t current) {
     _ltouch.touchid = -1;
     _rtouch.touchid = -1;
     _btouch.touchid = -1;
-    _utouch.touchid = -1;
+    _mtouch.touchid = -1;
     _ltouch.count = 0;
     _rtouch.count = 0;
     _btouch.count = 0;
-    _utouch.count = 0;
+    _mtouch.count = 0;
     
 }
-

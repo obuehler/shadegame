@@ -545,6 +545,9 @@ void GameController::reset() {
     setFailure(false);
     setComplete(false);
     populate();
+    
+    
+    
 }
 
 /**
