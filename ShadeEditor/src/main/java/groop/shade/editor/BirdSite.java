@@ -1,8 +1,5 @@
 package groop.shade.editor;
 
-import model.birds.Bird;
-import model.birds.Bird.BirdType;
-
 import com.badlogic.gdx.math.Vector2;
 
 @SuppressWarnings("serial")
@@ -19,13 +16,4 @@ public class BirdSite extends Vector2 {
 	public BirdSite(Vector2 site) {
 		super(site);
 	}
-
-	public Bird createBird(BirdType type) {
-		if (birdHealth > 0) {
-			return type.create(position, birdHealth);
-		} else {
-			return type.create(position, GameStage.DEFAULT_BOSS_HEALTH);
-		}
-	}
-
 }

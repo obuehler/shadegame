@@ -1,8 +1,5 @@
 package groop.shade.editor;
 
-import model.birds.Bird;
-import model.minions.Minion;
-
 import com.badlogic.gdx.math.Vector2;
 
 @SuppressWarnings("serial")
@@ -18,9 +15,4 @@ public class MinionCamp extends Vector2 {
 		super(campSite);
 		type = minionType;
 	}
-
-	public <T extends Minion> T minion(Bird bird) {
-		return type.create(this, bird);
-	}
-
 }

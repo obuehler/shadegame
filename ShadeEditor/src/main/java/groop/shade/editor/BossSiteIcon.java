@@ -119,7 +119,6 @@ public class BossSiteIcon extends StageIcon implements ChangeableIcon {
 	@Override
 	public void refreshMenu() {
 		// TODO Auto-generated method stub
-
+		
 	}
-
 }

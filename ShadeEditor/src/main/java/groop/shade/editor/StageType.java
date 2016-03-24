@@ -5,5 +5,8 @@ public interface StageType {
 
 	public abstract EditorItems getValue();
 
-	public abstract String getIconPath();
+	public default String getIconPath() {
+		System.err.println("default icon path");
+		return "assets/default.png";
+	}
 }

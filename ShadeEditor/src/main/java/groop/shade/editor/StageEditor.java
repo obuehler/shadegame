@@ -119,6 +119,7 @@ public class StageEditor extends JFrame {
 			try {
 				icon.removeMouseListener(icon.getMouseListeners()[0]);
 			} catch (Exception e) {
+				e.printStackTrace();
 			}
 			add(icon);
 			icon.changeEditor(getThis());
@@ -157,9 +158,11 @@ public class StageEditor extends JFrame {
 				try {
 					selectedOption.clickAction(x, y, getThis(), (StageIcon) arg0.getComponent());
 				} catch (ClassCastException e) {
+					e.printStackTrace();
 					selectedOption.clickAction(x, y, getThis(), null);
 				}
 			} catch (NullPointerException e) {
+				e.printStackTrace();
 			}
 		}
 	};
@@ -614,6 +617,7 @@ public class StageEditor extends JFrame {
 						ImageIO.write(image, Constants.EXPORT_IMAGE_FORMAT, new File(savePath));
 						returnValue = true;
 					} catch (IOException e) {
+						e.printStackTrace();
 						returnValue = false;
 					}
 					return returnValue;
@@ -638,6 +642,7 @@ public class StageEditor extends JFrame {
 			stage = json2.fromJson(GameStage.class, new FileReader(selectedFile));
 			newEditorWithStage();
 		} catch (FileNotFoundException e) {
+			e.printStackTrace();
 			Helpers.couldNotOpenFile(getThis());
 		}
 	}
@@ -655,6 +660,7 @@ public class StageEditor extends JFrame {
 						try {
 							new StageEditor(json.fromJson(GameStage.class, new FileReader(getSelectedFile())));
 						} catch (FileNotFoundException e) {
+							e.printStackTrace();
 							Helpers.couldNotOpenFile(getThis());
 						}
 						break;
@@ -708,6 +714,7 @@ public class StageEditor extends JFrame {
 			saveToPath(new JsonWriter(new FileWriter(file)));
 			Helpers.saveMessage(this);
 		} catch (IOException e) {
+			e.printStackTrace();
 			Helpers.couldNotSaveFile(this);
 		}
 	}
@@ -730,6 +737,7 @@ public class StageEditor extends JFrame {
 			try {
 				saveToPath(new JsonWriter(new FileWriter(savePath)));
 			} catch (IOException e) {
+				e.printStackTrace();
 				Helpers.couldNotSaveFile(this);
 			}
 		}
@@ -750,6 +758,7 @@ public class StageEditor extends JFrame {
 							StandardCopyOption.REPLACE_EXISTING);
 					returnValue = true;
 				} catch (IOException e) {
+					e.printStackTrace();
 					returnValue = false;
 				}
 				return returnValue;
@@ -776,6 +785,7 @@ public class StageEditor extends JFrame {
 				writer.write(output);
 				writer.close();
 			} catch (IOException e) {
+				e.printStackTrace();
 				Helpers.couldNotSaveFile(this);
 			}
 		}
