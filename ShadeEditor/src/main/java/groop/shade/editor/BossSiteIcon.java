@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import javax.swing.ButtonGroup;
 import javax.swing.JMenu;
 
+@SuppressWarnings("serial")
 public class BossSiteIcon extends StageIcon implements ChangeableIcon {
 
 	public BossSiteIcon(BossType e, int x, int y, StageEditor s) {

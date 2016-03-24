@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JRadioButtonMenuItem;
 
+@SuppressWarnings("serial")
 public class EditorRadioButton extends JRadioButtonMenuItem {
 
 	StageType type;

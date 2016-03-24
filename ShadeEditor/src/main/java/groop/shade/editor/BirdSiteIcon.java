@@ -2,6 +2,7 @@ package groop.shade.editor;
 
 import com.badlogic.gdx.math.Vector2;
 
+@SuppressWarnings("serial")
 public class BirdSiteIcon extends StageIcon {
 
 	public BirdSiteIcon(int x, int y, StageEditor s) {

@@ -10,6 +10,7 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+@SuppressWarnings("serial")
 public abstract class AttributeSlider extends JPanel implements ChangeListener {
 
 	private static final int MINOR_TICKS_PER_MAJOR_TICK = 5;

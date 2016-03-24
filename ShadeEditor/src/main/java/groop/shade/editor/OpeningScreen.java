@@ -9,6 +9,7 @@ import javax.swing.JFrame;
 import javax.swing.JRootPane;
 import javax.swing.WindowConstants;
 
+@SuppressWarnings("serial")
 public class OpeningScreen extends JFrame {
 
 	public OpeningScreen() {

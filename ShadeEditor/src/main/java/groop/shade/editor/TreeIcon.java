@@ -1,5 +1,6 @@
 package groop.shade.editor;
 
+@SuppressWarnings("serial")
 public class TreeIcon extends StageIcon {
 
 	public TreeIcon(int x, int y, StageEditor s) {

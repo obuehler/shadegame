@@ -11,6 +11,7 @@ import javax.swing.border.LineBorder;
 
 import com.badlogic.gdx.math.Vector2;
 
+@SuppressWarnings("serial")
 public abstract class StageIcon extends JLabel {
 
 	protected static final LineBorder SELECTED_BORDER = new LineBorder(Color.ORANGE, 5);

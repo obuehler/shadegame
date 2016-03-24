@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import javax.swing.ButtonGroup;
 import javax.swing.JMenu;
 
+@SuppressWarnings("serial")
 public class MinionCampIcon extends StageIcon implements ChangeableIcon {
 
 	public MinionCampIcon(MinionType e, int x, int y, StageEditor s) {

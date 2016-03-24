@@ -8,6 +8,7 @@ import javax.swing.JMenuItem;
 
 import groop.shade.editor.ObjectSelector.CustomMenuItem;
 
+@SuppressWarnings("serial")
 public class EditorMenu extends JMenu {
 
 	public static EditorMenu obstacleMenu(StageEditor s) {

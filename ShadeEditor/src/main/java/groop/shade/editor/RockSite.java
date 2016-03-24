@@ -4,6 +4,7 @@ import model.obstacles.Rock;
 
 import com.badlogic.gdx.math.Vector2;
 
+@SuppressWarnings("serial")
 public class RockSite extends Vector2 {
 
 	/** Empty constructor for JSON parsing */

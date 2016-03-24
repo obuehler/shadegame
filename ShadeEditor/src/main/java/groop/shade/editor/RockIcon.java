@@ -1,5 +1,6 @@
 package groop.shade.editor;
 
+@SuppressWarnings("serial")
 public class RockIcon extends StageIcon {
 
 	public RockIcon(int x, int y, StageEditor s) {

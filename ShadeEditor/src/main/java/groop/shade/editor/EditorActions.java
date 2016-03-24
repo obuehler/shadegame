@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 
+@SuppressWarnings("serial")
 public class EditorActions {
 
 	public static final AbstractAction undoAction(final StageEditor s) {

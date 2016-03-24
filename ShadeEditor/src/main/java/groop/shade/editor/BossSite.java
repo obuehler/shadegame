@@ -5,6 +5,7 @@ import model.bosses.Boss.BossType;
 
 import com.badlogic.gdx.math.Vector2;
 
+@SuppressWarnings("serial")
 public class BossSite extends Vector2 {
 
 	public BossType type;

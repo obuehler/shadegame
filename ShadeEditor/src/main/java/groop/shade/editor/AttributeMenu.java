@@ -8,6 +8,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 
+@SuppressWarnings("serial")
 public class AttributeMenu extends JPanel {
 
 	JMenuBar menuBar;

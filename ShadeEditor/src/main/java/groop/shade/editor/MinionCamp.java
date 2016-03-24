@@ -5,6 +5,7 @@ import model.minions.Minion;
 
 import com.badlogic.gdx.math.Vector2;
 
+@SuppressWarnings("serial")
 public class MinionCamp extends Vector2 {
 
 	public MinionType type;

@@ -59,6 +59,7 @@ import groop.shade.editor.ObjectSelector.BirdButton;
 import groop.shade.editor.ObjectSelector.EraserButton;
 import groop.shade.editor.ObjectSelector.SelectorButton;
 
+@SuppressWarnings("serial")
 public class StageEditor extends JFrame {
 
 	static final String TITLE = "Troll Stomp Level Editor";

@@ -5,6 +5,7 @@ import java.io.File;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
+@SuppressWarnings("serial")
 public class Helpers {
 
 	public static int fileExistsDialog(StageEditor s) {
