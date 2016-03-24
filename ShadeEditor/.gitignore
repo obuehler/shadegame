@@ -1,0 +1,11 @@
+# Eclipse
+.classpath
+.project
+
+# Gradle
+.gradle
+build/
+bin/
+gradle-app.setting
+!gradle-wrapper.jar
+.gradletasknamecache
