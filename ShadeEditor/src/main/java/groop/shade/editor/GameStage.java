@@ -39,10 +39,7 @@ public class GameStage {
 	// GameObjects
 	public PlayerSite playerSite;
 	public CasterSite casterSite;
-	public ArrayList<BossSite> bossSites;
-	public ArrayList<MinionCamp> minionCamps;
 	public ArrayList<TreeSite> trees;
-	public ArrayList<RockSite> rocks;
 
 	/** Default constructor needed for Json parsing */
 	public GameStage() {
@@ -58,10 +55,7 @@ public class GameStage {
 		imageFormat = null;
 		playerSite = null;
 		casterSite = null;
-		bossSites = new ArrayList<BossSite>();
-		minionCamps = new ArrayList<MinionCamp>();
 		trees = new ArrayList<TreeSite>();
-		rocks = new ArrayList<RockSite>();
 	}
 
 }

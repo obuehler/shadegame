@@ -19,23 +19,6 @@ public class EditorMenu extends JMenu {
 		return menu;
 	}
 
-	public static EditorMenu minionMenu(StageEditor s) {
-		EditorMenu menu = new EditorMenu("Camp Site");
-		for (MinionType minionType : MinionType.values()) {
-			menu.add(new CustomMenuItem(minionType, s));
-		}
-		return menu;
-	}
-
-	public static EditorMenu bossMenu(StageEditor s) {
-		EditorMenu menu = new EditorMenu("Boss");
-		for (BossType bossType : BossType.values()) {
-			menu.add(new CustomMenuItem(bossType, s));
-		}
-		// Add more bosses
-		return menu;
-	}
-
 	public static EditorMenu editMenu(final StageEditor s) {
 		EditorMenu menu = new EditorMenu("Edit");
 

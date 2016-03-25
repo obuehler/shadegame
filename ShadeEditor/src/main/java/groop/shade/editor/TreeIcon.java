@@ -11,9 +11,9 @@ public class TreeIcon extends StageIcon {
 		super(t, s);
 	}
 
-	@Override
 	protected void setDisplayIcon() {
-		setDisplayIcon(ObstacleType.TREE.getIconPath());
+		setDisplayIcon(ObstacleType.TREE.getIconPath(), ObstacleType.TREE.getIconShadowPath(),
+				ObstacleType.TREE.getDefaultScale());
 	}
 
 	@Override

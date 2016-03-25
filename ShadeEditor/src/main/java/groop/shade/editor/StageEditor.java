@@ -261,15 +261,6 @@ public class StageEditor extends JFrame {
 			casterSiteIcon = new CasterSiteIcon(stage.casterSite, this);
 			backgroundPanel.add(casterSiteIcon);
 		}
-		for (BossSite b : stage.bossSites) {
-			backgroundPanel.add(new BossSiteIcon(b, this));
-		}
-		for (MinionCamp c : stage.minionCamps) {
-			backgroundPanel.add(new MinionCampIcon(c, this));
-		}
-		for (RockSite r : stage.rocks) {
-			backgroundPanel.add(new RockIcon(r, this));
-		}
 		for (TreeSite t : stage.trees) {
 			backgroundPanel.add(new TreeIcon(t, this));
 		}
@@ -329,8 +320,6 @@ public class StageEditor extends JFrame {
 		selectLabel.setBorder(new EmptyBorder(0, 20, 0, 20));
 		menuBar.add(EditorMenu.fileMenu(this));
 		menuBar.add(EditorMenu.editMenu(this));
-		menuBar.add(EditorMenu.bossMenu(this));
-		menuBar.add(EditorMenu.minionMenu(this));
 		menuBar.add(EditorMenu.obstacleMenu(this));
 		menuBar.add(new PlayerButton(this));
 		menuBar.add(new CasterButton(this));

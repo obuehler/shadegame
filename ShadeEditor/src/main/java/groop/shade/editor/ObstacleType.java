@@ -2,18 +2,6 @@ package groop.shade.editor;
 
 public enum ObstacleType implements StageType {
 
-	ROCK {
-		@Override
-		public String getName() {
-			return "Rock";
-		}
-
-		@Override
-		public EditorItems getValue() {
-			return EditorItems.ROCK;
-		}
-	},
-
 	TREE {
 		@Override
 		public String getName() {
@@ -23,6 +11,21 @@ public enum ObstacleType implements StageType {
 		@Override
 		public EditorItems getValue() {
 			return EditorItems.TREE;
+		}
+
+		@Override
+		public String getIconPath() {
+			return "assets/Plant1.png";
+		}
+
+		@Override
+		public String getIconShadowPath() {
+			return "assets/Plant1_S.png";
+		}
+
+		@Override
+		public double getDefaultScale() {
+			return 0.2;
 		}
 	};
 }

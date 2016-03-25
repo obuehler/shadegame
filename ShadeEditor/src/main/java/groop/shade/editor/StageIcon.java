@@ -77,19 +77,46 @@ public abstract class StageIcon extends JLabel {
 		setDisplayIcon(path, 1.0);
 	}
 
+	protected void setDisplayIcon(String path, String shadowPath) {
+		setDisplayIcon(path, shadowPath, 1.0);
+	}
+
 	protected void setDisplayIcon(String path, double scale) {
 		try {
 			BufferedImage original = ImageIO.read(new File(path));
-			Image scaled = original.getScaledInstance((int) (original.getWidth() * scale),
-					(int) (original.getHeight() * scale), Image.SCALE_SMOOTH);
-			ImageIcon icon = new ImageIcon(scaled);
-			setIcon(icon);
-			Dimension size = new Dimension(icon.getIconWidth(), icon.getIconHeight());
-			setSize(size);
-			setPreferredSize(size);
+			setDisplayIcon(original, scale);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	protected void setDisplayIcon(String path, String shadowPath, double scale) {
+		try {
+			BufferedImage main = ImageIO.read(new File(path));
+			BufferedImage shadow = ImageIO.read(new File(shadowPath));
+			assert (main.getWidth() == shadow.getWidth());
+			assert (main.getHeight() == shadow.getHeight());
+			BufferedImage combined = new BufferedImage(main.getHeight(), main.getWidth(), BufferedImage.TYPE_INT_ARGB);
+			combined.getGraphics().drawImage(shadow, 0, 0, null);
+			combined.getGraphics().drawImage(main, 0, 0, null);
+			setDisplayIcon(combined, scale);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	protected void setDisplayIcon(BufferedImage original, double scale) {
+		Image scaled = original.getScaledInstance((int) (original.getWidth() * scale),
+				(int) (original.getHeight() * scale), Image.SCALE_SMOOTH);
+		setDisplayIcon(scaled);
+	}
+
+	protected void setDisplayIcon(Image image) {
+		ImageIcon icon = new ImageIcon(image);
+		setIcon(icon);
+		Dimension size = new Dimension(icon.getIconWidth(), icon.getIconHeight());
+		setSize(size);
+		setPreferredSize(size);
 	}
 
 	@Override
