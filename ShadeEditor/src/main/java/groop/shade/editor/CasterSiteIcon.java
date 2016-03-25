@@ -19,9 +19,13 @@ public class CasterSiteIcon extends StageIcon {
 		object = editor.stage.casterSite;
 	}
 
-	@Override
 	protected void setDisplayIcon() {
-		setDisplayIcon(CasterSite.IMAGE_PATH);
+		setDisplayIcon(CasterSite.DEFAULT_SCALE);
+	}
+
+	protected void setDisplayIcon(double scale) {
+		setDisplayIcon(CasterSite.IMAGE_PATH, scale);
+		editor.stage.casterSite.scale = scale;
 	}
 
 	@Override

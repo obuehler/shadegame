@@ -3,8 +3,13 @@ package groop.shade.editor;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Image;
 import java.awt.Point;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.border.LineBorder;
@@ -69,10 +74,22 @@ public abstract class StageIcon extends JLabel {
 	}
 
 	protected void setDisplayIcon(String path) {
-		setIcon(new ImageIcon(path));
-		Dimension size = new Dimension(getIcon().getIconWidth(), getIcon().getIconHeight());
-		setSize(size);
-		setPreferredSize(size);
+		setDisplayIcon(path, 1.0);
+	}
+
+	protected void setDisplayIcon(String path, double scale) {
+		try {
+			BufferedImage original = ImageIO.read(new File(path));
+			Image scaled = original.getScaledInstance((int) (original.getWidth() * scale),
+					(int) (original.getHeight() * scale), Image.SCALE_SMOOTH);
+			ImageIcon icon = new ImageIcon(scaled);
+			setIcon(icon);
+			Dimension size = new Dimension(icon.getIconWidth(), icon.getIconHeight());
+			setSize(size);
+			setPreferredSize(size);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
