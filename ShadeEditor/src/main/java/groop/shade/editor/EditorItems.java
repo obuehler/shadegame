@@ -254,7 +254,6 @@ public enum EditorItems {
 			editor.selectedIcon.menu.setVisible(false);
 			editor.selectedIcon = null;
 		}
-		editor.sideMenu.setVisible(true);
 	}
 
 }

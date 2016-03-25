@@ -32,14 +32,12 @@ import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneLayout;
@@ -48,8 +46,6 @@ import javax.swing.SwingWorker;
 import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.badlogic.gdx.utils.Json;
@@ -183,9 +179,6 @@ public class StageEditor extends JFrame {
 	/** Panel containing the side menu */
 	JPanel menuPanel;
 
-	/** Side menu */
-	AttributeMenu sideMenu;
-
 	/** The stage's content pane */
 	JScrollPane scrollPane;
 
@@ -314,154 +307,6 @@ public class StageEditor extends JFrame {
 		menuPanel.setMinimumSize(new Dimension(200, 1));
 		menuPanel.setSize(menuPanel.getPreferredSize());
 		menuPanel.setBackground(Color.DARK_GRAY);
-		sideMenu = new AttributeMenu();
-		AttributeSlider arrowSpeed = new AttributeSlider(-3, 3, 2, "Arrow Speed") {
-
-			@Override
-			public void setInitialValue() {
-				if (stage.arrowSpeed > 0) {
-					slider.setValue(Math
-							.round((float) (Math.log(stage.arrowSpeed) / ((Math.log(slider.base)) / (Math.log(5.0))))));
-				} else {
-					slider.setValue(0);
-				}
-			}
-
-			@Override
-			public void updateAttribute() {
-				stage.arrowSpeed = (float) Math.pow(slider.base, slider.getValue() / 5.0);
-			}
-
-		};
-		sideMenu.add(arrowSpeed);
-		AttributeSlider rockSpeed = new AttributeSlider(-3, 3, 2, "Rock Speed") {
-
-			@Override
-			public void setInitialValue() {
-				if (stage.rockSpeed > 0) {
-					slider.setValue(Math
-							.round((float) (Math.log(stage.rockSpeed) / ((Math.log(slider.base)) / (Math.log(5.0))))));
-				} else {
-					slider.setValue(0);
-				}
-			}
-
-			@Override
-			public void updateAttribute() {
-				stage.rockSpeed = (float) Math.pow(slider.base, slider.getValue() / 5.0);
-			}
-
-		};
-		sideMenu.add(rockSpeed);
-		AttributeSlider minionSpeed = new AttributeSlider(-3, 3, 2, "Flying Minion Speed") {
-
-			@Override
-			public void setInitialValue() {
-				if (stage.minionSpeed > 0) {
-					slider.setValue(Math.round(
-							(float) (Math.log(stage.minionSpeed) / ((Math.log(slider.base)) / (Math.log(5.0))))));
-				} else {
-					slider.setValue(0);
-				}
-			}
-
-			@Override
-			public void updateAttribute() {
-				stage.minionSpeed = (float) Math.pow(slider.base, slider.getValue() / 5.0);
-			}
-
-		};
-		sideMenu.add(minionSpeed);
-		AttributeSlider birdSpeed = new AttributeSlider(-2, 2, 2, "Bird Speed") {
-
-			@Override
-			public void setInitialValue() {
-				if (stage.birdSpeed > 0) {
-					slider.setValue(Math
-							.round((float) (Math.log(stage.birdSpeed) / ((Math.log(slider.base)) / (Math.log(5.0))))));
-				} else {
-					slider.setValue(0);
-				}
-			}
-
-			@Override
-			public void updateAttribute() {
-				stage.birdSpeed = (float) Math.pow(slider.base, slider.getValue() / 5.0);
-			}
-
-		};
-		sideMenu.add(birdSpeed);
-		AttributeSlider killsBeforeMutiny = new AttributeSlider(1, 160, "Kills Before Mutiny") {
-
-			@Override
-			public void setInitialValue() {
-				if (stage.killsBeforeMutiny > 0) {
-					slider.setValue(stage.killsBeforeMutiny);
-				} else {
-					slider.setValue(GameStage.DEFAULT_KILLS_BEFORE_MUTINY);
-				}
-			}
-
-			@Override
-			public void updateAttribute() {
-				stage.killsBeforeMutiny = slider.getValue();
-
-			}
-
-		};
-		sideMenu.add(killsBeforeMutiny);
-		sideMenu.add(new JLabel("Level Type:             "));
-		ButtonGroup group = new ButtonGroup();
-		final JRadioButton tutorialButton = new JRadioButton("TUTORIAL");
-		tutorialButton.addChangeListener(new ChangeListener() {
-
-			@Override
-			public void stateChanged(ChangeEvent arg0) {
-				if (tutorialButton.isSelected())
-					stage.setIndex(0);
-			}
-
-		});
-		final JRadioButton scrimmageButton = new JRadioButton("SCRIMMAGE");
-		scrimmageButton.addChangeListener(new ChangeListener() {
-
-			@Override
-			public void stateChanged(ChangeEvent arg0) {
-				if (scrimmageButton.isSelected())
-					stage.setIndex(1);
-			}
-
-		});
-		final JRadioButton battleButton = new JRadioButton("BATTLE");
-		battleButton.addChangeListener(new ChangeListener() {
-
-			@Override
-			public void stateChanged(ChangeEvent arg0) {
-				if (battleButton.isSelected())
-					stage.setIndex(2);
-			}
-
-		});
-		group.add(tutorialButton);
-		group.add(scrimmageButton);
-		group.add(battleButton);
-		sideMenu.add(tutorialButton);
-		sideMenu.add(scrimmageButton);
-		sideMenu.add(battleButton);
-		switch (stage.getIndex()) {
-		case 0:
-			tutorialButton.setSelected(true);
-			break;
-		case 1:
-			scrimmageButton.setSelected(true);
-			break;
-		case 2:
-			battleButton.setSelected(true);
-			break;
-		default:
-			break;
-		}
-		menuPanel.add(sideMenu);
 		menuPanel.setVisible(true);
 		getContentPane().add(menuPanel);
 		backgroundPanel = new BackgroundPanel();

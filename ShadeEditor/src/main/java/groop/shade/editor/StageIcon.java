@@ -113,7 +113,6 @@ public abstract class StageIcon extends JLabel {
 	public void select() {
 		editor.selectedIcon = this;
 		setBorder(SELECTED_BORDER);
-		editor.sideMenu.setVisible(false);
 		menu.setVisible(true);
 	}
 

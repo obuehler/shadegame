@@ -71,7 +71,7 @@ public class BossSiteIcon extends StageIcon implements ChangeableIcon {
 				if (((BossSite) object).bossHealth > 0) {
 					slider.setValue(((BossSite) object).bossHealth);
 				} else {
-					slider.setValue(GameStage.DEFAULT_BOSS_HEALTH);
+					slider.setValue(0);
 				}
 			}
 
@@ -119,6 +119,6 @@ public class BossSiteIcon extends StageIcon implements ChangeableIcon {
 	@Override
 	public void refreshMenu() {
 		// TODO Auto-generated method stub
-		
+
 	}
 }

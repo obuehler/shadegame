@@ -7,20 +7,9 @@ import java.util.ArrayList;
 import com.badlogic.gdx.graphics.Texture;
 
 public class GameStage {
-	public static final int DEFAULT_BOSS_HEALTH = 20;
-	public static final int DEFAULT_BIRD_HEALTH = 15;
-	public static final int DEFAULT_ARROW_SPEED = 15;
-	public static final int DEFAULT_BIRD_SPEED = 8;
-	public static final int DEFAULT_BOOMERANG_SPEED = 12;
-	public static final int DEFAULT_KILLS_BEFORE_MUTINY = 10;
-	public static final int DEFAULT_ROCK_SPEED = 10;
-	public static final int DEFAULT_MINION_SPEED = 10;
-
 	/** Scale constants to be used during texture drawing */
 	public float scalex;
 	public float scaley;
-
-	public int index;
 
 	public String name;
 	public Dimension pixelSize;
@@ -29,14 +18,6 @@ public class GameStage {
 	public Texture background;
 
 	public String imageFormat;
-
-	public float arrowSpeed;
-	public float rockSpeed;
-	public float boomerangSpeed;
-	public float birdSpeed;
-	public float minionSpeed;
-
-	public int killsBeforeMutiny;
 
 	public String fullBackgroundPath() {
 		return Paths.get(Constants.ASSETS_PATH() + assetsBackgroundPath(false)).toString();
@@ -74,33 +55,13 @@ public class GameStage {
 	}
 
 	private void initialize() {
-		index = 0;
-		killsBeforeMutiny = DEFAULT_KILLS_BEFORE_MUTINY;
 		imageFormat = null;
-		arrowSpeed = 1f;
-		rockSpeed = 1f;
 		playerSite = null;
 		casterSite = null;
 		bossSites = new ArrayList<BossSite>();
 		minionCamps = new ArrayList<MinionCamp>();
 		trees = new ArrayList<TreeSite>();
 		rocks = new ArrayList<RockSite>();
-	}
-
-	public BossType getBossType() {
-		return bossSites.get(0).type;
-	}
-
-	public int getIndex() {
-		try {
-			return index;
-		} catch (NullPointerException e) {
-			return 0;
-		}
-	}
-
-	public void setIndex(int i) {
-		index = i;
 	}
 
 }
