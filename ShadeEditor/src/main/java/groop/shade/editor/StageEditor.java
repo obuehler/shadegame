@@ -55,8 +55,9 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonWriter;
 
-import groop.shade.editor.ObjectSelector.BirdButton;
+import groop.shade.editor.ObjectSelector.CasterButton;
 import groop.shade.editor.ObjectSelector.EraserButton;
+import groop.shade.editor.ObjectSelector.PlayerButton;
 import groop.shade.editor.ObjectSelector.SelectorButton;
 
 @SuppressWarnings("serial")
@@ -170,8 +171,11 @@ public class StageEditor extends JFrame {
 	/** The currently loaded stage */
 	GameStage stage;
 
-	/** The icon representing the current bird site */
-	BirdSiteIcon birdSiteIcon;
+	/** The icon representing the current player site */
+	PlayerSiteIcon playerSiteIcon;
+
+	/** The icon representing the current caster site */
+	CasterSiteIcon casterSiteIcon;
 
 	/** The background panel */
 	BackgroundPanel backgroundPanel;
@@ -256,9 +260,13 @@ public class StageEditor extends JFrame {
 		backgroundPath = stage.fullBackgroundPath();
 		setAttributes();
 		setNewBackgroundImage();
-		if (stage.birdSite != null) {
-			birdSiteIcon = new BirdSiteIcon(stage.birdSite, this);
-			backgroundPanel.add(birdSiteIcon);
+		if (stage.playerSite != null) {
+			playerSiteIcon = new PlayerSiteIcon(stage.playerSite, this);
+			backgroundPanel.add(playerSiteIcon);
+		}
+		if (stage.casterSite != null) {
+			casterSiteIcon = new CasterSiteIcon(stage.casterSite, this);
+			backgroundPanel.add(casterSiteIcon);
 		}
 		for (BossSite b : stage.bossSites) {
 			backgroundPanel.add(new BossSiteIcon(b, this));
@@ -465,7 +473,8 @@ public class StageEditor extends JFrame {
 		scrollPane.setLayout(new ScrollPaneLayout());
 		scrollPane.getViewport().setView(viewportPanel);
 		scrollPane.setVisible(true);
-		birdSiteIcon = null;
+		playerSiteIcon = null;
+		casterSiteIcon = null;
 		EditorMenuBar menuBar = new EditorMenuBar();
 		selectedIcon = null;
 		selectedOption = EditorItems.SELECTOR;
@@ -478,7 +487,8 @@ public class StageEditor extends JFrame {
 		menuBar.add(EditorMenu.bossMenu(this));
 		menuBar.add(EditorMenu.minionMenu(this));
 		menuBar.add(EditorMenu.obstacleMenu(this));
-		menuBar.add(new BirdButton(this));
+		menuBar.add(new PlayerButton(this));
+		menuBar.add(new CasterButton(this));
 		menuBar.add(backgroundButton());
 		menuBar.add(Box.createHorizontalGlue());
 		menuBar.add(new SelectorButton(this));

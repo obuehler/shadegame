@@ -41,14 +41,22 @@ public abstract class ObjectSelector {
 
 	}
 
-	static final class BirdButton extends ObjectSelector {
+	static final class PlayerButton extends ObjectSelector {
 
-		public BirdButton(StageEditor s) {
-			value = EditorItems.BIRDSITE;
-			button = new JButton("Bird");
+		public PlayerButton(StageEditor s) {
+			value = EditorItems.PLAYERSITE;
+			button = new JButton("Player");
 			setSelectAction(s);
 		}
 
+	}
+
+	static final class CasterButton extends ObjectSelector {
+		public CasterButton(StageEditor s) {
+			value = EditorItems.CASTERSITE;
+			button = new JButton("Caster");
+			setSelectAction(s);
+		}
 	}
 
 	static final class EraserButton extends ObjectSelector {

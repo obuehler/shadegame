@@ -56,7 +56,8 @@ public class GameStage {
 	}
 
 	// GameObjects
-	public BirdSite birdSite;
+	public PlayerSite playerSite;
+	public CasterSite casterSite;
 	public ArrayList<BossSite> bossSites;
 	public ArrayList<MinionCamp> minionCamps;
 	public ArrayList<TreeSite> trees;
@@ -72,21 +73,14 @@ public class GameStage {
 		initialize();
 	}
 
-	/*
-	 * public GameStage(GameStage stage) { scalex = stage.scalex; scaley =
-	 * stage.scaley; name = stage.name; pixelSize = stage.pixelSize; imageFormat
-	 * = stage.imageFormat; arrowSpeed = stage.arrowSpeed; birdSite =
-	 * stage.birdSite; bossSites = stage.bossSites; minionCamps =
-	 * stage.minionCamps; trees = stage.trees; rocks = stage.rocks; }
-	 */
-
 	private void initialize() {
 		index = 0;
 		killsBeforeMutiny = DEFAULT_KILLS_BEFORE_MUTINY;
 		imageFormat = null;
 		arrowSpeed = 1f;
 		rockSpeed = 1f;
-		birdSite = null;
+		playerSite = null;
+		casterSite = null;
 		bossSites = new ArrayList<BossSite>();
 		minionCamps = new ArrayList<MinionCamp>();
 		trees = new ArrayList<TreeSite>();

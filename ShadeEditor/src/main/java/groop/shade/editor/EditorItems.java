@@ -33,15 +33,15 @@ public enum EditorItems {
 
 	},
 
-	BIRDSITE {
+	PLAYERSITE {
 
 		@Override
 		public void clickAction(int x, int y, StageEditor editor, StageIcon icon) {
 			if (icon == null) {
-				BirdSiteIcon sicon = editor.birdSiteIcon;
+				PlayerSiteIcon sicon = editor.playerSiteIcon;
 				if (sicon == null) {
-					editor.birdSiteIcon = new BirdSiteIcon(x, y, editor);
-					editor.backgroundPanel.add(editor.birdSiteIcon);
+					editor.playerSiteIcon = new PlayerSiteIcon(x, y, editor);
+					editor.backgroundPanel.add(editor.playerSiteIcon);
 				} else {
 					sicon.moveIcon(x, y);
 				}
@@ -50,10 +50,33 @@ public enum EditorItems {
 
 		@Override
 		public String getName() {
-			return "Bird Site";
+			return "Player Site";
 		}
 
 	},
+
+	CASTERSITE {
+
+		@Override
+		public void clickAction(int x, int y, StageEditor editor, StageIcon icon) {
+			if (icon == null) {
+				CasterSiteIcon sicon = editor.casterSiteIcon;
+				if (sicon == null) {
+					editor.casterSiteIcon = new CasterSiteIcon(x, y, editor);
+					editor.backgroundPanel.add(editor.casterSiteIcon);
+				} else {
+					sicon.moveIcon(x, y);
+				}
+			}
+		}
+
+		@Override
+		public String getName() {
+			return "Caster Site";
+		}
+
+	},
+
 	DUMMY {
 
 		@Override
