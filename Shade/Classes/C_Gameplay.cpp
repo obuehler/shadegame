@@ -29,6 +29,8 @@
 #include "C_Gameplay.h"
 #include "C_Input.h"
 #include "M_Shadow.h"
+#include "M_MovingObject.h"
+#include "M_Car.h"
 
 
 using namespace cocos2d;
@@ -449,6 +451,57 @@ void GameController::populate() {
 
 	addBuilding("b1", "s1", Vec2(10, 10), 0.7);
 	addBuilding("b5", "s5", Vec2(8, 15), 0.5);
+
+#pragma mark : Movers
+
+
+
+	Vec2 movPos = { 5.5f, 4.0f };
+	Vec2 movScale = { 1.0f, 1.0f };
+
+	// Mover shadow
+	float scale = 1.0f;
+	image = _assets->get<Texture2D>("s1");
+	sprite = PolygonNode::createWithTexture(image);
+	sprite->setScale(1.0f);
+	Size ss(image->getContentSize().width*scale / _scale.x,
+		image->getContentSize().height*scale / _scale.y);
+	Vec2 spos(movPos.x + ss.width / 2, movPos.y - ss.height / 2);
+	auto* box = BoxObstacle::create(spos, ss);
+	box->setDrawScale(_scale.x, _scale.y);
+	box->setName(std::string(SHADOW_NAME));
+	box->setBodyType(b2_staticBody);
+	box->setDensity(0);
+	box->setFriction(0);
+	box->setRestitution(0);
+	box->setSensor(true);
+	box->setSceneNode(sprite);
+	//_mover->setShadow(&box);
+	draw = WireNode::create();
+	draw->setColor(DEBUG_COLOR);
+	draw->setOpacity(DEBUG_OPACITY);
+	box->setDebugNode(draw);
+	addObstacle(box, 1);
+
+	// Create mover
+	image = _assets->get<Texture2D>("b1");
+	OurMovingObject<Car>* _mover = OurMovingObject<Car>::create(movPos, movScale, box);
+	_mover->setDrawScale(_scale);
+
+	// Add the scene graph nodes to this object
+	sprite = PolygonNode::createWithTexture(image);
+	sprite->setScale(cscale / DUDE_SCALE);
+	_mover->setSceneNode(sprite);
+
+	draw = WireNode::create();
+	draw->setColor(DEBUG_COLOR);
+	draw->setOpacity(DEBUG_OPACITY);
+	_mover->setDebugNode(draw);
+	addObstacle(_mover, 4); // Put this at the very front
+	_mover->setHorizontalMovement(1.0f);
+	_mover->setVerticalMovement(0.0f);
+	_mover->applyForce();
+
 }
 
 /**
@@ -504,6 +557,8 @@ void GameController::addBuilding(const char* bname,
 	box->setDebugNode(draw);
 	addObstacle(box, 1);
 }
+
+
 
 /**
  * Immediately adds the object to the physics world

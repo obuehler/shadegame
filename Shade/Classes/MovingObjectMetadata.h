@@ -1,7 +1,7 @@
 #ifndef __MOVING_OBJECT_METADATA_H__
 #define __MOVING_OBJECT_METADATA_H__
 
-#include <cocos2d>
+#include <cocos2d.h>
 #include <vector>
 #include <string>
 
