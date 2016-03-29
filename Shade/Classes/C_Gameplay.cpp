@@ -453,9 +453,6 @@ void GameController::populate() {
 	addBuilding("b5", "s5", Vec2(8, 15), 0.5);
 
 #pragma mark : Movers
-
-
-
 	Vec2 movPos = { 5.5f, 4.0f };
 	Vec2 movScale = { 1.0f, 1.0f };
 
@@ -470,13 +467,12 @@ void GameController::populate() {
 	auto* box = BoxObstacle::create(spos, ss);
 	box->setDrawScale(_scale.x, _scale.y);
 	box->setName(std::string(SHADOW_NAME));
-	box->setBodyType(b2_staticBody);
+	box->setBodyType(b2_dynamicBody);
 	box->setDensity(0);
 	box->setFriction(0);
 	box->setRestitution(0);
 	box->setSensor(true);
 	box->setSceneNode(sprite);
-	//_mover->setShadow(&box);
 	draw = WireNode::create();
 	draw->setColor(DEBUG_COLOR);
 	draw->setOpacity(DEBUG_OPACITY);
@@ -487,6 +483,7 @@ void GameController::populate() {
 	image = _assets->get<Texture2D>("b1");
 	OurMovingObject<Car>* _mover = OurMovingObject<Car>::create(movPos, movScale, box);
 	_mover->setDrawScale(_scale);
+	_mover->setShadow(box);
 
 	// Add the scene graph nodes to this object
 	sprite = PolygonNode::createWithTexture(image);
@@ -557,8 +554,16 @@ void GameController::addBuilding(const char* bname,
 	box->setDebugNode(draw);
 	addObstacle(box, 1);
 }
+/*
+void GameController::addMover(
+	const char * mname,
+	const char * sname,
+	const Vec2& pos,
+	float scale
+	) {
 
-
+}
+*/
 
 /**
  * Immediately adds the object to the physics world
