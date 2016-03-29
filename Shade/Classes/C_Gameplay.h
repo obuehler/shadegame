@@ -73,7 +73,14 @@ private:
 	void addBuilding(const char* bname,
 		const char* sname,
 		const Vec2& pos,
-		float scale);
+		float scale
+	);
+
+	void addMover(const char* mname,
+		const char* sname,
+		const Vec2& pos,
+		float scale
+	);
 
 protected:
 
