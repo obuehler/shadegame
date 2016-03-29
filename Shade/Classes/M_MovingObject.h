@@ -64,9 +64,9 @@ public:
 	OurMovingObject(MovingObjectMetaData* data) {} // TODO implement this
 	OurMovingObject() : BoxObstacle(), _actionQueue(new ActionQueue<T>()) {}
 
-	static OurMovingObject* create(const Vec2& pos, const Vec2& scale, BoxObstacle * s) {
+	static OurMovingObject* create(const Vec2& pos, BoxObstacle * s) {
 		OurMovingObject* mover = new (std::nothrow) OurMovingObject();
-		if (mover && mover->init(pos, scale)) {
+		if (mover && mover->init(pos)) {
 			mover->setShadow(s);
 			mover->autorelease();
 			return mover;
@@ -76,8 +76,7 @@ public:
 	}
 
 	bool init(
-		const Vec2& pos,
-		const Vec2& scale
+		const Vec2& pos
 		) {
 		SceneManager* scene = AssetManager::getInstance()->getCurrent();
 		Texture2D* image = scene->get<Texture2D>("b1");
@@ -86,8 +85,8 @@ public:
 		float cscale = Director::getInstance()->getContentScaleFactor();
 		Size nsize = image->getContentSize()*cscale;
 
-		nsize.width *= scale.x;
-		nsize.height *= scale.y;
+		//nsize.width *= scale.x;
+		//nsize.height *= scale.y;
 
 		_sensorFixture = nullptr;
 
@@ -167,9 +166,10 @@ public:
 		if (!isActive()) {
 			return;
 		}
-		_body->SetLinearVelocity(b2Vec2(getHorizontalMovement(), getVerticalMovement()));
+		b2Vec2 moveVector = b2Vec2(getHorizontalMovement(), getVerticalMovement());
+		_body->SetLinearVelocity(moveVector);
 		b2Body* sbody = shadow->getBody();
-		sbody->SetLinearVelocity(b2Vec2(getHorizontalMovement(),getVerticalMovement()));
+		sbody->SetLinearVelocity(moveVector);
 		
 		//shadow->setBodyState(*sbody);
 	}

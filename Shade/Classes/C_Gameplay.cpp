@@ -454,50 +454,10 @@ void GameController::populate() {
 
 #pragma mark : Movers
 	Vec2 movPos = { 5.5f, 4.0f };
-	Vec2 movScale = { 1.0f, 1.0f };
-
-	// Mover shadow
-	float scale = 1.0f;
-	image = _assets->get<Texture2D>("s1");
-	sprite = PolygonNode::createWithTexture(image);
-	sprite->setScale(1.0f);
-	Size ss(image->getContentSize().width*scale / _scale.x,
-		image->getContentSize().height*scale / _scale.y);
-	Vec2 spos(movPos.x + ss.width / 2, movPos.y - ss.height / 2);
-	auto* box = BoxObstacle::create(spos, ss);
-	box->setDrawScale(_scale.x, _scale.y);
-	box->setName(std::string(SHADOW_NAME));
-	box->setBodyType(b2_dynamicBody);
-	box->setDensity(0);
-	box->setFriction(0);
-	box->setRestitution(0);
-	box->setSensor(true);
-	box->setSceneNode(sprite);
-	draw = WireNode::create();
-	draw->setColor(DEBUG_COLOR);
-	draw->setOpacity(DEBUG_OPACITY);
-	box->setDebugNode(draw);
-	addObstacle(box, 1);
-
-	// Create mover
-	image = _assets->get<Texture2D>("b1");
-	OurMovingObject<Car>* _mover = OurMovingObject<Car>::create(movPos, movScale, box);
-	_mover->setDrawScale(_scale);
-	_mover->setShadow(box);
-
-	// Add the scene graph nodes to this object
-	sprite = PolygonNode::createWithTexture(image);
-	sprite->setScale(cscale / DUDE_SCALE);
-	_mover->setSceneNode(sprite);
-
-	draw = WireNode::create();
-	draw->setColor(DEBUG_COLOR);
-	draw->setOpacity(DEBUG_OPACITY);
-	_mover->setDebugNode(draw);
-	addObstacle(_mover, 4); // Put this at the very front
-	_mover->setHorizontalMovement(1.0f);
-	_mover->setVerticalMovement(0.0f);
-	_mover->applyForce();
+	float scale = 0.3f;
+	const char * mname = "car1";
+	const char * sname = "car1s";
+	addMover(mname, sname, movPos, scale);
 
 }
 
@@ -554,16 +514,57 @@ void GameController::addBuilding(const char* bname,
 	box->setDebugNode(draw);
 	addObstacle(box, 1);
 }
-/*
+
 void GameController::addMover(
 	const char * mname,
 	const char * sname,
-	const Vec2& pos,
+	const Vec2& movPos,
 	float scale
 	) {
+	float cscale = Director::getInstance()->getContentScaleFactor();
+	// Mover shadow
+	auto * image = _assets->get<Texture2D>(sname);
+	auto * sprite = PolygonNode::createWithTexture(image);
+	sprite->setScale(scale);
+	Size ss(image->getContentSize().width*scale / _scale.x,
+		image->getContentSize().height*scale / _scale.y);
+	Vec2 spos(movPos.x + ss.width / 2, movPos.y - ss.height / 2);
+	auto* box = BoxObstacle::create(spos, ss);
+	box->setDrawScale(_scale.x, _scale.y);
+	box->setName(std::string(SHADOW_NAME));
+	box->setBodyType(b2_dynamicBody);
+	box->setDensity(0);
+	box->setFriction(0);
+	box->setRestitution(0);
+	box->setSensor(true);
+	box->setSceneNode(sprite);
+	auto * draw = WireNode::create();
+	draw->setColor(DEBUG_COLOR);
+	draw->setOpacity(DEBUG_OPACITY);
+	box->setDebugNode(draw);
+	addObstacle(box, 1);
 
+	// Create mover
+	image = _assets->get<Texture2D>(mname);
+	OurMovingObject<Car>* _mover = OurMovingObject<Car>::create(movPos, box);
+	_mover->setDrawScale(_scale);
+	_mover->setShadow(box);
+
+	// Add the scene graph nodes to this object
+	sprite = PolygonNode::createWithTexture(image);
+	sprite->setScale(cscale / DUDE_SCALE);
+	_mover->setSceneNode(sprite);
+
+	draw = WireNode::create();
+	draw->setColor(DEBUG_COLOR);
+	draw->setOpacity(DEBUG_OPACITY);
+	_mover->setDebugNode(draw);
+	addObstacle(_mover, 4); // Put this at the very front
+	_mover->setHorizontalMovement(1.0f);
+	_mover->setVerticalMovement(0.0f);
+	_mover->applyForce();
 }
-*/
+
 
 /**
  * Immediately adds the object to the physics world
@@ -904,6 +905,11 @@ void GameController::preload() {
 			"textures/buildings/" + buildingTextures[building_index * 4 + 3]);
 	}
 	
+	tloader->loadAsync("car1", "textures/Car1.png");
+	tloader->loadAsync("car1s", "textures/Car1_S.png");
+	tloader->loadAsync("car2", "textures/Car2.png");
+	//tloader->loadAsync("car2s", "textures/Car2_S.png");
+
 	/* ***********************************************************
 	***************** END OF CODE ADDED FOR SHADE ****************
 	************************************************************ */
