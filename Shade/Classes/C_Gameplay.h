@@ -29,6 +29,8 @@
 #include <Box2D/Dynamics/b2Fixture.h>
 #include "C_Input.h"
 #include "M_Powerup.h"
+#include "C_AI.h"
+#include "C_Physics.h"
 #include <unordered_set>
 
 // We need a lot of forward references to the classes used by this controller
@@ -89,11 +91,15 @@ protected:
     
     /** Controller for abstracting out input away from layer */
     InputController _input;
+	/** Controller for running the physics world */
+	PhysicsController _physics;
+	/** Controller for running character AI operations */
+	AIController _ai;
     
     /** Reference to the root node of the scene graph */
     RootLayer* _rootnode;
-    /** Reference to the physics root of the scene graph */
-    Node* _worldnode;
+	/** Reference to the game world in the scene graph */
+	Node* _worldnode;
     /** Reference to the debug root of the scene graph */
     Node* _debugnode;
     /** Reference to the win message label */
@@ -104,11 +110,13 @@ protected:
 	Label* _timernode;
 	/** Reference to the exposure message label */
 	Label* _exposurenode;
+	/** Reference to the variable exposure bar */
+	Sprite* _exposurebar;
+	/** Reference to the exposure bar frame */
+	Sprite* _exposureframe;
 
-    /** The Box2D world */
-    WorldController* _world;
-    /** The world scale (computed from root node) */
-    Vec2 _scale;
+	/** The world scale (computed from root node) */
+	Vec2 _scale;
 
     // Physics objects for the game
     /** Reference to the goalDoor (for collision detection) */
@@ -197,26 +205,6 @@ public:
      * @return  true if the controller is initialized properly, false otherwise.
      */
     bool init(RootLayer* root, const Rect& rect);
-    
-    /**
-     * Initializes the controller contents, and starts the game
-     *
-     * The constructor does not allocate any objects or memory.  This allows
-     * us to have a non-pointer reference to this controller, reducing our
-     * memory allocation.  Instead, allocation happens in this method.
-     *
-     * The game world is scaled so that the screen coordinates do not agree
-     * with the Box2d coordinates.  The bounds are in terms of the Box2d
-     * world, not the screen.
-     *
-     * @param bounds The game bounds in Box2d coordinates
-     * @param scale  The difference between screen and Box2d coordinates
-     * @param gravity The gravitational force on this Box2d world
-     *
-     * @retain a reference to the root layer
-     * @return  true if the controller is initialized properly, false otherwise.
-     */
-    bool init(RootLayer* root, const Rect& rect, const Vec2& gravity);
     
     
 #pragma mark -
@@ -311,30 +299,6 @@ public:
      */
     void preload();
 
-    
-#pragma mark -
-#pragma mark Collision Handling
-    /**
-     * Processes the start of a collision
-     *
-     * This method is called when we first get a collision between two objects.  We use
-     * this method to test if it is the "right" kind of collision.  In particular, we
-     * use it to test if we make it to the win door.  We also us it to eliminate bullets.
-     *
-     * @param  contact  The two bodies that collided
-     */
-    void beginContact(b2Contact* contact);
-
-    /**
-     * Processes the end of a collision
-     *
-     * This method is called when we no longer have a collision between two objects.  
-     * We use this method allow the character to jump again.
-     *
-     * @param  contact  The two bodies that collided
-     */
-    void endContact(b2Contact* contact);
-
 
 #pragma mark -
 #pragma mark Post-Collision Processing
@@ -368,18 +332,6 @@ public:
      */
     void update(float dt);
     
-    /**
-     * Add a new bullet to the world and send it in the right direction.
-     */
-    void createBullet();
-    
-    /**
-     * Remove a new bullet from the world.
-     *
-     * @param  bullet   the bullet to remove
-     */
-    void removeBullet(Obstacle* bullet);
-
 	/**
 	* Clear all memory when exiting.
 	*/

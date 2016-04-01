@@ -20,12 +20,6 @@
 // This is the root, so there are a lot of includes
 #include <string>
 #include <cornell.h>
-#include <Box2D/Dynamics/b2World.h>
-#include <Box2D/Common/b2Math.h>
-#include <Box2D/Dynamics/Contacts/b2Contact.h>
-#include <Box2D/Collision/b2Collision.h>
-#include <Box2D/Collision/Shapes/b2EdgeShape.h>
-#include <Box2D/Dynamics/Joints/b2WeldJoint.h>
 #include "C_Gameplay.h"
 #include "C_Input.h"
 #include "M_Shadow.h"
@@ -93,8 +87,6 @@ float BRIDGE_POS[] = {9.0f, 3.8f};
 
 #pragma mark -
 #pragma mark Physics Constants
-/** The new heavier gravity for this world (so it is not so floaty) */
-#define DEFAULT_GRAVITY 0.0f  //-14.7f
 /** The density for most physics objects */
 #define BASIC_DENSITY   0.0f
 /** The density for a bullet */
@@ -112,6 +104,10 @@ float BRIDGE_POS[] = {9.0f, 3.8f};
 /** The number of frame to wait before reinitializing the game */
 #define EXIT_COUNT      240
 
+/** Horizontal positioning of the exposure bar */
+#define EXPOSURE_X_OFFSET 50
+/** Vertical positioning of the exposure bar */
+#define EXPOSURE_Y_OFFSET 30
 
 #pragma mark -
 #pragma mark Asset Constants
@@ -202,7 +198,6 @@ GameController::GameController() :
 _rootnode(nullptr),
 _worldnode(nullptr),
 _debugnode(nullptr),
-_world(nullptr),
 _avatar(nullptr),
 _active(false),
 _debug(false)
@@ -223,7 +218,7 @@ _debug(false)
  * @return  true if the controller is initialized properly, false otherwise.
  */
 bool GameController::init(RootLayer* root) {
-    return init(root,Rect(0,0,DEFAULT_WIDTH,DEFAULT_HEIGHT),Vec2(0,DEFAULT_GRAVITY));
+    return init(root,Rect(0,0,DEFAULT_WIDTH,DEFAULT_HEIGHT));
 }
 
 /**
@@ -237,36 +232,13 @@ bool GameController::init(RootLayer* root) {
  * with the Box2d coordinates.  The bounds are in terms of the Box2d
  * world, not the screen.
  *
- * @param bounds The game bounds in Box2d coordinates
- * @param scale  The difference between screen and Box2d coordinates
- * @param gravity The gravitational force on this Box2d world
+ * @param root	The RootLayer creating this GameController
+ * @param rect	The game bounds in Box2d coordinates
  *
  * @retain a reference to the root layer
  * @return  true if the controller is initialized properly, false otherwise.
  */
 bool GameController::init(RootLayer* root, const Rect& rect) {
-    return init(root,rect,Vec2(0,DEFAULT_GRAVITY));
-}
-
-/**
- * Initializes the controller contents, and starts the game
- *
- * The constructor does not allocate any objects or memory.  This allows
- * us to have a non-pointer reference to this controller, reducing our
- * memory allocation.  Instead, allocation happens in this method.
- *
- * The game world is scaled so that the screen coordinates do not agree
- * with the Box2d coordinates.  The bounds are in terms of the Box2d
- * world, not the screen.
- *
- * @param bounds The game bounds in Box2d coordinates
- * @param scale  The difference between screen and Box2d coordinates
- * @param gravity The gravitational force on this Box2d world
- *
- * @retain a reference to the root layer
- * @return  true if the controller is initialized properly, false otherwise.
- */
-bool GameController::init(RootLayer* root, const Rect& rect, const Vec2& gravity) {
     // Determine the center of the screen
     Size dimen  = root->getContentSize();
     Vec2 center(dimen.width/2.0f,dimen.height/2.0f);
@@ -280,17 +252,8 @@ bool GameController::init(RootLayer* root, const Rect& rect, const Vec2& gravity
 
     _input.init(screen);
     _input.start();
-    
-    // Create the world; there are no listeners this time.
-    _world = WorldController::create(rect,gravity);
-    _world->retain();
-    _world->activateCollisionCallbacks(true);
-    _world->onBeginContact = [this](b2Contact* contact) {
-        beginContact(contact);
-    };
-    _world->onEndContact = [this](b2Contact* contact) {
-        endContact(contact);
-    };
+
+	_physics.init(rect);
 
     // Create the scene graph
     _worldnode = Node::create();
@@ -318,8 +281,6 @@ bool GameController::init(RootLayer* root, const Rect& rect, const Vec2& gravity
 	// Starting exposure is 0
 	_exposure = 0.0f;
 
-	// TODO Aaron: Declare some sprite that will act as a display for exbuildposure in PFGameController.h.
-	// TODO Aaron: Initialize the sprite for exposure here.
 	_timernode = Label::create();
 	_timernode->setTTFConfig(_assets->get<TTFont>(MESSAGE_FONT)->getTTF());
 	_timernode->setString("");
@@ -327,13 +288,23 @@ bool GameController::init(RootLayer* root, const Rect& rect, const Vec2& gravity
 	_timernode->setColor(WIN_COLOR);
 	_timernode->setVisible(true);
 
+	_exposurebar = Sprite::createWithTexture(_assets->get<Texture2D>(EXPOSURE_BAR));
+	_exposurebar->setPosition(root->getContentSize().width - EXPOSURE_X_OFFSET, root->getContentSize().height - EXPOSURE_Y_OFFSET);
+	_exposurebar->setScaleY(Director::getInstance()->getContentScaleFactor());
+	// call setScaleX in update() since it depends on exposure
+	_exposurebar->setVisible(true);
+
+	_exposureframe = Sprite::createWithTexture(_assets->get<Texture2D>(EXPOSURE_FRAME));
+	_exposureframe->setPosition(root->getContentSize().width - EXPOSURE_X_OFFSET, root->getContentSize().height - EXPOSURE_Y_OFFSET);
+	_exposureframe->setScale(Director::getInstance()->getContentScaleFactor());
+	_exposureframe->setVisible(true);
+
 	_exposurenode = Label::create();
 	_exposurenode->setTTFConfig(_assets->get<TTFont>(MESSAGE_FONT)->getTTF());
 	_exposurenode->setString("");
-	_exposurenode->setPosition(root->getContentSize().width - 50, root->getContentSize().height - 30);
+	_exposurenode->setPosition(root->getContentSize().width - EXPOSURE_X_OFFSET, root->getContentSize().height - EXPOSURE_Y_OFFSET);
 	_exposurenode->setColor(WIN_COLOR);
 	_exposurenode->setVisible(true);
-	// TODO Aaron: Update the sprite to display the current exposure in the update() method in this file.
 
     // Add everything to the root and retain
     root->addChild(_worldnode,0);
@@ -341,10 +312,11 @@ bool GameController::init(RootLayer* root, const Rect& rect, const Vec2& gravity
     root->addChild(_winnode,3);
     root->addChild(_losenode,4);
 	//root->addChild(_timernode, 5);
-	root->addChild(_exposurenode, 6);
+	root->addChild(_exposurebar, 6);
+	root->addChild(_exposurenode, 7);
     _rootnode = root;
     _rootnode->retain();
-    
+
     // Now populate the physics objects
     populate();
     _active = true;
@@ -366,10 +338,7 @@ GameController::~GameController() {
  * Disposes of all (non-static) resources allocated to this mode.
  */
 void GameController::dispose() {
-    if (_world != nullptr) {
-        _world->clear();
-        _world->release();
-    }
+	_physics.dispose();
     _worldnode = nullptr;
     _debugnode = nullptr;
     _winnode = nullptr;
@@ -579,7 +548,7 @@ void GameController::addMover(
  * @retain a reference to the obstacle
  */
 void GameController::addObstacle(Obstacle* obj, int zOrder) {
-    _world->addObstacle(obj);  // Implicit retain
+    _physics._world->addObstacle(obj);  // Implicit retain
     if (obj->getSceneNode() != nullptr) {
         _worldnode->addChild(obj->getSceneNode(),zOrder);
     }
@@ -708,6 +677,7 @@ void GameController::update(float dt) {
 	if (!_failed && !_complete) {
 		_exposurenode->setString(cocos2d::to_string((int)(
 			(_exposure / EXPOSURE_LIMIT) * 100)) + "%");
+		_exposurebar->setScaleX(_exposure / EXPOSURE_LIMIT);
 		if (_exposure > EXPOSURE_LIMIT)
 			setFailure(true);
 	}

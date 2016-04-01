@@ -10,4 +10,4 @@ class AIController {
 
 };
 
-#endif
+#endif  /* __C_AI_H__ */
