@@ -100,8 +100,9 @@ WheelObstacle* WheelObstacle::create(const Vec2& pos, float radius) {
  *
  * @return  true if the obstacle is initialized properly, false otherwise.
  */
-bool WheelObstacle::init(const Vec2& pos, float radius) {
+bool WheelObstacle::init(const Vec2& pos, float radius, const b2Filter* const filter) {
     Obstacle::init(pos);
+	_filterPtr = filter;
     _geometry = nullptr;
     _shape.m_radius = radius;
     return true;
@@ -149,6 +150,7 @@ void WheelObstacle::createFixtures() {
     
     // Create the fixture
     _fixture.shape = &_shape;
+	if (_filterPtr != nullptr) _fixture.filter = *_filterPtr;
     _geometry = _body->CreateFixture(&_fixture);
     markDirty(false);
 }

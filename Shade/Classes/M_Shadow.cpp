@@ -39,10 +39,10 @@
 #define DUDE_VSHRINK  0.95f
 /** The amount to shrink the body fixture (horizontally) relative to the image */
 #define DUDE_HSHRINK  0.7f
-/** The amount to shrink the sensor fixture (horizontally) relative to the image */
-#define DUDE_SSHRINK  1.0f//0.6f
-/** Height of the sensor attached to the player's feet */
-#define SENSOR_HEIGHT   1.0f//0.1f
+/** Radius of each of the shadow sensor fixtures */
+#define SENSOR_RADIUS 0.0001f
+/** Distance between adjacent sensors' centers, in Box2D coordinates */
+#define SENSOR_INTERVAL 0.1f
 /** The density of the character */
 #define DUDE_DENSITY    1.0f
 /** The impulse for the character jump */
@@ -124,6 +124,31 @@ Shadow* Shadow::create(const Vec2& pos, const Vec2& scale) {
     return nullptr;
 }
 
+/**
+* Creates a new dude at the given position with the given collision filters.
+*
+* The dude is sized according to the given drawing scale.
+*
+* The scene graph is completely decoupled from the physics system.
+* The node does not have to be the same size as the physics body. We
+* only guarantee that the scene graph node is positioned correctly
+* according to the drawing scale.
+*
+* @param  pos      Initial position in world coordinates
+* @param  scale    The drawing scale
+*
+* @return  An autoreleased physics object
+*/
+Shadow* Shadow::create(const Vec2& pos, const Vec2& scale, const b2Filter* const characterFilter, const b2Filter* const sensorFilter) {
+	Shadow* dude = new (std::nothrow) Shadow();
+	if (dude && dude->init(pos, scale, characterFilter, sensorFilter)) {
+		dude->autorelease();
+		return dude;
+	}
+	CC_SAFE_DELETE(dude);
+	return nullptr;
+}
+
 
 #pragma mark -
 #pragma mark Initializers
@@ -143,7 +168,7 @@ Shadow* Shadow::create(const Vec2& pos, const Vec2& scale) {
  *
  * @return  true if the obstacle is initialized properly, false otherwise.
  */
-bool Shadow::init(const Vec2& pos, const Vec2& scale) {
+bool Shadow::init(const Vec2& pos, const Vec2& scale, const b2Filter* const characterFilter, const b2Filter* const sensorFilter) {
     SceneManager* scene = AssetManager::getInstance()->getCurrent();
     Texture2D* image = scene->get<Texture2D>(DUDE_TEXTURE);
     
@@ -155,9 +180,9 @@ bool Shadow::init(const Vec2& pos, const Vec2& scale) {
     nsize.width  *= DUDE_HSHRINK/scale.x;
     nsize.height *= DUDE_VSHRINK/scale.y;
 
-	_sensorFixture = nullptr;
+	_sensorFilter = sensorFilter;
 
-    if (CapsuleObstacle::init(pos,nsize)) {
+    if (CapsuleObstacle::init(pos, nsize, characterFilter)) {
         setDensity(DUDE_DENSITY);
         setFriction(0.0f);      // HE WILL STICK TO WALLS IF YOU FORGET
         setFixedRotation(true); // OTHERWISE, HE IS A WEEBLE WOBBLE
@@ -167,6 +192,8 @@ bool Shadow::init(const Vec2& pos, const Vec2& scale) {
         
         return true;
     }
+
+	_sensorFilter = nullptr;
     return false;
 }
 
@@ -200,6 +227,18 @@ void Shadow::setVerticalMovement(float value) {
 	_verticalMovement = value;
 }
 
+float Shadow::getCoverRatio() const {
+	if (_sensorCount > 0) {
+		int coveredSensors = 0;
+		for (int sensorIndex = 0; sensorIndex < _sensorCount; sensorIndex++) {
+			if (!(((usp*)(_sensorFixtures[sensorIndex]->GetUserData()))->empty()))
+				coveredSensors++;
+		}
+		return ((float)coveredSensors) / ((float)_sensorCount);
+	}
+	return 0.0f;
+}
+
 
 #pragma mark -
 #pragma mark Physics Methods
@@ -218,27 +257,41 @@ void Shadow::createFixtures() {
 	// change of exposure.
 
     CapsuleObstacle::createFixtures();
-    b2FixtureDef sensorDef;
+    
+	b2FixtureDef sensorDef;
     sensorDef.density = DUDE_DENSITY;
     sensorDef.isSensor = true;
 
-    // Sensor dimensions
-    b2Vec2 corners[4];
-    corners[0].x = -DUDE_SSHRINK*getWidth()/2.0f;
-    corners[0].y = (-getHeight()+SENSOR_HEIGHT)/2.0f;
-    corners[1].x = -DUDE_SSHRINK*getWidth()/2.0f;
-    corners[1].y = (-getHeight()-SENSOR_HEIGHT)/2.0f;
-    corners[2].x =  DUDE_SSHRINK*getWidth()/2.0f;
-    corners[2].y = (-getHeight()-SENSOR_HEIGHT)/2.0f;
-    corners[3].x =  DUDE_SSHRINK*getWidth()/2.0f;
-    corners[3].y = (-getHeight()+SENSOR_HEIGHT)/2.0f;
+	if (_sensorFilter != nullptr) {
+		sensorDef.filter = *_sensorFilter;
+	}
 
-    b2PolygonShape sensorShape;
-    sensorShape.Set(corners,4); // The game crashes here for some reason when the level restarts - b2PolygonShape.cpp does not recognize 4 corners
-    
-    sensorDef.shape = &sensorShape;
-    _sensorFixture = _body->CreateFixture(&sensorDef);
-    _sensorFixture->SetUserData(getSensorName());
+	// The number of sensors across the character's body
+	int sensorsAcross = (int)((getWidth() / SENSOR_INTERVAL) - 0.5f);
+	// The number of sensors vertically across the character's body
+	int sensorsDown = (int)((getHeight() / SENSOR_INTERVAL) - 0.5f);
+
+	_sensorCount = sensorsAcross * sensorsDown;
+	_sensorFixtures = new b2Fixture*[_sensorCount];
+	_unorderedSets = new usp*[_sensorCount];
+
+	for (int acrossIndex = 0; acrossIndex < sensorsAcross; acrossIndex++) {
+		for (int downIndex = 0; downIndex < sensorsDown; downIndex++) {
+			b2CircleShape sensorShape;
+			sensorShape.m_radius = SENSOR_RADIUS;
+			sensorShape.m_p.Set(SENSOR_INTERVAL * (acrossIndex + 0.5f) - getWidth() * 0.5f,
+				SENSOR_INTERVAL * (downIndex + 0.5f) - getHeight() * 0.5f);
+			sensorDef.shape = &sensorShape;
+			_sensorFixtures[acrossIndex * sensorsDown + downIndex]
+				= _body->CreateFixture(&sensorDef);
+
+			// The user data will hold the set of overlapping shadows
+			register int overallindex = acrossIndex * sensorsDown + downIndex;
+			_unorderedSets[overallindex] = new usp();
+			_sensorFixtures[overallindex]
+				->SetUserData(_unorderedSets[overallindex]);
+		}
+	}
 }
 
 /**
@@ -247,15 +300,20 @@ void Shadow::createFixtures() {
  * This is the primary method to override for custom physics objects.
  */
 void Shadow::releaseFixtures() {
-    if (_body == nullptr) {
-        return;
-    }
-    
-    CapsuleObstacle::releaseFixtures();
-    if (_sensorFixture != nullptr) {
-        _body->DestroyFixture(_sensorFixture);
-        _sensorFixture = nullptr;
-    }
+	if (_body == nullptr) {
+		return;
+	}
+
+	CapsuleObstacle::releaseFixtures();
+	for (int index = 0; index < _sensorCount; index++) {
+		if (_sensorFixtures[index] != nullptr) {
+			_sensorFixtures[index]->SetUserData(nullptr);
+			_body->DestroyFixture(_sensorFixtures[index]);
+			_sensorFixtures[index] = nullptr;
+			delete _unorderedSets[index];
+			_unorderedSets[index] = nullptr;
+		}
+	}
 }
 
 /**
@@ -304,6 +362,17 @@ void Shadow::update(float dt) {
     CapsuleObstacle::update(dt);
 }
 
+/** Delete everything allocated with new. */
+void Shadow::deleteEverything() {
+	for (int index = 0; index < _sensorCount; index++) {
+		_sensorFixtures[index] = nullptr;
+		delete _unorderedSets[index];
+		_unorderedSets[index] = nullptr;
+	}
+	delete[] _sensorFixtures;
+	delete[] _unorderedSets;
+}
+
 
 #pragma mark -
 #pragma mark Scene Graph Methods
@@ -317,7 +386,7 @@ void Shadow::update(float dt) {
  */
 void Shadow::resetDebugNode() {
     CapsuleObstacle::resetDebugNode();
-    float w = DUDE_SSHRINK*_dimension.width*_drawScale.x;
+    /*float w = _dimension.width*_drawScale.x;
     float h = SENSOR_HEIGHT*_drawScale.y;
     Poly2 poly(Rect(-w/2.0f,-h/2.0f,w,h));
     poly.traverse(Poly2::Traversal::INTERIOR);
@@ -325,5 +394,5 @@ void Shadow::resetDebugNode() {
     _sensorNode = WireNode::createWithPoly(poly);
     _sensorNode->setColor(DEBUG_COLOR);
     _sensorNode->setPosition(Vec2(_debug->getContentSize().width/2.0f, 0.0f));
-    _debug->addChild(_sensorNode);
+    _debug->addChild(_sensorNode); */ // TODO uncomment if we want to display wireframes for sensor fixtures
 }

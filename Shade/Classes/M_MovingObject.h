@@ -15,9 +15,10 @@
 #include <Box2D/Collision/b2Collision.h>
 #include <Box2D/Collision/Shapes/b2EdgeShape.h>
 #include <Box2D/Dynamics/Joints/b2WeldJoint.h>
-
-
 #include <ActionQueue.h>
+
+
+//#include <ActionQueue.h>
 #include <MovingObjectMetadata.h>
 
 
@@ -38,6 +39,9 @@
 
 
 using namespace std;
+
+/*template <class T>
+class ActionQueue; */
 
 // T must be an enum, whose values all have a method named
 // act(SimpleObstacle object, SimpleObstacle shadow).
@@ -61,12 +65,12 @@ protected:
 public:
 	ActionQueue<T>* _actionQueue;
 
-	OurMovingObject(MovingObjectMetaData* data) {} // TODO implement this
-	OurMovingObject() : BoxObstacle(), _actionQueue(new ActionQueue<T>()) {}
+	OurMovingObject<T>(MovingObjectMetaData* data) {} // TODO implement this
+	OurMovingObject<T>() : BoxObstacle(), _actionQueue(new ActionQueue<T>()) {}
 
-	static OurMovingObject* create(const Vec2& pos, BoxObstacle * s) {
+	static OurMovingObject* create(const Vec2& pos, BoxObstacle * s, const b2Filter* const filter) {
 		OurMovingObject* mover = new (std::nothrow) OurMovingObject();
-		if (mover && mover->init(pos)) {
+		if (mover && mover->init(pos, filter)) {
 			mover->setShadow(s);
 			mover->autorelease();
 			return mover;
@@ -75,9 +79,7 @@ public:
 		return nullptr;
 	}
 
-	bool init(
-		const Vec2& pos
-		) {
+	bool init(const Vec2& pos, const b2Filter* const filter) {
 		SceneManager* scene = AssetManager::getInstance()->getCurrent();
 		Texture2D* image = scene->get<Texture2D>("b1");
 
@@ -85,19 +87,17 @@ public:
 		float cscale = Director::getInstance()->getContentScaleFactor();
 		Size nsize = image->getContentSize()*cscale;
 
-		//nsize.width *= scale.x;
-		//nsize.height *= scale.y;
+		_filterPtr = filter;
 
-		_sensorFixture = nullptr;
+		/*nsize.width *= scale.x;
+		nsize.height *= scale.y;
 
-
-		if (SimpleObstacle::init(pos)) {
+		//if (BoxObstacle::init(pos, nsize, filter)) { */ // TODO uncomment this after merging with Owen's code
+		if (SimpleObstacle::init(pos)) {  // TODO delete this line after merging with Owen's code
 			//setDensity(1.0f);
 			setFriction(0.0f);      // HE WILL STICK TO WALLS IF YOU FORGET
 			setFixedRotation(true); // OTHERWISE, HE IS A WEEBLE WOBBLE
-			setSensor(true);
-
-									// Gameplay attributes
+			//setSensor(true);
 			_faceRight = true;
 
 			return true;

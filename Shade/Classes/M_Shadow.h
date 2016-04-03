@@ -26,7 +26,7 @@
 #include <cornell/CUBoxObstacle.h>
 #include <cornell/CUCapsuleObstacle.h>
 #include <cornell/CUWireNode.h>
-
+#include <unordered_set>
 
 using namespace cocos2d;
  
@@ -49,6 +49,7 @@ using namespace cocos2d;
 /** The maximum character speed */
 #define DUDE_MAXSPEED   5.0f
 
+typedef std::unordered_set<b2Fixture*> usp;
 
 #pragma mark -
 #pragma mark Dude Model
@@ -71,12 +72,19 @@ protected:
 	float _verticalMovement;
 	/** Whether the character image is facing right */
 	bool _faceRight;
-    /** Ground sensor to represent our feet */
-    b2Fixture*  _sensorFixture; // TODO change this with many small fixtures for exposure calculation
+	/** The number of sensor fixtures the character has */
+	int _sensorCount;
+	/** Array holding pointers to the character's sensor fixtures */
+	b2Fixture** _sensorFixtures;
+	/** Array holding pointers to the sets containing the shadow fixtures
+	 * overlapping with the sensor fixture at the respective index of _sensorFixtures */
+	usp** _unorderedSets;
     /** Reference to the sensor name (since a constant cannot have a pointer) */
     std::string _sensorName;
     /** The node for debugging the sensor */
     WireNode* _sensorNode;
+	/** Pointer to the collision filter for the sensor fixtures */
+	const b2Filter* _sensorFilter;
     
     /**
      * Redraws the outline of the physics fixtures to the debug node
@@ -135,6 +143,23 @@ public:
      * @return  An autoreleased physics object
      */
     static Shadow* create(const Vec2& pos, const Vec2& scale);
+
+	/**
+	* Creates a new dude at the given position and collision filters.
+	*
+	* The dude is sized according to the given drawing scale.
+	*
+	* The scene graph is completely decoupled from the physics system.
+	* The node does not have to be the same size as the physics body. We
+	* only guarantee that the scene graph node is positioned correctly
+	* according to the drawing scale.
+	*
+	* @param  pos      Initial position in world coordinates
+	* @param  scale    The drawing scale
+	*
+	* @return  An autoreleased physics object
+	*/
+	static Shadow* create(const Vec2& pos, const Vec2& scale, const b2Filter* const characterFilter, const b2Filter* const sensorFilter);
 
     
 #pragma mark Attribute Properties
@@ -214,6 +239,9 @@ public:
 	 * @return whether the character is facing right
 	 */
 	bool isFacingRight() const { return _faceRight; }
+
+	/** Returns the portion of the character covered by shadows. */
+	float getCoverRatio() const;
     
     
 #pragma mark Physics Methods
@@ -247,6 +275,9 @@ public:
      */
     void applyForce();
 
+	/** Delete everything allocated with new. */
+	void deleteEverything();
+
     
 CC_CONSTRUCTOR_ACCESS:
 #pragma mark Hidden Constructors
@@ -256,7 +287,8 @@ CC_CONSTRUCTOR_ACCESS:
      * This constructor does not initialize any of the dude values beyond
      * the defaults.  To use a DudeModel, you must call init().
      */
-    Shadow() : CapsuleObstacle(), _sensorName(SENSOR_NAME) { }
+    Shadow() : CapsuleObstacle(), _sensorName(SENSOR_NAME),
+		_sensorCount(0), _sensorFixtures(nullptr), _unorderedSets(nullptr) { }
 
     /**
      * Initializes a new dude at the origin.
@@ -303,7 +335,24 @@ CC_CONSTRUCTOR_ACCESS:
      *
      * @return  true if the obstacle is initialized properly, false otherwise.
      */
-    virtual bool init(const Vec2& pos, const Vec2& scale);
+	virtual bool init(const Vec2& pos, const Vec2& scale) { return init(pos, scale, nullptr, nullptr); }
+
+	/**
+	* Initializes a new dude at the given position.
+	*
+	* The dude is sized according to the given drawing scale.
+	*
+	* The scene graph is completely decoupled from the physics system.
+	* The node does not have to be the same size as the physics body. We
+	* only guarantee that the scene graph node is positioned correctly
+	* according to the drawing scale.
+	*
+	* @param  pos      Initial position in world coordinates
+	* @param  scale    The drawing scale
+	*
+	* @return  true if the obstacle is initialized properly, false otherwise.
+	*/
+	virtual bool init(const Vec2& pos, const Vec2& scale, const b2Filter* const characterFilter, const b2Filter* const sensorFilter);
 };
 
 #endif /* __M_SHADOW_H__ */

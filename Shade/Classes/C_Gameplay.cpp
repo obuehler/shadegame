@@ -80,7 +80,7 @@ float GOAL_POS[] = { 4.0f,14.0f};
 /** The position of the spinning barrier */
 float SPIN_POS[] = {13.0f,12.5f};
 /** The initial position of the dude */
-float DUDE_POS[] = { 2.5f, 5.0f};
+float DUDE_POS[] = { 2.5f, 7.5f};
 /** The position of the rope bridge */
 float BRIDGE_POS[] = {9.0f, 3.8f};
 
@@ -103,11 +103,13 @@ float BRIDGE_POS[] = {9.0f, 3.8f};
 #define BULLET_SPEED   20.0f
 /** The number of frame to wait before reinitializing the game */
 #define EXIT_COUNT      240
+/** The integer used as the action tag for the layer movement */
+#define FOLLOW_ACTION_TAG 5
 
 /** Horizontal positioning of the exposure bar */
-#define EXPOSURE_X_OFFSET 50
+#define EXPOSURE_X_OFFSET 220
 /** Vertical positioning of the exposure bar */
-#define EXPOSURE_Y_OFFSET 30
+#define EXPOSURE_Y_OFFSET 50
 
 #pragma mark -
 #pragma mark Asset Constants
@@ -134,8 +136,15 @@ const string buildingTextures[] = {
 ***************** END OF CODE ADDED FOR SHADE ****************
 ************************************************************ */
 
-#define EXPOSURE_LIMIT 5.0f // seconds before you die
+/** Seconds before death due to exposure */
+#define EXPOSURE_LIMIT 5.0f
+/** Ratio of exposure cooldown speed to exposure increase speed */
+#define EXPOSURE_COOLDOWN_RATIO 0.5f
 
+/** The key for the exposure bar texture in the asset manager */
+#define EXPOSURE_BAR	"ebar"
+/** The key for the exposure bar frame texture in the asset manager */
+#define EXPOSURE_FRAME	"eframe"
 /** The key for the earth texture in the asset manager */
 #define EARTH_TEXTURE   "earth"
 /** The key for the win door texture in the asset manager */
@@ -202,6 +211,25 @@ _avatar(nullptr),
 _active(false),
 _debug(false)
 {
+	_characterFilter.groupIndex = 0;
+	_characterFilter.categoryBits = CHARACTER_FILTER;
+	_characterFilter.maskBits = OBJECT_FILTER;
+
+	_objectFilter.groupIndex = 1; // Has to be a positive integer so they always collide with each other
+	_objectFilter.categoryBits = OBJECT_FILTER;
+	_objectFilter.maskBits = CHARACTER_FILTER | CASTER_FILTER;
+
+	_casterFilter.groupIndex = 1; // Collides with objects too!
+	_casterFilter.categoryBits = CASTER_FILTER;
+	_casterFilter.maskBits = CHARACTER_SENSOR_FILTER | OBJECT_FILTER;
+
+	_shadowFilter.groupIndex = -1; // Has to be a negative integer so they never collide with each other
+	_shadowFilter.categoryBits = SHADOW_FILTER;
+	_shadowFilter.maskBits = CHARACTER_SENSOR_FILTER;
+
+	_characterSensorFilter.groupIndex = -2;
+	_characterSensorFilter.categoryBits = CHARACTER_SENSOR_FILTER;
+	_characterSensorFilter.maskBits = SHADOW_FILTER | CASTER_FILTER;
 }
 
 /**
@@ -239,6 +267,10 @@ bool GameController::init(RootLayer* root) {
  * @return  true if the controller is initialized properly, false otherwise.
  */
 bool GameController::init(RootLayer* root, const Rect& rect) {
+
+	// Initialize the collision filters
+
+
     // Determine the center of the screen
     Size dimen  = root->getContentSize();
     Vec2 center(dimen.width/2.0f,dimen.height/2.0f);
@@ -288,14 +320,17 @@ bool GameController::init(RootLayer* root, const Rect& rect) {
 	_timernode->setColor(WIN_COLOR);
 	_timernode->setVisible(true);
 
-	_exposurebar = Sprite::createWithTexture(_assets->get<Texture2D>(EXPOSURE_BAR));
+	_exposurebar = PolygonNode::createWithTexture(_assets->get<Texture2D>(EXPOSURE_BAR));
+	_exposurebar->setAnchorPoint(Vec2(0, 0));
 	_exposurebar->setPosition(root->getContentSize().width - EXPOSURE_X_OFFSET, root->getContentSize().height - EXPOSURE_Y_OFFSET);
-	_exposurebar->setScaleY(Director::getInstance()->getContentScaleFactor());
-	// call setScaleX in update() since it depends on exposure
+	_exposurebar->setScale(Director::getInstance()->getContentScaleFactor());
 	_exposurebar->setVisible(true);
+	
+	_exposurepoly = Poly2(Rect(Vec2(0.0f, 0.0f), _exposurebar->getTexture()->getContentSize()));
 
 	_exposureframe = Sprite::createWithTexture(_assets->get<Texture2D>(EXPOSURE_FRAME));
-	_exposureframe->setPosition(root->getContentSize().width - EXPOSURE_X_OFFSET, root->getContentSize().height - EXPOSURE_Y_OFFSET);
+	_exposureframe->setAnchorPoint(Vec2(0, 0));
+	_exposureframe->setPosition(root->getContentSize().width - EXPOSURE_X_OFFSET - 3, root->getContentSize().height - EXPOSURE_Y_OFFSET - 3);
 	_exposureframe->setScale(Director::getInstance()->getContentScaleFactor());
 	_exposureframe->setVisible(true);
 
@@ -304,7 +339,7 @@ bool GameController::init(RootLayer* root, const Rect& rect) {
 	_exposurenode->setString("");
 	_exposurenode->setPosition(root->getContentSize().width - EXPOSURE_X_OFFSET, root->getContentSize().height - EXPOSURE_Y_OFFSET);
 	_exposurenode->setColor(WIN_COLOR);
-	_exposurenode->setVisible(true);
+	//_exposurenode->setVisible(true);
 
     // Add everything to the root and retain
     root->addChild(_worldnode,0);
@@ -312,13 +347,16 @@ bool GameController::init(RootLayer* root, const Rect& rect) {
     root->addChild(_winnode,3);
     root->addChild(_losenode,4);
 	//root->addChild(_timernode, 5);
+	root->addChild(_exposurenode, 6);
 	root->addChild(_exposurebar, 6);
-	root->addChild(_exposurenode, 7);
+	root->addChild(_exposureframe, 7);
     _rootnode = root;
     _rootnode->retain();
 
     // Now populate the physics objects
     populate();
+	_worldnode->runAction(Follow::create(_avatar->getSceneNode())); // TODO uncomment when lazy camera implemented
+	_debugnode->runAction(Follow::create(_avatar->getSceneNode())); // TODO uncomment when lazy camera implemented
     _active = true;
     setDebug(false);
     return true;
@@ -344,6 +382,8 @@ void GameController::dispose() {
     _winnode = nullptr;
 	_timernode = nullptr;
 	_exposurenode = nullptr;
+	_exposurebar = nullptr;
+	_exposureframe = nullptr;
     _rootnode->removeAllChildren();
     _rootnode->release();
     _rootnode = nullptr;
@@ -374,7 +414,7 @@ void GameController::populate() {
     Vec2 goalPos = GOAL_POS;
     Size goalSize(image->getContentSize().width*cscale/_scale.x,
                   image->getContentSize().height*cscale/_scale.y);
-    _goalDoor = BoxObstacle::create(goalPos,goalSize);
+    _goalDoor = BoxObstacle::create(goalPos, goalSize, &_casterFilter);
     _goalDoor->setDrawScale(_scale.x, _scale.y);
     
     // Set the physics attributes
@@ -398,7 +438,7 @@ void GameController::populate() {
 #pragma mark : Dude
     Vec2 dudePos = DUDE_POS;
     image  = _assets->get<Texture2D>(DUDE_TEXTURE);
-    _avatar = Shadow::create(dudePos,_scale*DUDE_SCALE);
+    _avatar = Shadow::create(dudePos,_scale*DUDE_SCALE, &_characterFilter, &_characterSensorFilter);
     _avatar->setDrawScale(_scale);
     
     // Add the scene graph nodes to this object
@@ -418,8 +458,8 @@ void GameController::populate() {
 
 #pragma mark : Buildings
 
-	addBuilding("b1", "s1", Vec2(10, 10), 0.7);
-	addBuilding("b5", "s5", Vec2(8, 15), 0.5);
+	addBuilding("b1", "s1", Vec2(10, 10), 0.7f);
+	addBuilding("b5", "s5", Vec2(8, 15), 0.5f);
 
 #pragma mark : Movers
 	Vec2 movPos = { 5.5f, 4.0f };
@@ -448,7 +488,7 @@ void GameController::addBuilding(const char* bname,
 	Size bs(image->getContentSize().width*scale / _scale.x,
 		image->getContentSize().height*scale / _scale.y);
 	Vec2 bpos(pos.x + bs.width / 2, pos.y - bs.height / 2);
-	auto* box = BoxObstacle::create(bpos, bs);
+	auto* box = BoxObstacle::create(bpos, bs, &_objectFilter);
 	box->setDrawScale(_scale.x, _scale.y);
 	box->setName(std::string(BUILDING_NAME));
 	box->setBodyType(b2_staticBody);
@@ -468,7 +508,7 @@ void GameController::addBuilding(const char* bname,
 	Size ss(image->getContentSize().width*scale / _scale.x,
 		image->getContentSize().height*scale / _scale.y);
 	Vec2 spos(pos.x + ss.width / 2, pos.y - ss.height / 2);
-	box = BoxObstacle::create(spos, ss);
+	box = BoxObstacle::create(spos, ss, &_shadowFilter);
 	box->setDrawScale(_scale.x, _scale.y);
 	box->setName(std::string(SHADOW_NAME));
 	box->setBodyType(b2_staticBody);
@@ -498,7 +538,7 @@ void GameController::addMover(
 	Size ss(image->getContentSize().width*scale / _scale.x,
 		image->getContentSize().height*scale / _scale.y);
 	Vec2 spos(movPos.x + ss.width / 2, movPos.y - ss.height / 2);
-	auto* box = BoxObstacle::create(spos, ss);
+	auto* box = BoxObstacle::create(spos, ss, &_shadowFilter);
 	box->setDrawScale(_scale.x, _scale.y);
 	box->setName(std::string(SHADOW_NAME));
 	box->setBodyType(b2_dynamicBody);
@@ -515,7 +555,7 @@ void GameController::addMover(
 
 	// Create mover
 	image = _assets->get<Texture2D>(mname);
-	OurMovingObject<Car>* _mover = OurMovingObject<Car>::create(movPos, box);
+	OurMovingObject<Car>* _mover = OurMovingObject<Car>::create(movPos, box, &_objectFilter);
 	_mover->setDrawScale(_scale);
 	_mover->setShadow(box);
 
@@ -567,7 +607,7 @@ void GameController::addObstacle(Obstacle* obj, int zOrder) {
  * This method disposes of the world and creates a new one.
  */
 void GameController::reset() {
-    _world->clear();
+	_physics.reset();
     _worldnode->removeAllChildren();
     _debugnode->removeAllChildren();
     
@@ -576,9 +616,8 @@ void GameController::reset() {
     setFailure(false);
     setComplete(false);
     populate();
-    
-    
-    
+	_worldnode->runAction(Follow::create(_avatar->getSceneNode())); // TODO uncomment when lazy camera implemented
+	_debugnode->runAction(Follow::create(_avatar->getSceneNode())); // TODO uncomment when lazy camera implemented
 }
 
 /**
@@ -661,25 +700,30 @@ void GameController::update(float dt) {
         Sound* source = _assets->get<Sound>(JUMP_EFFECT);
         SoundEngine::getInstance()->playEffect(JUMP_EFFECT,source,false,EFFECT_VOLUME);
      */
-
-    // Turn the physics engine crank.
-    _world->update(dt);
+	_physics.update(dt);
     
-    // Since items may be deleted, garbage collect
-    _world->garbageCollect();
-    
-    // Check for exposure or cover
-	if (_inShadow)
-		_exposure = max(_exposure - dt, 0.0f);
-	else
-		_exposure += dt;
+	/* if (_avatar->getVX() != 0.0f || _avatar->getVY() != 0.0f) {
+		_worldnode->stopAllActionsByTag(FOLLOW_ACTION_TAG);
+		_worldnode->runAction(EaseOut::create(MoveTo::create(2, _avatar->getPosition()), 4.0f))->setTag(FOLLOW_ACTION_TAG);
+	} */ // TODO UNCOMMENT AND FIX FOR LAZY CAMERA
 
-	if (!_failed && !_complete) {
-		_exposurenode->setString(cocos2d::to_string((int)(
-			(_exposure / EXPOSURE_LIMIT) * 100)) + "%");
-		_exposurebar->setScaleX(_exposure / EXPOSURE_LIMIT);
-		if (_exposure > EXPOSURE_LIMIT)
-			setFailure(true);
+	if (!_failed) {
+		if (!_complete && _physics._reachedCaster) setComplete(true);
+		if (!_complete) {
+			// Check for exposure or cover
+			//CCLOG("%1.4f", _avatar->getCoverRatio());
+			_exposure += dt * (1.0f - ((1.0f + EXPOSURE_COOLDOWN_RATIO) * _avatar->getCoverRatio()));
+			if (_exposure < 0.0f) _exposure = 0.0f;
+
+			if (_exposure >= EXPOSURE_LIMIT) {
+				_exposure = EXPOSURE_LIMIT;
+				setFailure(true);
+			}
+			_exposurenode->setString(cocos2d::to_string((int)(
+				(_exposure / EXPOSURE_LIMIT) * 100)) + "%");
+			_exposurebar->setPolygon(_exposurepoly * Vec2(_exposure / EXPOSURE_LIMIT, 1.0f));
+			_exposurebar->setVisible(true);
+		}
 	}
 
     
@@ -688,145 +732,6 @@ void GameController::update(float dt) {
         _countdown--;
     } else if (_countdown == 0) {
         reset();
-    }
-}
-
-/**
- * Add a new bullet to the world and send it in the right direction.
- */
-void GameController::createBullet() {
-    float offset = BULLET_OFFSET;
-    Vec2 pos = _avatar->getPosition();
-    pos.x += (_avatar->isFacingRight() ? offset : -offset);
-    
-    Texture2D* image = _assets->get<Texture2D>(BULLET_TEXTURE);
-    float radius = 0.5f*image->getContentSize().width/_scale.x;
-    
-    WheelObstacle* bullet = WheelObstacle::create(pos, radius);
-    bullet->setName(BULLET_NAME);
-    bullet->setDensity(HEAVY_DENSITY);
-    bullet->setDrawScale(_scale);
-    bullet->setBullet(true);
-    bullet->setGravityScale(0);
-    
-    float cscale = Director::getInstance()->getContentScaleFactor();
-    PolygonNode* sprite = PolygonNode::createWithTexture(image);
-    sprite->setScale(cscale);
-    bullet->setSceneNode(sprite);
-    
-    WireNode* draw = WireNode::create();
-    draw->setColor(DEBUG_COLOR);
-    draw->setOpacity(DEBUG_OPACITY);
-    bullet->setDebugNode(draw);
-
-    // Compute position and velocity
-    float speed  = (_avatar->isFacingRight() ? BULLET_SPEED : -BULLET_SPEED);
-    bullet->setVX(speed);
-    addObstacle(bullet,5);
-    
-    Sound* source = _assets->get<Sound>(PEW_EFFECT);
-    SoundEngine::getInstance()->playEffect(PEW_EFFECT,source, false, EFFECT_VOLUME, true);
-}
-
-/**
- * Remove a new bullet from the world.
- *
- * @param  bullet   the bullet to remove
- */
-void GameController::removeBullet(Obstacle* bullet) {
-    _worldnode->removeChild(bullet->getSceneNode());
-    _debugnode->removeChild(bullet->getDebugNode());
-    bullet->markRemoved(true);
-    
-    Sound* source = _assets->get<Sound>(POP_EFFECT);
-    SoundEngine::getInstance()->playEffect(POP_EFFECT,source,false,EFFECT_VOLUME, true);
-}
-
-
-#pragma mark -
-#pragma mark Collision Handling
-/**
- * Processes the start of a collision
- *
- * This method is called when we first get a collision between two objects.  We use
- * this method to test if it is the "right" kind of collision.  In particular, we
- * use it to test if we make it to the win door.
- *
- * @param  contact  The two bodies that collided
- */
-void GameController::beginContact(b2Contact* contact) {
-    b2Fixture* fix1 = contact->GetFixtureA();
-    b2Fixture* fix2 = contact->GetFixtureB();
-    
-    b2Body* body1 = fix1->GetBody();
-    b2Body* body2 = fix2->GetBody();
-    
-    void* fd1 = fix1->GetUserData();
-    void* fd2 = fix2->GetUserData();
-    
-    Obstacle* bd1 = (Obstacle*)body1->GetUserData();
-    Obstacle* bd2 = (Obstacle*)body2->GetUserData();
-    
-    // Test bullet collision with world
-    if (bd1->getName() == BULLET_NAME && bd2 != _avatar) {
-        removeBullet(bd1);
-    } else if (bd2->getName() == BULLET_NAME && bd1 != _avatar) {
-        removeBullet(bd2);
-    }
-
-    /* // See if we have landed on the ground.
-    if ((_avatar->getSensorName() == fd2 && _avatar != bd1) ||
-        (_avatar->getSensorName() == fd1 && _avatar != bd2)) {
-        _avatar->setGrounded(true);
-		
-        // Could have more than one ground
-        _sensorFixtures.emplace(_avatar == bd1 ? fix2 : fix1);
-    } */
-
-	// See if we are in a shadow. TODO THIS IS HORRIBLY INEFFICIENT, WE'LL CHANGE THIS
-	if ((_avatar->getSensorName() == fd2 && bd1->getName().find(SHADOW_NAME) == 0) ||
-		(_avatar->getSensorName() == fd1 && bd2->getName().find(SHADOW_NAME) == 0)) {
-		_inShadow = true;
-
-		// Could have more than one ground
-		_sensorFixtures.emplace(_avatar == bd1 ? fix2 : fix1);
-	}
-    
-    // If we hit the "win" door, we are done
-    if((bd1 == _avatar   && bd2 == _goalDoor) ||
-       (bd1 == _goalDoor && bd2 == _avatar)) {
-        setComplete(true);
-    }
-}
-
-/**
- * Callback method for the start of a collision
- *
- * This method is called when two objects cease to touch.  The main use of this method
- * is to determine when the characer is NOT on the ground.  This is how we prevent
- * double jumping.
- */
-void GameController::endContact(b2Contact* contact) {
-    b2Fixture* fix1 = contact->GetFixtureA();
-    b2Fixture* fix2 = contact->GetFixtureB();
-    
-    b2Body* body1 = fix1->GetBody();
-    b2Body* body2 = fix2->GetBody();
-    
-    void* fd1 = fix1->GetUserData();
-    void* fd2 = fix2->GetUserData();
-    
-    void* bd1 = body1->GetUserData();
-    void* bd2 = body2->GetUserData();
-
-    
-    if ((_avatar->getSensorName() == fd2 && _avatar != bd1) ||
-        (_avatar->getSensorName() == fd1 && _avatar != bd2)) {
-        _sensorFixtures.erase(_avatar == bd1 ? fix2 : fix1);
-        if (_sensorFixtures.empty()) {
-           // _avatar->setGrounded(false);
-			_inShadow = false;
-        }
     }
 }
 
@@ -863,10 +768,6 @@ void GameController::preload() {
 
     _assets = AssetManager::getInstance()->getCurrent();
     TextureLoader* tloader = (TextureLoader*)_assets->access<Texture2D>();
-	
-	/* ***********************************************************
-	******************** CODE ADDED FOR SHADE ********************
-	************************************************************ */
 
 	for (int building_index = 0; building_index < BUILDING_TYPES; building_index++) {
 		tloader->loadAsync(buildingTextures[building_index * 4],
@@ -880,11 +781,9 @@ void GameController::preload() {
 	tloader->loadAsync("car2", "textures/Car2.png");
 	//tloader->loadAsync("car2s", "textures/Car2_S.png");
 
-	/* ***********************************************************
-	***************** END OF CODE ADDED FOR SHADE ****************
-	************************************************************ */
-
-    tloader->loadAsync(EARTH_TEXTURE,   "textures/earthtile.png", params);
+	tloader->loadAsync(EXPOSURE_BAR, "textures/exposure_bar.png");
+	tloader->loadAsync(EXPOSURE_FRAME, "textures/exposure_bar_frame.png");
+	tloader->loadAsync(EARTH_TEXTURE,   "textures/earthtile.png", params);
     tloader->loadAsync(DUDE_TEXTURE,    "textures/ShadeDude.png");
     tloader->loadAsync(BULLET_TEXTURE,  "textures/bullet.png");
     tloader->loadAsync(GOAL_TEXTURE,    "textures/goaldoor.png");
@@ -901,5 +800,6 @@ void GameController::preload() {
 * Clear all memory when exiting.
 */
 void GameController::stop() {
+	_physics.stop();
+	_avatar->deleteEverything();
 }
-

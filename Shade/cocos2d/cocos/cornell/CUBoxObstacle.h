@@ -104,6 +104,22 @@ public:
      * @return  An autoreleased physics object
      */
     static BoxObstacle* create(const Vec2& pos, const Size& size);
+
+	/**
+	* Creates a new box object of the given dimensions and collision filter.
+	*
+	* The scene graph is completely decoupled from the physics system.
+	* The node does not have to be the same size as the physics body. We
+	* only guarantee that the scene graph node is positioned correctly
+	* according to the drawing scale.
+	*
+	* @param  pos  Initial position in world coordinates
+	* @param  size The box size (width and height)
+	* @param  filter The collision filter for this obstacle
+	*
+	* @return  An autoreleased physics object
+	*/
+	static BoxObstacle* create(const Vec2& pos, const Size& size, const b2Filter* const filter);
     
     
 #pragma mark -
@@ -204,7 +220,7 @@ CC_CONSTRUCTOR_ACCESS:
      *
      * @return  true if the obstacle is initialized properly, false otherwise.
      */
-    virtual bool init(const Vec2& pos) override { return init(pos,Size::ZERO); }
+    virtual bool init(const Vec2& pos) override { return init(pos, Size::ZERO, nullptr); }
     
     /**
      * Initializes a new box object of the given dimensions.
@@ -219,7 +235,23 @@ CC_CONSTRUCTOR_ACCESS:
      *
      * @return  true if the obstacle is initialized properly, false otherwise.
      */
-    virtual bool init(const Vec2& pos, const Size& size);
+	virtual bool init(const Vec2& pos, const Size& size) { return init(pos, size, nullptr); }
+
+	/**
+	* Initializes a new box object of the given dimensions and collision filters.
+	*
+	* The scene graph is completely decoupled from the physics system.
+	* The node does not have to be the same size as the physics body. We
+	* only guarantee that the scene graph node is positioned correctly
+	* according to the drawing scale.
+	*
+	* @param  pos  Initial position in world coordinates
+	* @param  size The box size (width and height)
+	* @param  filter Pointer to the collision filter of the obstacle
+	*
+	* @return  true if the obstacle is initialized properly, false otherwise.
+	*/
+	virtual bool init(const Vec2& pos, const Size& size, const b2Filter* const filter);
     
 };
 

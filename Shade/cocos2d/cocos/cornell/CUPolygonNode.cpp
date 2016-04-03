@@ -333,7 +333,6 @@ std::string PolygonNode::getDescription() const {
 void PolygonNode::draw(Renderer *renderer, const Mat4 &transform, uint32_t flags) {
     // Don't do calculate the culling if the transform was not updated
     _insideBounds = (flags & FLAGS_TRANSFORM_DIRTY) ? renderer->checkVisibility(transform, _contentSize) : _insideBounds;
-    
     if(_insideBounds) {
         if (_triangles.vertCount == 0) {
             generateRenderData();

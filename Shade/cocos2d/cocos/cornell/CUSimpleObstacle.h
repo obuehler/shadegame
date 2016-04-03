@@ -50,7 +50,8 @@ protected:
     int _angSnap;
     /** Cache of factor to snap rotation of image to physics body */
     unsigned long _angFact;
-
+	/** Pointer to the collision filter of this obstacle, used in createFixtures */
+	const b2Filter* _filterPtr;
     
 public:
 #pragma mark -

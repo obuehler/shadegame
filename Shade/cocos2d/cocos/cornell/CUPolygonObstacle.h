@@ -112,6 +112,22 @@ public:
      * @return  An autoreleased physics object
      */
     static PolygonObstacle* create(const Poly2& poly, const Vec2& anchor);
+
+	/**
+	* Creates a (not necessarily convex) polygon with the given collision filter
+	*
+	* The anchor point (the rotational center) of the polygon is specified as a
+	* ratio of the bounding box.  An anchor point of (0,0) is the bottom left of
+	* the bounding box.  An anchor point of (1,1) is the top right of the bounding
+	* box.  The anchor point does not need to be contained with the bounding box.
+	*
+	* @param  poly     The polygon vertices
+	* @param  anchor   The rotational center of the polygon
+	* @param  filter   The collision filter for this obstacle
+	*
+	* @return  An autoreleased physics object
+	*/
+	static PolygonObstacle* create(const Poly2& poly, const Vec2& anchor, const b2Filter* const filter);
     
     
 #pragma mark -
@@ -282,7 +298,7 @@ CC_CONSTRUCTOR_ACCESS:
      *
      * @return  true if the obstacle is initialized properly, false otherwise.
      */
-    virtual bool init(const Poly2& poly) { return init(poly,Vec2(0.5,0.5)); }
+    virtual bool init(const Poly2& poly) { return init(poly,Vec2(0.5,0.5), nullptr); }
     
     /**
      * Initializes a (not necessarily convex) polygon
@@ -297,7 +313,23 @@ CC_CONSTRUCTOR_ACCESS:
      *
      * @return  true if the obstacle is initialized properly, false otherwise.
      */
-    virtual bool init(const Poly2& poly, const Vec2& anchor);
+	virtual bool init(const Poly2& poly, const Vec2& anchor) { return init(poly, anchor, nullptr); }
+
+	/**
+	* Initializes a (not necessarily convex) polygon with the given collision filter.
+	*
+	* The anchor point (the rotational center) of the polygon is specified as a
+	* ratio of the bounding box.  An anchor point of (0,0) is the bottom left of
+	* the bounding box.  An anchor point of (1,1) is the top right of the bounding
+	* box.  The anchor point does not need to be contained with the bounding box.
+	*
+	* @param  poly     The polygon vertices
+	* @param  anchor   The rotational center of the polygon
+	* @param  filter   The collision filter for this obstacle
+	*
+	* @return  true if the obstacle is initialized properly, false otherwise.
+	*/
+	virtual bool init(const Poly2& poly, const Vec2& anchor, const b2Filter* const filter);
     
 };
 

@@ -89,6 +89,34 @@ CapsuleObstacle* CapsuleObstacle::create(const Vec2& pos, const Size& size) {
 }
 
 /**
+* Creates a new capsule object of the given dimensions and collision filter.
+*
+* The orientation of the capsule will be a full capsule along the
+* major axis.  If width == height, it will default to a vertical
+* orientation.
+*
+* The scene graph is completely decoupled from the physics system.
+* The node does not have to be the same size as the physics body. We
+* only guarantee that the scene graph node is positioned correctly
+* according to the drawing scale.
+*
+* @param  pos      Initial position in world coordinates
+* @param  size     The capsule size (width and height)
+* @param  filter   The collision filter for this obstacle
+*
+* @return  An autoreleased physics object
+*/
+CapsuleObstacle* CapsuleObstacle::create(const Vec2& pos, const Size& size, const b2Filter* const filter) {
+	CapsuleObstacle* capsule = new (std::nothrow) CapsuleObstacle();
+	if (capsule && capsule->init(pos, size, filter)) {
+		capsule->autorelease();
+		return capsule;
+	}
+	CC_SAFE_DELETE(capsule);
+	return nullptr;
+}
+
+/**
 * Creates a new capsule object of the given dimensions and orientation.
 *
 * The orientation must be consistent with the major axis (or else the
@@ -117,10 +145,40 @@ CapsuleObstacle* CapsuleObstacle::create(const Vec2& pos, const Size& size, Caps
 }
 
 
+/**
+* Creates a new capsule object of the given dimensions and orientation.
+*
+* The orientation must be consistent with the major axis (or else the
+* two axes must be the same). If the orientation specifies a minor axis,
+* then this constructor will return null.
+*
+* The scene graph is completely decoupled from the physics system.
+* The node does not have to be the same size as the physics body. We
+* only guarantee that the scene graph node is positioned correctly
+* according to the drawing scale.
+*
+* @param  pos      Initial position in world coordinates
+* @param  size     The capsule size (width and height)
+* @param  orient   The capsule orientation
+* @param  filter   The collision filter for this obstacle
+*
+* @return  An autoreleased physics object
+*/
+CapsuleObstacle* CapsuleObstacle::create(const Vec2& pos, const Size& size, CapsuleObstacle::Orientation orient, const b2Filter* const filter) {
+	CapsuleObstacle* capsule = new (std::nothrow) CapsuleObstacle();
+	if (capsule && capsule->init(pos, size, orient, filter)) {
+		capsule->autorelease();
+		return capsule;
+	}
+	CC_SAFE_DELETE(capsule);
+	return nullptr;
+}
+
+
 #pragma mark -
 #pragma mark Initialization Methods
 /**
-* Initializes a new capsule object of the given dimensions.
+* Initializes a new capsule object of the given dimensions and collision filter.
 *
 * The orientation of the capsule will be a full capsule along the
 * major axis.  If width == height, it will default to a vertical
@@ -136,14 +194,14 @@ CapsuleObstacle* CapsuleObstacle::create(const Vec2& pos, const Size& size, Caps
 *
 * @return  true if the obstacle is initialized properly, false otherwise.
 */
-bool CapsuleObstacle::init(const Vec2& pos, const Size& size) {
+bool CapsuleObstacle::init(const Vec2& pos, const Size& size, const b2Filter* const filter) {
 	Orientation orient = (size.width > size.height ? Orientation::HORIZONTAL : Orientation::VERTICAL);
-	return init(pos, size, orient);
+	return init(pos, size, orient, filter);
 }
 
 
 /**
-* Initializes a new capsule object of the given dimensions.
+* Initializes a new capsule object of the given dimensions and collision filter.
 *
 * The orientation must be consistent with the major axis (or else the
 * two axes must be the same). If the orientation specifies a minor axis,
@@ -159,8 +217,9 @@ bool CapsuleObstacle::init(const Vec2& pos, const Size& size) {
 *
 * @return  true if the obstacle is initialized properly, false otherwise.
 */
-bool CapsuleObstacle::init(const Vec2& pos, const Size& size, CapsuleObstacle::Orientation orient) {
+bool CapsuleObstacle::init(const Vec2& pos, const Size& size, CapsuleObstacle::Orientation orient, const b2Filter* const filter) {
 	Obstacle::init(pos);
+	_filterPtr = filter;
 	_core = nullptr;
 	_cap1 = nullptr;
 	_cap2 = nullptr;
@@ -397,6 +456,7 @@ void CapsuleObstacle::createFixtures() {
 
 	// Create the fixture
 	_fixture.shape = &_shape;
+	if (_filterPtr != nullptr) _fixture.filter = *_filterPtr;
 	_core = _body->CreateFixture(&_fixture);
 
 	_fixture.density = _fixture.density / 2.0f;
@@ -442,6 +502,7 @@ void CapsuleObstacle::createFixtures() {
 
 	markDirty(false);
 }
+
 
 /**
 * Release the fixtures for this body, reseting the shape

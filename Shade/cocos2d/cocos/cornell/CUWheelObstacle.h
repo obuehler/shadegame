@@ -96,6 +96,22 @@ public:
      */
     static WheelObstacle* create(const Vec2& pos, float radius);
 
+	/**
+	* Creates a new wheel object of the given radius and collision filter.
+	*
+	* The scene graph is completely decoupled from the physics system.
+	* The node does not have to be the same size as the physics body. We
+	* only guarantee that the scene graph node is positioned correctly
+	* according to the drawing scale.
+	*
+	* @param  pos      Initial position in world coordinates
+	* @param  radius   The wheel radius
+	* @param  filter   The collision filter for this obstacle
+	*
+	* @return  An autoreleased physics object
+	*/
+	static WheelObstacle* create(const Vec2& pos, float radius, const b2Filter* const filter);
+
     
 #pragma mark -
 #pragma mark Dimensions
@@ -145,7 +161,7 @@ CC_CONSTRUCTOR_ACCESS:
      *
      * @return  true if the obstacle is initialized properly, false otherwise.
      */
-    virtual bool init() override { return init(Vec2::ZERO,0.0); }
+    virtual bool init() override { return init(Vec2::ZERO, 0.0f, nullptr); }
     
     /**
      * Initializes a new wheel object at the given point with no size.
@@ -159,7 +175,7 @@ CC_CONSTRUCTOR_ACCESS:
      *
      * @return  true if the obstacle is initialized properly, false otherwise.
      */
-    virtual bool init(const Vec2& pos) override { return init(pos,0.0); }
+    virtual bool init(const Vec2& pos) override { return init(pos, 0.0f, nullptr); }
     
     /**
      * Initializes a new wheel object of the given dimensions.
@@ -174,7 +190,23 @@ CC_CONSTRUCTOR_ACCESS:
      *
      * @return  true if the obstacle is initialized properly, false otherwise.
      */
-    virtual bool init(const Vec2& pos, float radius);
+	virtual bool init(const Vec2& pos, float radius) { return init(pos, radius, nullptr); }
+
+	/**
+	* Initializes a new wheel object of the given dimensions and collision filter.
+	*
+	* The scene graph is completely decoupled from the physics system.
+	* The node does not have to be the same size as the physics body. We
+	* only guarantee that the scene graph node is positioned correctly
+	* according to the drawing scale.
+	*
+	* @param  pos      Initial position in world coordinates
+	* @param  radius   The wheel radius
+	* @param  filter   The collision filter for this obstacle
+	*
+	* @return  true if the obstacle is initialized properly, false otherwise.
+	*/
+	virtual bool init(const Vec2& pos, float radius, const b2Filter* const filter);
 };
 
 NS_CC_END

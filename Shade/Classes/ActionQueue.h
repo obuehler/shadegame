@@ -23,7 +23,10 @@ public:
 	typedef typename T::ActionType ActionType;
 
 	friend class AIController;
-	friend class MovingObject;
+
+	template <class T>
+	friend class OurMovingObject;
+
 /*
 	void printContents() {
 		cout << "head is ";
@@ -60,14 +63,14 @@ public:
 	}
 */
 
-	ActionQueue() : _head(nullptr), _tail(nullptr), _initialHead(nullptr) {}
+	ActionQueue<T>() : _head(nullptr), _tail(nullptr), _initialHead(nullptr) {}
 
 	/** Creates a new ActionQueue from the given action chain. */
-	ActionQueue(ActionNode& action) { initialize(action); }
+	ActionQueue<T>(ActionNode& action) { initialize(action); }
 
 	/** Creates a new ActionQueue from the given action chain that already
 	* survives in a shared pointer. */
-	ActionQueue(shared_ptr<ActionNode> actionPtr) { initialize(actionPtr); }
+	ActionQueue<T>(shared_ptr<ActionNode> actionPtr) { initialize(actionPtr); }
 
 	/** Returns whether the queue is empty by checking if _head is nullptr. */
 	bool isEmpty() {

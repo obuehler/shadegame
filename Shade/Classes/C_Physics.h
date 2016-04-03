@@ -2,14 +2,30 @@
 #define __C_PHYSICS_H__
 
 #include "cocos2d.h"
+#include <cornell.h>
+#include <Box2D/Dynamics/Contacts/b2Contact.h>
+
+#define CHARACTER_FILTER 0x01
+#define OBJECT_FILTER 0x02
+#define SHADOW_FILTER 0x04
+#define CASTER_FILTER 0x08
+#define CHARACTER_SENSOR_FILTER 0x10
+
+namespace cocos2d {
+	class WorldController;
+}
+
+using namespace cocos2d;
 
 class PhysicsController {
 
 	friend class GameController;
 
+	/** Whether we have reached the caster */
+	bool _reachedCaster;
+
 	/** The Box2D world */
 	WorldController* _world;
-
 	
 
 

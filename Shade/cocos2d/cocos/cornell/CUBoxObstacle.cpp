@@ -79,6 +79,31 @@ BoxObstacle* BoxObstacle::create(const Vec2& pos, const Size& size) {
 }
 
 
+/**
+* Creates a new box object of the given dimensions and collision filter.
+*
+* The scene graph is completely decoupled from the physics system.
+* The node does not have to be the same size as the physics body. We
+* only guarantee that the scene graph node is positioned correctly
+* according to the drawing scale.
+*
+* @param  pos  Initial position in world coordinates
+* @param  size The box size (width and height)
+* @param  filter The collision filter for this obstacle
+*
+* @return  An autoreleased physics object
+*/
+BoxObstacle* BoxObstacle::create(const Vec2& pos, const Size& size, const b2Filter* const filter) {
+	BoxObstacle* obstacle = new (std::nothrow) BoxObstacle();
+	if (obstacle && obstacle->init(pos, size, filter)) {
+		obstacle->autorelease();
+		return obstacle;
+	}
+	CC_SAFE_DELETE(obstacle);
+	return nullptr;
+}
+
+
 #pragma mark -
 #pragma mark Initialization Methods
 /**
@@ -92,8 +117,9 @@ BoxObstacle* BoxObstacle::create(const Vec2& pos, const Size& size) {
  * @param  pos  Initial position in world coordinates
  * @param  size The box size (width and height)
  */
-bool BoxObstacle::init(const Vec2& pos, const Size& size) {
+bool BoxObstacle::init(const Vec2& pos, const Size& size, const b2Filter* const filter) {
     Obstacle::init(pos);
+	_filterPtr = filter;
     _geometry = nullptr;
     resize(size);
     return true;
@@ -164,6 +190,7 @@ void BoxObstacle::createFixtures() {
     
     // Create the fixture
     _fixture.shape = &_shape;
+	if (_filterPtr != nullptr) _fixture.filter = *_filterPtr;
     _geometry = _body->CreateFixture(&_fixture);
     markDirty(false);
 }

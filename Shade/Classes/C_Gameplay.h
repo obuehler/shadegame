@@ -31,13 +31,11 @@
 #include "M_Powerup.h"
 #include "C_AI.h"
 #include "C_Physics.h"
-#include <unordered_set>
 
 // We need a lot of forward references to the classes used by this controller
 // These forward declarations are in cocos2d namespace
 namespace cocos2d {
 class RootLayer;
-class WorldController;
 class ComplexObstacle;
 class ObstacleSelector;
 class SceneManager;
@@ -46,8 +44,7 @@ class SceneManager;
 // These forward declarations are in the project
 class InputController;
 class Shadow;
-class RopeBridge;
-class Spinner;
+class PhysicsController;
 
 
 using namespace cocos2d;
@@ -84,6 +81,7 @@ private:
 		float scale
 	);
 
+
 protected:
 
     /** The scene manager for this game demo */
@@ -111,7 +109,9 @@ protected:
 	/** Reference to the exposure message label */
 	Label* _exposurenode;
 	/** Reference to the variable exposure bar */
-	Sprite* _exposurebar;
+	PolygonNode* _exposurebar;
+	/** Base Poly2 to use when updating the exposure bar view polygon */
+	Poly2 _exposurepoly;
 	/** Reference to the exposure bar frame */
 	Sprite* _exposureframe;
 
@@ -123,10 +123,17 @@ protected:
     BoxObstacle*    _goalDoor;
     /** Reference to the player avatar */
     Shadow*      _avatar;
-    /** Reference to the spinning barrier */
-    Spinner*        _spinner;
-    /** Reference to the rope bridge */
-    RopeBridge*     _ropebridge;
+
+	/** The collision filters for the character */
+	b2Filter _characterFilter;
+	/** The collision filters for the character sensors */
+	b2Filter _characterSensorFilter;
+	/** The collision filters for regular objects */
+	b2Filter _objectFilter;
+	/** The collision filters for shadows */
+	b2Filter _shadowFilter;
+	/** The collision filters for the caster */
+	b2Filter _casterFilter;
     
     /** Whether or note this game is still active */
     bool _active;
@@ -136,15 +143,10 @@ protected:
     bool _debug;
     /** Whether we have failed at this world (and need a reset) */
     bool _failed;
-	/** Whether we are in a shadow */
-	bool _inShadow;
 	/** The current level of exposure */
 	float _exposure;
     /** Countdown active for winning or losing */
     int _countdown;
-    
-    /** Mark set to handle more sophisticated collision callbacks */
-    unordered_set<b2Fixture*> _sensorFixtures;
     
     
 #pragma mark Internal Object Management

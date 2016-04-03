@@ -62,6 +62,30 @@ PolygonObstacle* PolygonObstacle::create(const Poly2& poly, const Vec2& anchor) 
     return nullptr;
 }
 
+/**
+* Creates a (not necessarily convex) polygon with the given collision filter
+*
+* The anchor point (the rotational center) of the polygon is specified as a
+* ratio of the bounding box.  An anchor point of (0,0) is the bottom left of
+* the bounding box.  An anchor point of (1,1) is the top right of the bounding
+* box.  The anchor point does not need to be contained with the bounding box.
+*
+* @param  poly     The polygon vertices
+* @param  anchor   The rotational center of the polygon
+* @param  filter   The collision filter for this obstacle
+*
+* @return  An autoreleased physics object
+*/
+PolygonObstacle* PolygonObstacle::create(const Poly2& poly, const Vec2& anchor, const b2Filter* const filter) {
+	PolygonObstacle* obstacle = new (std::nothrow) PolygonObstacle();
+	if (obstacle && obstacle->init(poly, anchor, filter)) {
+		obstacle->autorelease();
+		return obstacle;
+	}
+	CC_SAFE_DELETE(obstacle);
+	return nullptr;
+}
+
 
 #pragma mark -
 #pragma mark Initializers
@@ -78,9 +102,11 @@ PolygonObstacle* PolygonObstacle::create(const Poly2& poly, const Vec2& anchor) 
  *
  * @return  true if the obstacle is initialized properly, false otherwise.
  */
-bool PolygonObstacle::init(const Poly2& poly, const Vec2& anchor) {
+bool PolygonObstacle::init(const Poly2& poly, const Vec2& anchor, const b2Filter* const filter) {
     Obstacle::init(Vec2::ZERO);
     
+	_filterPtr = filter;
+
     // Compute the position from the anchor point
     Vec2 pos = poly.getBounds().origin;
     pos.x += anchor.x*poly.getBounds().size.width;
@@ -252,12 +278,14 @@ void PolygonObstacle::createFixtures() {
     
     // Create the fixtures
     releaseFixtures();
+	if (_filterPtr != nullptr) _fixture.filter = *_filterPtr;
     for(int ii = 0; ii < _fixCount; ii++) {
         _fixture.shape = &(_shapes[ii]);
         _geoms[ii] = _body->CreateFixture(&_fixture);
     }
     markDirty(false);
 }
+
 
 /**
  * Release the fixtures for this body, reseting the shape
