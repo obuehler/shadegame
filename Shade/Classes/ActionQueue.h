@@ -26,6 +26,7 @@ public:
 
 	template <class T>
 	friend class OurMovingObject;
+	friend class GameController;
 
 /*
 	void printContents() {

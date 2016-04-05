@@ -25,6 +25,7 @@
 #include "M_Shadow.h"
 #include "M_MovingObject.h"
 #include "M_Car.h"
+#include "ActionQueue.h"
 
 
 using namespace cocos2d;
@@ -84,6 +85,8 @@ float DUDE_POS[] = { 2.5f, 7.5f};
 /** The position of the rope bridge */
 float BRIDGE_POS[] = {9.0f, 3.8f};
 
+OurMovingObject<Car>* carMovers[] = { nullptr };
+int nextcar = 0;
 
 #pragma mark -
 #pragma mark Physics Constants
@@ -462,12 +465,12 @@ void GameController::populate() {
 	addBuilding("b5", "s5", Vec2(8, 15), 0.5f);
 
 #pragma mark : Movers
+	//int carnum = 0;
 	Vec2 movPos = { 5.5f, 4.0f };
 	float scale = 0.3f;
 	const char * mname = "car1";
 	const char * sname = "car1s";
 	addMover(mname, sname, movPos, scale);
-
 }
 
 /**
@@ -537,7 +540,7 @@ void GameController::addMover(
 	sprite->setScale(scale);
 	Size ss(image->getContentSize().width*scale / _scale.x,
 		image->getContentSize().height*scale / _scale.y);
-	Vec2 spos(movPos.x + ss.width / 2, movPos.y - ss.height / 2);
+	Vec2 spos(movPos.x, movPos.y);
 	auto* box = BoxObstacle::create(spos, ss, &_shadowFilter);
 	box->setDrawScale(_scale.x, _scale.y);
 	box->setName(std::string(SHADOW_NAME));
@@ -572,6 +575,9 @@ void GameController::addMover(
 	_mover->setHorizontalMovement(1.0f);
 	_mover->setVerticalMovement(0.0f);
 	_mover->applyForce();
+
+	carMovers[nextcar] = _mover;
+	nextcar++;
 }
 
 
@@ -688,6 +694,14 @@ void GameController::update(float dt) {
 		_avatar->setVerticalMovement(_input.getVertical()*_avatar->getForce());
 		//_avatar->setJumping( _input.didJump());
 		_avatar->applyForce();
+
+		for (int i = 0; i < nextcar; i++) {
+			OurMovingObject<Car>* car = carMovers[i];
+			Vec2 movvec = car->act();
+			car->setHorizontalMovement(movvec.x);
+			car->setVerticalMovement(movvec.y);
+			//car->applyForce();
+		}
 
 	}
 	else {
