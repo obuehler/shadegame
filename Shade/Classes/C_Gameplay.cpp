@@ -24,7 +24,6 @@
 #include "C_Input.h"
 #include "M_Shadow.h"
 #include "M_MovingObject.h"
-#include "M_Car.h"
 #include "ActionQueue.h"
 
 
@@ -84,9 +83,6 @@ float SPIN_POS[] = {13.0f,12.5f};
 float DUDE_POS[] = { 2.5f, 7.5f};
 /** The position of the rope bridge */
 float BRIDGE_POS[] = {9.0f, 3.8f};
-
-OurMovingObject<Car>* carMovers[] = { nullptr };
-int nextcar = 0;
 
 #pragma mark -
 #pragma mark Physics Constants
@@ -534,7 +530,7 @@ void GameController::addMover(
 	float scale
 	) {
 	float cscale = Director::getInstance()->getContentScaleFactor();
-	// Mover shadow
+	// Create mover shadow boxobstacle
 	auto * image = _assets->get<Texture2D>(sname);
 	auto * sprite = PolygonNode::createWithTexture(image);
 	sprite->setScale(scale);
@@ -556,28 +552,35 @@ void GameController::addMover(
 	box->setDebugNode(draw);
 	addObstacle(box, 1);
 
-	// Create mover
+	// Create mover boxobstacle
 	image = _assets->get<Texture2D>(mname);
-	OurMovingObject<Car>* _mover = OurMovingObject<Car>::create(movPos, box, &_objectFilter);
-	_mover->setDrawScale(_scale);
-	_mover->setShadow(box);
-
-	// Add the scene graph nodes to this object
 	sprite = PolygonNode::createWithTexture(image);
-	sprite->setScale(cscale / DUDE_SCALE);
-	_mover->setSceneNode(sprite);
-
+	sprite->setScale(scale);
+	auto* mbox = BoxObstacle::create(spos, ss, &_objectFilter);
+	mbox->setDrawScale(_scale.x, _scale.y);
+	mbox->setName(std::string(SHADOW_NAME));
+	mbox->setBodyType(b2_dynamicBody);
+	mbox->setDensity(0);
+	mbox->setFriction(0);
+	mbox->setRestitution(0);
+	mbox->setSensor(true);
+	mbox->setSceneNode(sprite);
 	draw = WireNode::create();
 	draw->setColor(DEBUG_COLOR);
 	draw->setOpacity(DEBUG_OPACITY);
-	_mover->setDebugNode(draw);
-	addObstacle(_mover, 4); // Put this at the very front
+	mbox->setDebugNode(draw);
+	addObstacle(mbox, 4);
+
+	// Create mover
+	OurMovingObject<Car>* _mover = OurMovingObject<Car>::create(movPos, mbox, box);
+
 	_mover->setHorizontalMovement(1.0f);
 	_mover->setVerticalMovement(0.0f);
 	_mover->applyForce();
 
-	carMovers[nextcar] = _mover;
-	nextcar++;
+	carMovers.push_back(_mover);
+	_mover->retain();
+	CCLOG("%s", carMovers[0]->_actionQueue->isEmpty() ? "true" : "false");
 }
 
 
@@ -678,6 +681,8 @@ void GameController::setFailure(bool value) {
  * @param  delta    Number of seconds since last animation frame
  */
 void GameController::update(float dt) {
+	OurMovingObject<Car> * mov = carMovers[0];
+	CCLOG("%s", mov->_actionQueue->isEmpty()?"trueup":"falseup");
 	_input.update(dt);
 
 	// Process the toggled key commands
@@ -695,7 +700,7 @@ void GameController::update(float dt) {
 		//_avatar->setJumping( _input.didJump());
 		_avatar->applyForce();
 
-		for (int i = 0; i < nextcar; i++) {
+		for (int i = 0; i < carMovers.size(); i++) {
 			OurMovingObject<Car>* car = carMovers[i];
 			Vec2 movvec = car->act();
 			car->setHorizontalMovement(movvec.x);

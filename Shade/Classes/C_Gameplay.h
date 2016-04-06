@@ -29,6 +29,7 @@
 #include <Box2D/Dynamics/b2Fixture.h>
 #include "C_Input.h"
 #include "M_Powerup.h"
+#include "M_Car.h"
 #include "C_AI.h"
 #include "C_Physics.h"
 
@@ -63,6 +64,9 @@ using namespace std;
  */
 class GameController {
 private:
+
+	vector<OurMovingObject<Car>*> carMovers;
+
 	/**
 	* Add a horizontal building and shadow to the world.
 	* pos is the position of the upper left corner of the building and shadow.

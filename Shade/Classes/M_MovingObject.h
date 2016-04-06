@@ -46,11 +46,11 @@ class ActionQueue; */
 // T must be an enum, whose values all have a method named
 // act(SimpleObstacle object, SimpleObstacle shadow).
 template <class T>
-class OurMovingObject : public BoxObstacle {
+class OurMovingObject : public Ref {
 
 protected:
 
-	SimpleObstacle object;
+	BoxObstacle * object;
 	BoxObstacle * shadow;
 
 	/** The current horizontal movement of the movingobject */
@@ -65,21 +65,19 @@ protected:
 public:
 	ActionQueue<T>* _actionQueue;
 
-	OurMovingObject<T>(MovingObjectMetaData* data) {} // TODO implement this
-	OurMovingObject<T>() : BoxObstacle(), _actionQueue(new ActionQueue<T>()) {}
-
-	static OurMovingObject* create(const Vec2& pos, BoxObstacle * s, const b2Filter* const filter) {
+	static OurMovingObject* create(const Vec2& pos, BoxObstacle * m, BoxObstacle * s) {
 		OurMovingObject* mover = new (std::nothrow) OurMovingObject();
-		if (mover && mover->init(pos, filter)) {
-			mover->setShadow(s);
+		if (mover && mover->init(pos, m, s)) {
+			CCLOG("%s", "asd");
 			mover->autorelease();
+			//mover->retain();
 			return mover;
 		}
 		CC_SAFE_DELETE(mover);
 		return nullptr;
 	}
 
-	bool init(const Vec2& pos, const b2Filter* const filter) {
+	bool init(const Vec2& pos, BoxObstacle * m, BoxObstacle * s) {
 		SceneManager* scene = AssetManager::getInstance()->getCurrent();
 		Texture2D* image = scene->get<Texture2D>("b1");
 
@@ -87,22 +85,16 @@ public:
 		float cscale = Director::getInstance()->getContentScaleFactor();
 		Size nsize = image->getContentSize()*cscale;
 
-		_filterPtr = filter;
+		_actionQueue = ActionQueue<T>::create();
+		_actionQueue->retain();
+
+		setShadow(s);
+		setObject(m);
 
 		/*nsize.width *= scale.x;
 		nsize.height *= scale.y;
-
-		//if (BoxObstacle::init(pos, nsize, filter)) { */ // TODO uncomment this after merging with Owen's code
-		if (SimpleObstacle::init(pos)) {  // TODO delete this line after merging with Owen's code
-			//setDensity(1.0f);
-			setFriction(0.0f);      // HE WILL STICK TO WALLS IF YOU FORGET
-			setFixedRotation(true); // OTHERWISE, HE IS A WEEBLE WOBBLE
-			//setSensor(true);
-			_faceRight = true;
-
-			return true;
-		}
-		return false;
+		*/
+		return true;
 	}
 	
 	/**
@@ -140,6 +132,9 @@ public:
 	void setShadow(BoxObstacle * s) {
 		shadow = s;
 	}
+	void setObject(BoxObstacle * o) {
+		object = o;
+	}
 
 	void setHorizontalMovement(float value) {
 		_horizontalMovement = value;
@@ -172,11 +167,12 @@ public:
 	}
 
 	void applyForce() {
-		if (!isActive()) {
+		if (!object->isActive()) {
 			return;
 		}
 		b2Vec2 moveVector = b2Vec2(getHorizontalMovement(), getVerticalMovement());
-		_body->SetLinearVelocity(moveVector);
+		b2Body* obody = object->getBody();
+		obody->SetLinearVelocity(moveVector);
 		b2Body* sbody = shadow->getBody();
 		sbody->SetLinearVelocity(moveVector);
 		

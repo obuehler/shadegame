@@ -4,6 +4,7 @@
 #include <memory>
 #include <cassert>
 #include <iostream>
+#include "cocos2d.h"
 
 #define DEFAULT_ACTION_LENGTH 1
 #define DEFAULT_BEARING 0.0f
@@ -13,7 +14,7 @@ using namespace std;
 /** Linked list of ActionNodes. Manipulated by the AI Controller. */
 
 template <class T>
-class ActionQueue {
+class ActionQueue : Ref {
 
 private:
 	class ActionNode;
@@ -72,6 +73,23 @@ public:
 	/** Creates a new ActionQueue from the given action chain that already
 	* survives in a shared pointer. */
 	ActionQueue<T>(shared_ptr<ActionNode> actionPtr) { initialize(actionPtr); }
+
+	static ActionQueue<T> * create() {
+		ActionQueue* q = new (std::nothrow) ActionQueue();
+		if (q && q->init()) {
+			//q->autorelease();
+			return q;
+		}
+		CC_SAFE_DELETE(q);
+		return nullptr;
+	}
+
+	bool init() {
+		_head = nullptr;
+		_tail = nullptr;
+		_initialHead = nullptr;
+		return true;
+	}
 
 	/** Returns whether the queue is empty by checking if _head is nullptr. */
 	bool isEmpty() {
@@ -134,19 +152,19 @@ public:
 
 	/** Constructs a new ActionNode with the given arguments and pushes it
 	* onto the queue. */
-	void push(char type, int length) {  // TODO replace char with T
+	void push(ActionType type, int length) {  // TODO replace char with T
 		pushNode(ActionNode(type, length));
 	}
 
 	/** Constructs a new ActionNode with the given arguments and pushes it
 	* onto the queue. */
-	void push(char type) { // TODO replace char with T
+	void push(ActionType type) { // TODO replace char with T
 		pushNode(ActionNode(type));
 	}
 
 	/** Constructs a new ActionNode with the given arguments and pushes it
 	* onto the queue. */
-	void push(char type, int length, int counter) { // TODO replace char with T
+	void push(ActionType type, int length, int counter) { // TODO replace char with T
 		pushNode(ActionNode(type, length, counter));
 	}
 
