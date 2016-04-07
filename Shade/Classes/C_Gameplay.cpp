@@ -577,11 +577,26 @@ void GameController::addMover(
 	//_mover->setHorizontalMovement(1.0f);
 	//_mover->setVerticalMovement(0.0f);
 	//_mover->applyForce();
-	_mover->_actionQueue->push(Car::ActionType::GO,50);
-	_mover->_actionQueue->push(Car::ActionType::STOP, 10);
-	_mover->_actionQueue->push(Car::ActionType::GO, 50);
-	_mover->_actionQueue->push(Car::ActionType::STOP, 50);
-	_mover->_actionQueue->push(Car::ActionType::GO, 50);
+	_mover->_actionQueue->push(Car::ActionType::GO,100);
+	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
+	_mover->_actionQueue->push(Car::ActionType::GO, 100);
+	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
+	_mover->_actionQueue->push(Car::ActionType::GO, 100);
+	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
+	_mover->_actionQueue->push(Car::ActionType::GO, 100);
+	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
+	_mover->_actionQueue->push(Car::ActionType::GO, 100);
+	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
+	_mover->_actionQueue->push(Car::ActionType::GO, 100);
+	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
+	_mover->_actionQueue->push(Car::ActionType::GO, 100);
+	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
+	_mover->_actionQueue->push(Car::ActionType::GO, 100);
+	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
+	_mover->_actionQueue->push(Car::ActionType::GO, 100);
+	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
+	_mover->_actionQueue->push(Car::ActionType::GO, 100);
+	_mover->_actionQueue->push(Car::ActionType::STOP, 100);
 
 
 	carMovers.push_back(_mover);
