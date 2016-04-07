@@ -574,13 +574,18 @@ void GameController::addMover(
 	// Create mover
 	OurMovingObject<Car>* _mover = OurMovingObject<Car>::create(movPos, mbox, box);
 
-	_mover->setHorizontalMovement(1.0f);
-	_mover->setVerticalMovement(0.0f);
-	_mover->applyForce();
+	//_mover->setHorizontalMovement(1.0f);
+	//_mover->setVerticalMovement(0.0f);
+	//_mover->applyForce();
+	_mover->_actionQueue->push(Car::ActionType::GO,50);
+	_mover->_actionQueue->push(Car::ActionType::STOP, 10);
+	_mover->_actionQueue->push(Car::ActionType::GO, 50);
+	_mover->_actionQueue->push(Car::ActionType::STOP, 50);
+	_mover->_actionQueue->push(Car::ActionType::GO, 50);
+
 
 	carMovers.push_back(_mover);
 	_mover->retain();
-	CCLOG("%s", carMovers[0]->_actionQueue->isEmpty() ? "true" : "false");
 }
 
 
@@ -682,7 +687,6 @@ void GameController::setFailure(bool value) {
  */
 void GameController::update(float dt) {
 	OurMovingObject<Car> * mov = carMovers[0];
-	CCLOG("%s", mov->_actionQueue->isEmpty()?"trueup":"falseup");
 	_input.update(dt);
 
 	// Process the toggled key commands
@@ -702,9 +706,9 @@ void GameController::update(float dt) {
 
 		for (int i = 0; i < carMovers.size(); i++) {
 			OurMovingObject<Car>* car = carMovers[i];
-			Vec2 movvec = car->act();
-			car->setHorizontalMovement(movvec.x);
-			car->setVerticalMovement(movvec.y);
+			car->act();
+			//car->setHorizontalMovement(movvec.x);
+			//car->setVerticalMovement(movvec.y);
 			//car->applyForce();
 		}
 

@@ -1,12 +1,33 @@
 #include <cocos2d.h>
 #include "M_Car.h"
-#include <cornell.h>
 
 using namespace cocos2d;
 
-Vec2 Car::act(Car::ActionType action) {
-	cout << "car act called";
-	return Vec2(0.1f, 0.0f);
+void Car::act(Car::ActionType action, BoxObstacle * object, BoxObstacle * shadow) {
+	b2Vec2 moveVector;
+	b2Body* obody;
+	b2Body* sbody;
+	switch (action) {
+		case GO: // Go forward in the current direction
+			CCLOG("%s", "GO");
+			moveVector = b2Vec2(1.0f, 0.0f);
+			obody = object->getBody();
+			obody->SetLinearVelocity(moveVector);
+			sbody = shadow->getBody();
+			sbody->SetLinearVelocity(moveVector);
+			break;
+		case STOP: // Stop moving
+			CCLOG("%s", "STOP");
+			moveVector = b2Vec2(0.0f, 0.0f);
+			obody = object->getBody();
+			obody->SetLinearVelocity(moveVector);
+			sbody = shadow->getBody();
+			sbody->SetLinearVelocity(moveVector);
+			break;
+		default:
+			CCLOG("%s", "BAD");
+			break;
+	}
 }
 
 map<string, Car::ActionType> Car::actionMap = {

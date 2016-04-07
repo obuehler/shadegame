@@ -100,8 +100,8 @@ public:
 	/**
 	* Executes the next move in the _actionQueue.
 	*/
-	Vec2 act() {
-		cout << "act called";
+	void act() {
+		CCLOG("%s", "act called");
 		if (!_actionQueue->isEmpty()) {
 			while (!_actionQueue->isEmpty() && _actionQueue->_head->_counter <= 0) {
 				assert(_actionQueue->_head->_length > 0);
@@ -116,17 +116,11 @@ public:
 				shared_ptr<ActionQueue<T>::ActionNode> action(_actionQueue->_head);
 				// TODO the act() method of action types take the current and remaining
 				// number of frames as arguments
-				action->_counter--;
 				if (_actionQueue->_head->_counter == _actionQueue->_head->_length) {
-					return T::act(action->_type);
+					T::act(action->_type, this->object, this->shadow);
 				}
-				else {
-					return Vec2(0.0f, 0.0f);
-				}
+				action->_counter--;
 			}
-		}
-		else {
-			return Vec2(0.0f, 0.0f);
 		}
 	}
 	void setShadow(BoxObstacle * s) {

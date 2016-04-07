@@ -392,7 +392,7 @@ private:
 		/** Empties all fields and returns the pointer to this node for
 		* chaining. Use when deleting the node. */
 		~ActionNode() {
-			_type = NULL;
+			//_type = NULL;
 			_length = NULL;
 			_counter = NULL;
 			_bearing = NULL;

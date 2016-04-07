@@ -4,6 +4,8 @@
 #include <map>
 #include <string>
 #include <cocos2d.h>
+#include <cornell.h>
+//#include "M_MovingObject.h"
 
 using namespace cocos2d;
 using namespace std;
@@ -13,7 +15,7 @@ struct Car {
 	static map<string, ActionType> actionMap;
 	ActionType actionType;
 
-	static Vec2 act(ActionType);
+	static void act(ActionType, BoxObstacle*, BoxObstacle*);
 };
 
 #endif /* __M_CAR_H__ */
