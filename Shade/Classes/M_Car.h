@@ -8,7 +8,7 @@ using namespace std;
 
 struct Car {
 	typedef enum ActionType { GO, STOP, TURN_LEFT, TURN_RIGHT } ActionType;
-	static map<string, ActionType> actionMap;
+	static const map<string, ActionType> actionMap;
 	ActionType actionType;
 };
 

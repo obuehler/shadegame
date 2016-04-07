@@ -451,10 +451,6 @@ void GameController::populate() {
     draw->setOpacity(DEBUG_OPACITY);
     _avatar->setDebugNode(draw);
     addObstacle(_avatar, 4); // Put this at the very front
-    
-    // Play the background music on a loop.
-    Sound* source = _assets->get<Sound>(GAME_MUSIC);
-    SoundEngine::getInstance()->playMusic(source, true, MUSIC_VOLUME);
 
 #pragma mark : Buildings
 
@@ -467,6 +463,10 @@ void GameController::populate() {
 	const char * mname = "car1";
 	const char * sname = "car1s";
 	addMover(mname, sname, movPos, scale);
+
+	// Play the background music on a loop.
+	Sound* source = _assets->get<Sound>(GAME_MUSIC);
+	SoundEngine::getInstance()->playMusic(source, true, MUSIC_VOLUME);
 
 }
 

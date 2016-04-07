@@ -27,14 +27,14 @@
     <ClCompile Include="..\Classes\C_Physics.cpp">
       <Filter>controller</Filter>
     </ClCompile>
+    <ClCompile Include="M_LevelInstance.cpp">
+      <Filter>model</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Classes\AppDelegate.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="..\Classes\M_Caster.h">
-      <Filter>model</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Classes\M_Level.h">
       <Filter>model</Filter>
     </ClInclude>
     <ClInclude Include="..\Classes\M_Powerup.h">
@@ -58,9 +58,6 @@
     <ClInclude Include="..\Classes\M_MovingObject.h">
       <Filter>model</Filter>
     </ClInclude>
-    <ClInclude Include="..\Classes\MovingObjectMetadata.h">
-      <Filter>abstractions</Filter>
-    </ClInclude>
     <ClInclude Include="..\Classes\ActionQueue.h">
       <Filter>abstractions</Filter>
     </ClInclude>
@@ -72,6 +69,9 @@
     </ClInclude>
     <ClInclude Include="..\Classes\C_Physics.h">
       <Filter>controller</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\M_LevelInstance.h">
+      <Filter>model</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

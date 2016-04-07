@@ -9,7 +9,7 @@ using namespace std;
 struct Pedestrian {
 	typedef enum ActionType { WALK_FAST, WALK_SLOW, STAND, LOOK_AROUND } ActionType;
 
-	static map<string, ActionType> actionMap;
+	static const map<string, ActionType> actionMap;
 };
 
 #endif /* __M_PEDESTRIAN_H__ */

@@ -3,6 +3,7 @@
 
 void Runner::run() {
 	MovingObject obj;
+	cout << obj._actionQueue->isEmpty() << endl;
 	obj._actionQueue->push('1');
 	ActionQueue* queue = obj._actionQueue;
 	queue->printContents();

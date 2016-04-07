@@ -133,19 +133,19 @@ public:
 
 	/** Constructs a new ActionNode with the given arguments and pushes it
 	* onto the queue. */
-	void push(char type, int length) {  // TODO replace char with T
+	void push(ActionType type, int length) {
 		pushNode(ActionNode(type, length));
 	}
 
 	/** Constructs a new ActionNode with the given arguments and pushes it
 	* onto the queue. */
-	void push(char type) { // TODO replace char with T
+	void push(ActionType type) {
 		pushNode(ActionNode(type));
 	}
 
 	/** Constructs a new ActionNode with the given arguments and pushes it
 	* onto the queue. */
-	void push(char type, int length, int counter) { // TODO replace char with T
+	void push(ActionType type, int length, int counter) {
 		pushNode(ActionNode(type, length, counter));
 	}
 
