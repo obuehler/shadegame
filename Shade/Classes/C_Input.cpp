@@ -1,4 +1,4 @@
-﻿//
+//
 //  PFInputController.cpp
 //  PlatformerDemo
 //
@@ -35,6 +35,7 @@
 /** How far we must swipe left or right for a gesture (as ratio of screen) */
 #define EVENT_SWIPE_LENGTH  0.05f
 
+
 // The screen is divided into four zones: Left, Bottom, Right and Main/
 // These are all shown in the diagram below.
 //
@@ -48,12 +49,9 @@
 //
 // The meaning of any touch depends on the zone it begins in.
 
-/** The portion of the screen used for the left zone */
-#define LEFT_ZONE       0.2f
-/** The portion of the screen used for the right zone */
-#define RIGHT_ZONE      0.2f
-/** The portion of the screen used for the bottom zone */
-#define BOTTOM_ZONE     0.2f
+/** The portion of the screen used for the center zone */
+#define CENTER_ZONE       0.01f
+
 
 
 #pragma mark -
@@ -69,12 +67,15 @@ _active(false),
 _resetPressed(false),
 _debugPressed(false),
 _exitPressed(false),
+_pausePressed(false),
 _touchListener(nullptr)
 //_mouseListener(nullptr)
 {
     _keyReset = false;
     _keyDebug = false;
     _keyExit  = false;
+    
+    _keyDoubleTap = false;
     
     _horizontal = 0.0f;
 	_vertical = 0.0f;
@@ -223,6 +224,7 @@ void InputController::update(float dt) {
     _exitPressed  = _keyExit;
     _firePressed  = _keyFire;
     _jumpPressed  = _keyJump;
+    _pausePressed = _keyDoubleTap;
     
     // Directional controls
     //_horizontal = 0.0f;
@@ -249,89 +251,36 @@ void InputController::update(float dt) {
     _keyExit  = false;
     _keyJump  = false;
     _keyFire  = false;
+    _keyDoubleTap = false;
 #endif
 }
 
 
 /**
- * Defines the zone boundaries, so we can quickly categorize touches.
+ * Defines the centrial zone boundaries for tapping to stop
  */
 void InputController::createZones() {
-    _lzone = _bounds;
-    _lzone.size.width *= LEFT_ZONE;
-    _rzone = _bounds;
-    _rzone.size.width *= RIGHT_ZONE;
-    _rzone.origin.x = _bounds.origin.x+_bounds.size.width-_rzone.size.width;
-    _bzone = _bounds;
-    _bzone.size.height *= BOTTOM_ZONE;
+    _mzone = _bounds;
+    _mzone.size.width *= CENTER_ZONE;
+    _mzone.size.height *= CENTER_ZONE;
 }
 
+
 /**
- * Returns the correct zone for the given position.
+ * Check if it touched the center of the screen
  *
- * See the comments above for a description of how zones work.
  *
  * @param  pos  a position in screen coordinates
  *
- * @return the correct zone for the given position.
+ * @return true if it touched the center screen
  */
-/*InputController::Zone InputController::getZone(const Vec2& pos) {
- if (_lzone.containsPoint(pos)) {
- return Zone::LEFT;
- } else if (_rzone.containsPoint(pos)) {
- return Zone::RIGHT;
- } else if (_bzone.containsPoint(pos)) {
- return Zone::BOTTOM;
- } else if (_bounds.containsPoint(pos)) {
- return Zone::MAIN;
- }
- return Zone::UNDEFINED;
- } */
-
-/**
- * Returns true if this is a jump swipe.
- *
- * A jump swipe is a quick swipe up in either the left or right zone.
- *
- * @param  start    the start position of the candidate swipe
- * @param  stop     the end position of the candidate swipe
- * @param  current  the current timestamp of the gesture
- *
- * @return true if this is a jump swipe.
- */
-bool InputController::checkJump(const Vec2& start, const Vec2& stop, timestamp_t current) {
-    // Look for swipes up that are "long enough"
-    float ydiff = (stop.y-start.y);
-    if (elapsed_millis(_swipetime,current) < EVENT_SWIPE_TIME) {
-        return (ydiff > EVENT_SWIPE_LENGTH*_bounds.size.height);
+bool InputController::isCenter(const Vec2& pos) {
+    if (_mzone.containsPoint(pos)) {
+        return true;
     }
     return false;
 }
 
-/**
- * Returns a nonzero value if this is a quick left or right swipe
- *
- * The function returns -1 if it is left swipe and 1 if it is a right swipe.
- *
- * @param  start    the start position of the candidate swipe
- * @param  stop     the end position of the candidate swipe
- * @param  current  the current timestamp of the gesture
- *
- * @return a nonzero value if this is a quick left or right swipe
- */
-int InputController::checkSwipe(const Vec2& start, const Vec2& stop, timestamp_t current) {
-    // Look for swipes up that are "long enough"
-    float xdiff = (stop.x-start.x);
-    if (elapsed_millis(_swipetime,current) < EVENT_SWIPE_TIME) {
-        float thresh = EVENT_SWIPE_LENGTH*_bounds.size.width;
-        if (xdiff > thresh) {
-            return 1;
-        } else if (xdiff < thresh) {
-            return -1;
-        }
-    }
-    return 0;
-}
 
 
 #pragma mark -
@@ -346,8 +295,7 @@ int InputController::checkSwipe(const Vec2& start, const Vec2& stop, timestamp_t
  */
 bool InputController::touchBeganCB(Touch* t, timestamp_t current) {
     Vec2 pos = t->getLocation();
-    _vertical = (pos.y - _bounds.getMidY()) / (_bounds.size.height / 2.0f);
-    _horizontal = (pos.x - _bounds.getMidX()) / (_bounds.size.width / 2.0f);
+    
     
     /*Zone zone = getZone(pos);
      switch (zone) {
@@ -439,22 +387,16 @@ void InputController::touchEndedCB(Touch* t, timestamp_t current) {
  * @param event The associated event
  */
 void InputController::touchMovedCB(Touch* t, timestamp_t current) {
-     /*if (t->getID() == _ltouch.touchid && getZone(t->getLocation()) == Zone::LEFT)  {
-     _keyJump = checkJump(_ltouch.position, t->getLocation(), current);
-     } else if (t->getID() == _rtouch.touchid && getZone(t->getLocation()) == Zone::RIGHT)  {
-     _keyJump = checkJump(_rtouch.position, t->getLocation(), current);
-     } else if (t->getID() == _btouch.touchid && getZone(t->getLocation()) == Zone::BOTTOM)  {
-     // Allow the fire "key" to be held down
-     _keyFire = true;
-     } else if (t->getID() == _mtouch.touchid && _mtouch.count > 1) {
-     int swipe = checkSwipe(_mtouch.position, t->getLocation(), current);
-     if (swipe == -1) {
-     _keyReset = true;
-     } else if (swipe == 1) {
-     _keyExit = true;
-     }
-     } */
-    // More complex checks go here
+    _keyDoubleTap = (elapsed_millis(_dbtaptime,current) <= EVENT_DOUBLE_CLICK);
+    
+    Vec2 pos = t->getLocation();
+    
+    if(isCenter(pos)){
+        _vertical = 0;
+        _horizontal = 0;
+    }
+    _vertical = (pos.y - _bounds.getMidY()) / (_bounds.size.height / 2.0f);
+    _horizontal = (pos.x - _bounds.getMidX()) / (_bounds.size.width / 2.0f);
 }
 
 /**
