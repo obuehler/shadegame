@@ -34,9 +34,9 @@ using namespace std;
 #pragma mark Level Geography
 
 /** Width of the game world in Box2d units */
-#define DEFAULT_WIDTH   32.0f
+#define DEFAULT_WIDTH   60.0f
 /** Height of the game world in Box2d units */
-#define DEFAULT_HEIGHT  18.0f
+#define DEFAULT_HEIGHT  20.0f
 
 // Since these appear only once, we do not care about the magic numbers.
 // In an actual game, this information would go in a data file.
@@ -76,7 +76,7 @@ float PLATFORMS[PLATFORM_COUNT][PLATFORM_VERTS] = {
 };
 
 /** The goal door position */
-float GOAL_POS[] = { 4.0f,14.0f};
+float GOAL_POS[] = { 59.0f,19.0f};
 /** The position of the spinning barrier */
 float SPIN_POS[] = {13.0f,12.5f};
 /** The initial position of the dude */
@@ -148,8 +148,8 @@ const string buildingTextures[] = {
 #define EARTH_TEXTURE   "earth"
 /** The key for the win door texture in the asset manager */
 #define GOAL_TEXTURE    "goal"
-/** The key for the win door texture in the asset manager */
-#define BULLET_TEXTURE  "bullet"
+/** The key for the background texture in the asset manager */
+#define BACKGROUND_TEXTURE  "background"
 /** The name of a bullet (for object identification) */
 #define BULLET_NAME     "bullet"
 /** The name of a wall (for object identification) */
@@ -287,7 +287,8 @@ bool GameController::init(RootLayer* root, const Rect& rect) {
 	_physics.init(rect);
 
     // Create the scene graph
-    _worldnode = Node::create();
+	_worldnode = Node::create();
+    //_worldnode = PolygonNode::createWithTexture(_assets->get<Texture2D>("background"));
     _debugnode = Node::create();
     _winnode = Label::create();
     
@@ -456,13 +457,14 @@ void GameController::populate() {
     SoundEngine::getInstance()->playMusic(source, true, MUSIC_VOLUME);
 
 #pragma mark : Buildings
-
-	addBuilding("b1", "s1", Vec2(10, 10), 0.7f);
-	addBuilding("b5", "s5", Vec2(8, 15), 0.5f);
+	addBuilding("b5", "s5", Vec2(8, 15), 0.6f);
+	addBuilding("b2", "s2", Vec2(37, 15), 0.8f);
+	addBuilding("b3", "s3", Vec2(55, 15), 0.8f);
+	addBuilding("b2", "s2", Vec2(1, 9), 0.7f);
 
 #pragma mark : Movers
 	//int carnum = 0;
-	Vec2 movPos = { 5.5f, 4.0f };
+	Vec2 movPos = { 30.5f, 4.0f };
 	float scale = 0.3f;
 	const char * mname = "car1";
 	const char * sname = "car1s";
@@ -537,20 +539,20 @@ void GameController::addMover(
 	Size ss(image->getContentSize().width*scale / _scale.x,
 		image->getContentSize().height*scale / _scale.y);
 	Vec2 spos(movPos.x, movPos.y);
-	auto* box = BoxObstacle::create(spos, ss, &_shadowFilter);
-	box->setDrawScale(_scale.x, _scale.y);
-	box->setName(std::string(SHADOW_NAME));
-	box->setBodyType(b2_dynamicBody);
-	box->setDensity(0);
-	box->setFriction(0);
-	box->setRestitution(0);
-	box->setSensor(true);
-	box->setSceneNode(sprite);
+	auto* boxob = BoxObstacle::create(spos, ss, &_shadowFilter);
+	boxob->setDrawScale(_scale.x, _scale.y);
+	boxob->setName(std::string(SHADOW_NAME));
+	boxob->setBodyType(b2_dynamicBody);
+	boxob->setDensity(0);
+	boxob->setFriction(0);
+	boxob->setRestitution(0);
+	boxob->setSensor(true);
+	boxob->setSceneNode(sprite);
 	auto * draw = WireNode::create();
 	draw->setColor(DEBUG_COLOR);
 	draw->setOpacity(DEBUG_OPACITY);
-	box->setDebugNode(draw);
-	addObstacle(box, 1);
+	boxob->setDebugNode(draw);
+	addObstacle(boxob, 1);
 
 	// Create mover boxobstacle
 	image = _assets->get<Texture2D>(mname);
@@ -572,32 +574,14 @@ void GameController::addMover(
 	addObstacle(mbox, 4);
 
 	// Create mover
-	OurMovingObject<Car>* _mover = OurMovingObject<Car>::create(movPos, mbox, box);
+	OurMovingObject<Car>* _mover = OurMovingObject<Car>::create(movPos, mbox, boxob);
 
 	//_mover->setHorizontalMovement(1.0f);
 	//_mover->setVerticalMovement(0.0f);
 	//_mover->applyForce();
-	_mover->_actionQueue->push(Car::ActionType::GO,100);
-	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
-	_mover->_actionQueue->push(Car::ActionType::GO, 100);
-	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
-	_mover->_actionQueue->push(Car::ActionType::GO, 100);
-	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
-	_mover->_actionQueue->push(Car::ActionType::GO, 100);
-	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
-	_mover->_actionQueue->push(Car::ActionType::GO, 100);
-	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
-	_mover->_actionQueue->push(Car::ActionType::GO, 100);
-	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
-	_mover->_actionQueue->push(Car::ActionType::GO, 100);
-	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
-	_mover->_actionQueue->push(Car::ActionType::GO, 100);
-	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
-	_mover->_actionQueue->push(Car::ActionType::GO, 100);
-	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
-	_mover->_actionQueue->push(Car::ActionType::GO, 100);
-	_mover->_actionQueue->push(Car::ActionType::STOP, 100);
-
+	_mover->_actionQueue->push(Car::ActionType::GO,200);
+	_mover->_actionQueue->push(Car::ActionType::TURN_RIGHT, 10);
+	_mover->_actionQueue->setCycling(true);
 
 	carMovers.push_back(_mover);
 	_mover->retain();
@@ -639,7 +623,8 @@ void GameController::reset() {
 	_physics.reset();
     _worldnode->removeAllChildren();
     _debugnode->removeAllChildren();
-    
+	carMovers.clear();
+
 	_input.setZero();
 	_exposure = 0;
     setFailure(false);
@@ -823,8 +808,8 @@ void GameController::preload() {
 	tloader->loadAsync(EXPOSURE_FRAME, "textures/exposure_bar_frame.png");
 	tloader->loadAsync(EARTH_TEXTURE,   "textures/earthtile.png", params);
     tloader->loadAsync(DUDE_TEXTURE,    "textures/ShadeDude.png");
-    tloader->loadAsync(BULLET_TEXTURE,  "textures/bullet.png");
     tloader->loadAsync(GOAL_TEXTURE,    "textures/goaldoor.png");
+	tloader->loadAsync(BACKGROUND_TEXTURE, "textures/Background.png");
     _assets->loadAsync<Sound>(GAME_MUSIC,   "sounds/DD_Main.mp3");
     _assets->loadAsync<Sound>(WIN_MUSIC,    "sounds/DD_Victory.mp3");
     _assets->loadAsync<Sound>(LOSE_MUSIC,   "sounds/DD_Failure.mp3");

@@ -101,8 +101,9 @@ protected:
     /** Reference to the root node of the scene graph */
     RootLayer* _rootnode;
 	/** Reference to the game world in the scene graph */
+	//PolygonNode* _worldnode;
 	Node* _worldnode;
-    /** Reference to the debug root of the scene graph */
+	/** Reference to the debug root of the scene graph */
     Node* _debugnode;
     /** Reference to the win message label */
     Label* _winnode;
