@@ -56,6 +56,8 @@ private:
     bool  _keyRight;
     bool  _keyUp;
     bool  _keyDown;
+    /** Whether the doubletap is down */
+    bool  _keyDoubleTap;
     
     
 protected:
@@ -81,6 +83,9 @@ protected:
     float _horizontal;
     /** How much did we move vertically? */
     float _vertical;
+    
+    /** Whether the pause action was chosen. */
+    bool _pausePressed;
     
     
 #pragma mark Internal Touch Management
@@ -128,7 +133,8 @@ protected:
     /** The bounds of the right touch zone */
     Rect _rzone;
     /** The bounds of the bottom touch zone */
-    Rect _bzone;
+    Rect _mzone;
+    
     
     // Each zone can have only one touch
     /** The current touch location for the left zone */
@@ -162,7 +168,7 @@ protected:
      *
      * @return the correct zone for the given position.
      */
-    //Zone getZone(const Vec2& pos);
+    
     
     /**
      * Returns true if this is a jump swipe.
@@ -190,6 +196,15 @@ protected:
      */
     int  checkSwipe(const Vec2& start, const Vec2& stop, timestamp_t current);
     
+    /**
+     * Check if it touched the center of the screen
+     *
+     *
+     * @param  pos  a position in screen coordinates
+     *
+     * @return true if it touched the center screen
+     */
+     bool isCenter(const Vec2& pos);
     
 #pragma mark -
 #pragma mark Input Control
@@ -309,6 +324,13 @@ public:
      * @return true if the exit button was pressed.
      */
     bool didExit() const { return _exitPressed; }
+    
+    /**
+     * Returns true if it double tapped to stop.
+     *
+     * @returns true if it double tapped to stop.
+     */
+    bool didPause() const { return _pausePressed;}
     
     
 #pragma mark -
