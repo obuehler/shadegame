@@ -209,6 +209,7 @@ _debugnode(nullptr),
 _avatar(nullptr),
 _active(false),
 _debug(false)
+_paused(false)
 {
 	_characterFilter.groupIndex = 0;
 	_characterFilter.categoryBits = CHARACTER_FILTER;
@@ -339,6 +340,38 @@ bool GameController::init(RootLayer* root, const Rect& rect) {
 	_exposurenode->setPosition(root->getContentSize().width - EXPOSURE_X_OFFSET, root->getContentSize().height - EXPOSURE_Y_OFFSET);
 	_exposurenode->setColor(WIN_COLOR);
 	//_exposurenode->setVisible(true);
+    // Declare the pause menu and the resume button
+    
+    _uButton = cocos2d::ui::Button::create();
+    _uButton->setTouchEnabled(true);
+    _uButton->loadTextures("textures/ResumeMenu.png", "textures/ResumeMenu.png", "");
+    _uButton->setContentSize(Size(10,5));
+    _uButton->setPosition(Point(root->getContentSize().width / 2, root->getContentSize().height / 2) + Point(-450, -250));
+    
+    _uButton->addTouchEventListener([&](Ref* sender, cocos2d::ui::Widget::TouchEventType type){
+    
+        switch (type)
+        {
+            case ui::Widget::TouchEventType::BEGAN:
+                // Process the movement
+                _uButton->setVisible(false);
+                Director::getInstance()->resume();
+                
+            case ui::Widget::TouchEventType::MOVED:
+                // TODO
+                break;
+            case ui::Widget::TouchEventType::ENDED:
+                // TODO
+                break;
+            case ui::Widget::TouchEventType::CANCELED:
+                // TODO
+                break;
+            default:
+                // TODO
+                break;
+        }
+    });
+    setPaused(false);
 
     // Add everything to the root and retain
     root->addChild(_worldnode,0);
@@ -349,6 +382,7 @@ bool GameController::init(RootLayer* root, const Rect& rect) {
 	root->addChild(_exposurenode, 6);
 	root->addChild(_exposurebar, 6);
 	root->addChild(_exposureframe, 7);
+	root->addChild(_uButton, 8);
     _rootnode = root;
     _rootnode->retain();
 
@@ -386,6 +420,7 @@ void GameController::dispose() {
     _rootnode->removeAllChildren();
     _rootnode->release();
     _rootnode = nullptr;
+    _uButton = nullptr;
 }
 
 
@@ -691,6 +726,23 @@ void GameController::setFailure(bool value) {
 }
 
 /**
+ * Sets whether it is paused.
+ *
+ * If true, the character is stopped
+ *
+ * @param value whether the level is paused.
+ */
+void GameController::setPaused(bool value) {
+    _paused = value;
+    if(value){
+        _uButton->setVisible(true);
+        
+    }else{
+        _uButton->setVisible(false);
+    }
+}
+
+/**
  * Executes the core gameplay loop of this world.
  *
  * This method contains the specific update code for this mini-game. It does
@@ -770,6 +822,11 @@ void GameController::update(float dt) {
         _countdown--;
     } else if (_countdown == 0) {
         reset();
+    }
+    
+    if(_input.didPause()){
+        Director::getInstance()->pause();
+        setPaused(true);
     }
 }
 
