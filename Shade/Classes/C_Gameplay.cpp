@@ -25,7 +25,7 @@
 #include "M_Shadow.h"
 #include "M_MovingObject.h"
 #include "ActionQueue.h"
-
+#include "ui/CocosGUI.h"
 
 using namespace cocos2d;
 using namespace std;
