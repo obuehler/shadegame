@@ -78,22 +78,11 @@ public:
 	}
 
 	bool init(const Vec2& pos, BoxObstacle * m, BoxObstacle * s) {
-		SceneManager* scene = AssetManager::getInstance()->getCurrent();
-		Texture2D* image = scene->get<Texture2D>("b1");
-
-		// Multiply by the scaling factor so we can be resolution independent
-		float cscale = Director::getInstance()->getContentScaleFactor();
-		Size nsize = image->getContentSize()*cscale;
-
 		_actionQueue = ActionQueue<T>::create();
 		_actionQueue->retain();
 
 		setShadow(s);
 		setObject(m);
-
-		/*nsize.width *= scale.x;
-		nsize.height *= scale.y;
-		*/
 		return true;
 	}
 	
@@ -101,7 +90,6 @@ public:
 	* Executes the next move in the _actionQueue.
 	*/
 	void act() {
-		CCLOG("%s", "act called");
 		if (!_actionQueue->isEmpty()) {
 			while (!_actionQueue->isEmpty() && _actionQueue->_head->_counter <= 0) {
 				assert(_actionQueue->_head->_length > 0);

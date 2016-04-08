@@ -27,10 +27,14 @@
 #include <Box2D/Dynamics/Joints/b2MouseJoint.h>
 #include <Box2D/Dynamics/b2Body.h>
 #include <Box2D/Dynamics/b2Fixture.h>
-#include "C_Input.h"
 #include "M_Powerup.h"
+#include "M_MovingObject.h"
+#include "M_Car.h"
+#include "C_Input.h"
+#include "C_AI.h"
+#include "C_Physics.h"
 #include <unordered_set>
-#include "CocosGUI.h"
+#include "UI/CocosGUI.h"
 
 // We need a lot of forward references to the classes used by this controller
 // These forward declarations are in cocos2d namespace
@@ -46,8 +50,7 @@ class SceneManager;
 // These forward declarations are in the project
 class InputController;
 class Shadow;
-class RopeBridge;
-class Spinner;
+class PhysicsController;
 
 
 using namespace cocos2d;
@@ -66,6 +69,9 @@ using namespace std;
  */
 class GameController {
 private:
+	
+	vector<OurMovingObject<Car>*> carMovers;
+
 	/**
 	* Add a horizontal building and shadow to the world.
 	* pos is the position of the upper left corner of the building and shadow.
@@ -75,7 +81,14 @@ private:
 	void addBuilding(const char* bname,
 		const char* sname,
 		const Vec2& pos,
-		float scale);
+		float scale
+		);
+
+	void addMover(const char* mname,
+		const char* sname,
+		const Vec2& pos,
+		float scale
+		);
 
 protected:
 
@@ -84,6 +97,10 @@ protected:
     
     /** Controller for abstracting out input away from layer */
     InputController _input;
+	/** Controller for running the physics world */
+	PhysicsController _physics;
+	/** Controller for running character AI operations */
+	AIController _ai;
     
     /** Reference to the root node of the scene graph */
     RootLayer* _rootnode;
@@ -99,6 +116,12 @@ protected:
 	Label* _timernode;
 	/** Reference to the exposure message label */
 	Label* _exposurenode;
+	/** Reference to the variable exposure bar */
+	PolygonNode* _exposurebar;
+	/** Base Poly2 to use when updating the exposure bar view polygon */
+	Poly2 _exposurepoly;
+	/** Reference to the exposure bar frame */
+	Sprite* _exposureframe;
     /** Reference to the pause message label */
     cocos2d::ui::Button* _uButton;
     Layer* _uLayer;
@@ -114,10 +137,17 @@ protected:
     BoxObstacle*    _goalDoor;
     /** Reference to the player avatar */
     Shadow*      _avatar;
-    /** Reference to the spinning barrier */
-    Spinner*        _spinner;
-    /** Reference to the rope bridge */
-    RopeBridge*     _ropebridge;
+
+	/** The collision filters for the character */
+	b2Filter _characterFilter;
+	/** The collision filters for the character sensors */
+	b2Filter _characterSensorFilter;
+	/** The collision filters for regular objects */
+	b2Filter _objectFilter;
+	/** The collision filters for shadows */
+	b2Filter _shadowFilter;
+	/** The collision filters for the caster */
+	b2Filter _casterFilter;
     
     /** Whether or note this game is still active */
     bool _active;
@@ -143,7 +173,7 @@ protected:
    
     
     /** Mark set to handle more sophisticated collision callbacks */
-    unordered_set<b2Fixture*> _sensorFixtures;
+    //unordered_set<b2Fixture*> _sensorFixtures;
     
     
 #pragma mark Internal Object Management

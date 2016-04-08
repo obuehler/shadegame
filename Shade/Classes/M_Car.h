@@ -5,7 +5,6 @@
 #include <string>
 #include <cocos2d.h>
 #include <cornell.h>
-//#include "M_MovingObject.h"
 
 using namespace cocos2d;
 using namespace std;

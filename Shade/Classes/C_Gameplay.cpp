@@ -25,6 +25,8 @@
 #include "M_Shadow.h"
 #include "M_MovingObject.h"
 #include "ActionQueue.h"
+#include "M_Powerup.h"
+#include "M_Car.h"
 #include "ui/CocosGUI.h"
 
 using namespace cocos2d;
@@ -208,7 +210,7 @@ _worldnode(nullptr),
 _debugnode(nullptr),
 _avatar(nullptr),
 _active(false),
-_debug(false)
+_debug(false),
 _paused(false)
 {
 	_characterFilter.groupIndex = 0;
