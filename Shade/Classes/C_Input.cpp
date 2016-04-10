@@ -408,7 +408,7 @@ bool InputController::touchBeganCB(Touch* t, timestamp_t current) {
  */
 void InputController::touchEndedCB(Touch* t, timestamp_t current) {
     // Reset all keys that might have been set
-    CCLOG("Touch is up %d", t->getID());
+    //CCLOG("Touch is up %d", t->getID());
     /*if (_ltouch.touchid == t->getID()) {
      _ltouch.touchid = -1;
      _ltouch.count = 0;

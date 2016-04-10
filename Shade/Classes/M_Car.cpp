@@ -13,10 +13,10 @@ void Car::act(Car::ActionType action, BoxObstacle * object, BoxObstacle * shadow
 	float angle = object->getAngle() - M_PI;
 	float speed = 2.0f; // Speed should be pulled out and made a parameter
 
-	CCLOG("%f", angle);
+	//CCLOG("%f", angle);
 	switch (action) {
 		case GO: // Go forward in the current direction
-			CCLOG("%s", "GO");
+			//CCLOG("%s", "GO");
 			moveVector = b2Vec2(speed*cos(angle), speed*sin(angle));
 			obody = object->getBody();
 			obody->SetLinearVelocity(moveVector);
@@ -24,7 +24,7 @@ void Car::act(Car::ActionType action, BoxObstacle * object, BoxObstacle * shadow
 			sbody->SetLinearVelocity(moveVector);
 			break;
 		case STOP: // Stop moving
-			CCLOG("%s", "STOP");
+			//CCLOG("%s", "STOP");
 			moveVector = b2Vec2(0.0f, 0.0f);
 			obody = object->getBody();
 			obody->SetLinearVelocity(moveVector);
@@ -32,7 +32,7 @@ void Car::act(Car::ActionType action, BoxObstacle * object, BoxObstacle * shadow
 			sbody->SetLinearVelocity(moveVector);
 			break;
 		case TURN_LEFT:
-			//object->setTransform(pos, angle + (M_PI_2));
+			//obody->setTransform(pos, angle + (M_PI_2));
 			object->setAngle(angle - (M_PI_2));
 			shadow->setAngle(angle - (M_PI_2));
 			break;

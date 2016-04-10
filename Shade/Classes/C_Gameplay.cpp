@@ -463,11 +463,10 @@ void GameController::populate() {
 	addBuilding("b2", "s2", Vec2(1, 9), 0.7f);
 
 #pragma mark : Movers
-	//int carnum = 0;
 	Vec2 movPos = { 30.5f, 4.0f };
 	float scale = 0.3f;
-	const char * mname = "car1";
-	const char * sname = "car1s";
+	const char * mname = "car2";
+	const char * sname = "car2s";
 	addMover(mname, sname, movPos, scale);
 }
 
@@ -532,13 +531,15 @@ void GameController::addMover(
 	float scale
 	) {
 	float cscale = Director::getInstance()->getContentScaleFactor();
+	Vec2 offset = { .75,-.75 };
 	// Create mover shadow boxobstacle
 	auto * image = _assets->get<Texture2D>(sname);
 	auto * sprite = PolygonNode::createWithTexture(image);
 	sprite->setScale(scale);
 	Size ss(image->getContentSize().width*scale / _scale.x,
 		image->getContentSize().height*scale / _scale.y);
-	Vec2 spos(movPos.x, movPos.y);
+	//Vec2 spos(movPos.x + offset.x, movPos.y + offset.y);
+	Vec2 spos = movPos + offset;
 	auto* boxob = BoxObstacle::create(spos, ss, &_shadowFilter);
 	boxob->setDrawScale(_scale.x, _scale.y);
 	boxob->setName(std::string(SHADOW_NAME));
@@ -558,7 +559,7 @@ void GameController::addMover(
 	image = _assets->get<Texture2D>(mname);
 	sprite = PolygonNode::createWithTexture(image);
 	sprite->setScale(scale);
-	auto* mbox = BoxObstacle::create(spos, ss, &_objectFilter);
+	auto* mbox = BoxObstacle::create(movPos, ss, &_objectFilter);
 	mbox->setDrawScale(_scale.x, _scale.y);
 	mbox->setName(std::string(SHADOW_NAME));
 	mbox->setBodyType(b2_dynamicBody);
@@ -711,12 +712,17 @@ void GameController::update(float dt) {
 			//car->setVerticalMovement(movvec.y);
 			//car->applyForce();
 		}
-
 	}
 	else {
 		_avatar->setVX(0.0f);
 		_avatar->setVY(0.0f);
 		_avatar->setAngularVelocity(0.0f);
+		for (int i = 0; i < carMovers.size(); i++) {
+			OurMovingObject<Car>* car = carMovers[i];
+			car->setHorizontalMovement(0.0f);
+			car->setVerticalMovement(0.0f);
+			car->applyForce();
+		}
 	}
 
     /* if (_avatar->isJumping()) {
@@ -802,20 +808,20 @@ void GameController::preload() {
 	tloader->loadAsync("car1", "textures/Car1.png");
 	tloader->loadAsync("car1s", "textures/Car1_S.png");
 	tloader->loadAsync("car2", "textures/Car2.png");
-	//tloader->loadAsync("car2s", "textures/Car2_S.png");
+	tloader->loadAsync("car2s", "textures/Car2_S.png");
 
 	tloader->loadAsync(EXPOSURE_BAR, "textures/exposure_bar.png");
 	tloader->loadAsync(EXPOSURE_FRAME, "textures/exposure_bar_frame.png");
-	tloader->loadAsync(EARTH_TEXTURE,   "textures/earthtile.png", params);
+	//tloader->loadAsync(EARTH_TEXTURE,   "textures/earthtile.png", params);
     tloader->loadAsync(DUDE_TEXTURE,    "textures/ShadeDude.png");
     tloader->loadAsync(GOAL_TEXTURE,    "textures/goaldoor.png");
-	tloader->loadAsync(BACKGROUND_TEXTURE, "textures/Background.png");
+	//tloader->loadAsync(BACKGROUND_TEXTURE, "textures/Background.png");
     _assets->loadAsync<Sound>(GAME_MUSIC,   "sounds/DD_Main.mp3");
     _assets->loadAsync<Sound>(WIN_MUSIC,    "sounds/DD_Victory.mp3");
     _assets->loadAsync<Sound>(LOSE_MUSIC,   "sounds/DD_Failure.mp3");
     _assets->loadAsync<Sound>(JUMP_EFFECT,  "sounds/jump.mp3");
-    _assets->loadAsync<Sound>(PEW_EFFECT,   "sounds/pew.mp3");
-    _assets->loadAsync<Sound>(POP_EFFECT,   "sounds/plop.mp3");
+    //_assets->loadAsync<Sound>(PEW_EFFECT,   "sounds/pew.mp3");
+    //_assets->loadAsync<Sound>(POP_EFFECT,   "sounds/plop.mp3");
     _assets->loadAsync<TTFont>(MESSAGE_FONT,"fonts/RetroGame.ttf");
 }
 
