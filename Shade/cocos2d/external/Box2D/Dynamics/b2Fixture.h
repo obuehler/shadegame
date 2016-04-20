@@ -38,6 +38,17 @@ struct b2Filter
 		groupIndex = 0;
 	}
 
+	/** 
+	 * Constructs a b2Filter, initializing the attributes to the input values
+	 *
+	 * @param cBits		the category bits (category the object is in)
+	 * @param mBits		the mask bits (categories the object collides with)
+	 * @param gIndex	the group index (if positive, collides with objects of
+	 *						the same group. if negative, never collides with
+	 *						objects of the same group.
+	 */
+	b2Filter(uint16 cBits, uint16 mBits, uint16 gIndex) : categoryBits(cBits), maskBits(mBits), groupIndex(gIndex) {}
+
 	/// The collision category bits. Normally you would just set one bit.
 	uint16 categoryBits;
 

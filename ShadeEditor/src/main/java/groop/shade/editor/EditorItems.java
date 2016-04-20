@@ -1,14 +1,12 @@
 package groop.shade.editor;
 
-import javax.swing.border.EmptyBorder;
-
-public enum EditorItems {
+public enum EditorItems implements EditorItem {
 
 	SELECTOR {
 
 		@Override
 		public void clickAction(int x, int y, StageEditor editor, StageIcon icon) {
-			deselect(editor);
+			editor.deselect();
 			if (icon != null) {
 				icon.select();
 			}
@@ -77,35 +75,35 @@ public enum EditorItems {
 
 	},
 
-	TREE {
+	PEDESTRIAN {
 
 		@Override
 		public void clickAction(int x, int y, StageEditor editor, StageIcon icon) {
 			if (icon == null) {
-				editor.backgroundPanel.add(new TreeIcon(x, y, editor));
+				editor.backgroundPanel.add(new TreeIcon(x, y, editor, ObstacleType.PEDESTRIAN));
 			}
 		}
 
 		@Override
 		public String getName() {
-			return ObstacleType.TREE.getName();
+			return ObstacleType.PEDESTRIAN.getName();
+		}
+
+	},
+	CAR {
+
+		@Override
+		public void clickAction(int x, int y, StageEditor editor, StageIcon icon) {
+			if (icon == null) {
+				editor.backgroundPanel.add(new TreeIcon(x, y, editor, ObstacleType.CAR));
+			}
+		}
+
+		@Override
+		public String getName() {
+			return ObstacleType.CAR.getName();
 		}
 
 	};
-
-	public abstract void clickAction(int x, int y, StageEditor editor, StageIcon icon);
-
-	public abstract String getName();
-
-	private static final EmptyBorder NO_BORDER = new EmptyBorder(0, 0, 0, 0);
-
-	/** Deselects the currently selected object by removing its outline. */
-	public static void deselect(StageEditor editor) {
-		if (editor.selectedIcon != null) {
-			editor.selectedIcon.setBorder(NO_BORDER);
-			editor.selectedIcon.menu.setVisible(false);
-			editor.selectedIcon = null;
-		}
-	}
 
 }

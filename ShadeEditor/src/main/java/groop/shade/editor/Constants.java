@@ -5,6 +5,8 @@ import java.awt.Toolkit;
 import java.io.File;
 import java.util.ArrayList;
 
+import javax.swing.border.EmptyBorder;
+
 import com.badlogic.gdx.Gdx;
 
 public class Constants {
@@ -12,14 +14,19 @@ public class Constants {
 	static {
 		BORDER_LAYOUT = new BorderLayout();
 		FILE_SEPARATOR = File.separator;
-		ASSETS_FOLDER_NAME = "assets";
-		STAGES_FOLDER_NAME = "stages";
+		CONSTANTS_FOLDER_NAME = "constants";
+		TEXTURES_FOLDER_NAME = "textures";
+		STAGES_FOLDER_NAME = "levels";
 		EXPORT_IMAGE_FORMAT = "png";
-		STAGE_FILE_EXTENSION = "stomp";
+		STAGE_FILE_EXTENSION = "shadl";
+		CONSTANTS_FILE_EXTENSION = "shadc";
 		DEFAULT_SCALE = 50.0f;
 		BOSSES_PATH = "images/level-select/bosses/";
 		STANDARD_WIDTH = standardWidth();
 		STANDARD_HEIGHT = standardHeight();
+		CAR_ACTIONS = new String[]{"stop", "go", "left", "right"};
+		PEDESTRIAN_ACTIONS = new String[]{"walk fast", "walk slow", "look around", "stand"};
+		NO_BORDER = new EmptyBorder(0, 0, 0, 0);
 		/*
 		 * LwjglApplicationConfiguration config = new
 		 * LwjglApplicationConfiguration(); // These are the configuration
@@ -64,15 +71,21 @@ public class Constants {
 
 	public static final BorderLayout BORDER_LAYOUT;
 	public static final String FILE_SEPARATOR;
-	public static final String ASSETS_FOLDER_NAME;
+	public static final String TEXTURES_FOLDER_NAME;
 	public static final String STAGES_FOLDER_NAME;
 	public static final String STAGE_FILE_EXTENSION;
 	public static final String EXPORT_IMAGE_FORMAT;
 	public static final String BOSSES_PATH;
+	public static final String CONSTANTS_FOLDER_NAME;
+	public static final String CONSTANTS_FILE_EXTENSION;
+	
+	public static final String[] CAR_ACTIONS;
+	public static final String[] PEDESTRIAN_ACTIONS;
+	public static final EmptyBorder NO_BORDER;
 	// public static final LwjglApplicationConfiguration STANDARD_CONFIG;
 
 	public static final String BACKGROUNDS_PATH() {
-		return "images" + FILE_SEPARATOR + "backgrounds" + FILE_SEPARATOR;
+		return ASSETS_PATH() + TEXTURES_FOLDER_NAME + FILE_SEPARATOR + "backgrounds" + FILE_SEPARATOR;
 	}
 
 	// public static final String ASSETS_PATH() { return ".." + FILE_SEPARATOR +
@@ -80,7 +93,7 @@ public class Constants {
 	// public static final String ASSETS_PATH() {return "bin" + FILE_SEPARATOR;
 	// }
 	public static final String ASSETS_PATH() {
-		return "";
+		return ".." + FILE_SEPARATOR + "Shade" + FILE_SEPARATOR + "Resources" + FILE_SEPARATOR;
 	}
 
 	public static final String STAGES_PATH() {
@@ -99,6 +112,18 @@ public class Constants {
 		return (Toolkit.getDefaultToolkit().getScreenSize().height * 3) / 4;
 	}
 
+	public static final String STATIC_OBJECT_CONSTANTS_FILE_NAME() {
+		return "static_objects." + CONSTANTS_FILE_EXTENSION;
+	}
+	
+	public static final String STATIC_OBJECT_CONSTANTS_FILE_PATH() {
+		return ASSETS_PATH() + CONSTANTS_FOLDER_NAME + FILE_SEPARATOR + STATIC_OBJECT_CONSTANTS_FILE_NAME();
+	}
+	
+	public static final String STATIC_OBJECT_ASSETS_FILE_PATH() {
+		return ASSETS_PATH() + TEXTURES_FOLDER_NAME + FILE_SEPARATOR + "static_objects" + FILE_SEPARATOR;
+	}
+	
 	public static float yRatio() {
 		return (float) Gdx.graphics.getHeight() / (float) STANDARD_HEIGHT;
 	}

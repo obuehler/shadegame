@@ -206,7 +206,9 @@ CC_CONSTRUCTOR_ACCESS:
      *
      * @return  true if the obstacle is initialized properly, false otherwise.
      */
-    virtual bool init() override { return init(Vec2::ZERO,Size::ZERO); }
+	// COMMENTED OUT FOR DYNAMIC LEVEL LOADING
+    //virtual bool init() override { return init(Vec2::ZERO,Size::ZERO); }
+	virtual bool init() override { return true; }
     
     /**
      * Initializes a new box object at the given point with no size.

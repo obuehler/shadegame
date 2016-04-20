@@ -11,7 +11,7 @@ import javax.swing.border.EmptyBorder;
 
 public abstract class ObjectSelector {
 
-	EditorItems value;
+	EditorItem value;
 	AbstractButton button;
 
 	public ObjectSelector() {
@@ -40,6 +40,14 @@ public abstract class ObjectSelector {
 		}
 
 	}
+	
+	static final class StaticObjectButton extends ObjectSelector {
+		public StaticObjectButton(StageType e, StageEditor s) {
+			super(e);
+			button = new JButton(e.getName());
+			setSelectAction(s);
+		}
+	}
 
 	static final class PlayerButton extends ObjectSelector {
 
@@ -65,7 +73,7 @@ public abstract class ObjectSelector {
 			value = EditorItems.ERASER;
 			// image from @link
 			// http://onlinehelp.smarttech.com/english/mobile/nbmac/11_0_0/Advanced/Content/Resources/Images/ButtonDelete.png
-			button = new JButton(new ImageIcon(Constants.ASSETS_PATH() + "images/editor/delete.png"));
+			button = new JButton(new ImageIcon(Constants.ASSETS_PATH() + "textures/editor/delete.png"));
 
 			button.setBorder(new EmptyBorder(4, 3, 4, 3));
 
@@ -81,7 +89,7 @@ public abstract class ObjectSelector {
 
 			// mouse cursor from @link
 			// http://telcontar.net/Misc/screeniecursors/Cursor%20arrow%20Aero.png
-			button = new JButton(new ImageIcon(Constants.ASSETS_PATH() + "images/editor/mouse_cursor.png"));
+			button = new JButton(new ImageIcon(Constants.ASSETS_PATH() + "textures/editor/mouse_cursor.png"));
 
 			button.setBorder(new EmptyBorder(1, 3, 0, 3));
 

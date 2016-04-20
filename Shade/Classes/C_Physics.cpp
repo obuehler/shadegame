@@ -4,10 +4,11 @@
 #include <Box2D/Collision/b2Collision.h>
 #include <Box2D/Collision/Shapes/b2EdgeShape.h>
 #include <Box2D/Dynamics/Joints/b2WeldJoint.h>
+#include "M_LevelInstance.h"
 
-bool PhysicsController::init(const Rect& rect) {
+bool PhysicsController::init(const Size& size) {
 	// Create the world
-	_world = WorldController::create(rect, Vec2(0.0f, 0.0f));
+	_world = WorldController::create(Rect(Vec2(0,0), size), Vec2(0.0f, 0.0f));
 	if (_world != nullptr) {
 		_world->retain();
 		_world->activateCollisionCallbacks(true);
@@ -87,18 +88,18 @@ void PhysicsController::beginContact(b2Contact* contact) {
 
 	// If one of the fixtures is from a shadow, the other fixture is
 	// definitely our character. Mark as in shadow if so.
-	if (fix1->GetFilterData().categoryBits == SHADOW_FILTER) {
+	if (fix1->GetFilterData().categoryBits == SHADOW_BIT) {
 		((unordered_set<b2Fixture*>*)(fix2->GetUserData()))->emplace(fix1);
 		CCLOG("%s", "hi");
 	}
-	if (fix2->GetFilterData().categoryBits == SHADOW_FILTER) {
+	if (fix2->GetFilterData().categoryBits == SHADOW_BIT) {
 		((unordered_set<b2Fixture*>*)(fix1->GetUserData()))->emplace(fix2);
 		CCLOG("%s", "hi2");
 	}
 
 	// If we hit the caster, we are done
-	if ((fix1->GetFilterData().categoryBits == CASTER_FILTER && fix2->GetFilterData().categoryBits == CHARACTER_SENSOR_FILTER) ||
-		(fix2->GetFilterData().categoryBits == CASTER_FILTER && fix1->GetFilterData().categoryBits == CHARACTER_SENSOR_FILTER)) {
+	if ((fix1->GetFilterData().categoryBits == CASTER_BIT && fix2->GetFilterData().categoryBits == CHARACTER_SENSOR_BIT) ||
+		(fix2->GetFilterData().categoryBits == CASTER_BIT && fix1->GetFilterData().categoryBits == CHARACTER_SENSOR_BIT)) {
 		_reachedCaster = true;
 	}
 }
@@ -123,11 +124,11 @@ void PhysicsController::endContact(b2Contact* contact) {
 	void* bd1 = body1->GetUserData();
 	void* bd2 = body2->GetUserData(); */
 
-	if (fix1->GetFilterData().categoryBits == SHADOW_FILTER) {
+	if (fix1->GetFilterData().categoryBits == SHADOW_BIT) {
 		((unordered_set<b2Fixture*>*)(fix2->GetUserData()))->erase(fix1);
 		CCLOG("%s", "bye");
 	}
-	if (fix2->GetFilterData().categoryBits == SHADOW_FILTER) {
+	if (fix2->GetFilterData().categoryBits == SHADOW_BIT) {
 		((unordered_set<b2Fixture*>*)(fix1->GetUserData()))->erase(fix2);
 		CCLOG("%s", "bye2");
 	}

@@ -24,7 +24,7 @@
 #include "C_Input.h"
 #include "M_Shadow.h"
 #include "M_MovingObject.h"
-#include "M_Car.h"
+#include "ActionQueue.h"
 
 
 using namespace cocos2d;
@@ -32,11 +32,6 @@ using namespace std;
 
 #pragma mark -
 #pragma mark Level Geography
-
-/** Width of the game world in Box2d units */
-#define DEFAULT_WIDTH   32.0f
-/** Height of the game world in Box2d units */
-#define DEFAULT_HEIGHT  18.0f
 
 // Since these appear only once, we do not care about the magic numbers.
 // In an actual game, this information would go in a data file.
@@ -83,7 +78,6 @@ float SPIN_POS[] = {13.0f,12.5f};
 float DUDE_POS[] = { 2.5f, 7.5f};
 /** The position of the rope bridge */
 float BRIDGE_POS[] = {9.0f, 3.8f};
-
 
 #pragma mark -
 #pragma mark Physics Constants
@@ -141,6 +135,16 @@ const string buildingTextures[] = {
 /** Ratio of exposure cooldown speed to exposure increase speed */
 #define EXPOSURE_COOLDOWN_RATIO 0.5f
 
+/** The key for the (temporary) background image */
+#define BACKGROUND_IMAGE "bimage"
+/** The key for the pedestrian object image */
+#define PEDESTRIAN_TEXTURE "pimage"
+/** The key for the pedestrian shadow image */
+#define PEDESTRIAN_SHADOW_TEXTURE "psimage"
+#define PLANT1_TEXTURE "plt1image"
+#define PLANT1S_TEXTURE "plt1simage"
+#define PLANT2_TEXTURE "plt2image"
+#define PLANT2S_TEXTURE "plt2simage"
 /** The key for the exposure bar texture in the asset manager */
 #define EXPOSURE_BAR	"ebar"
 /** The key for the exposure bar frame texture in the asset manager */
@@ -188,10 +192,22 @@ const string buildingTextures[] = {
 /** The volume for sound effects */
 #define EFFECT_VOLUME   0.8f
 
+#define LEVEL_ONE_KEY "level1"
+#define LEVEL_ONE_FILE "levels/level1.shadl"
+
 /** Color to outline the physics nodes */
 #define DEBUG_COLOR     Color3B::YELLOW
 /** Opacity of the physics outlines */
 #define DEBUG_OPACITY   192
+
+/** Static object types file path */
+#define STATIC_OBJECTS "constants/static_objects.shadc"
+
+b2Filter GameController::characterFilter = b2Filter(CHARACTER_BIT, OBJECT_BIT, 0);
+b2Filter GameController::objectFilter = b2Filter(OBJECT_BIT, CHARACTER_BIT | CASTER_BIT, 1);
+b2Filter GameController::casterFilter = b2Filter(CASTER_BIT, CHARACTER_SENSOR_BIT | OBJECT_BIT, 1);
+b2Filter GameController::shadowFilter = b2Filter(SHADOW_BIT, CHARACTER_SENSOR_BIT, -1);
+b2Filter GameController::characterSensorFilter = b2Filter(CHARACTER_SENSOR_BIT, SHADOW_BIT | CASTER_BIT, -2);
 
 
 #pragma mark -
@@ -206,30 +222,11 @@ const string buildingTextures[] = {
 GameController::GameController() :
 _rootnode(nullptr),
 _worldnode(nullptr),
+_backgroundnode(nullptr),
 _debugnode(nullptr),
-_avatar(nullptr),
 _active(false),
 _debug(false)
 {
-	_characterFilter.groupIndex = 0;
-	_characterFilter.categoryBits = CHARACTER_FILTER;
-	_characterFilter.maskBits = OBJECT_FILTER;
-
-	_objectFilter.groupIndex = 1; // Has to be a positive integer so they always collide with each other
-	_objectFilter.categoryBits = OBJECT_FILTER;
-	_objectFilter.maskBits = CHARACTER_FILTER | CASTER_FILTER;
-
-	_casterFilter.groupIndex = 1; // Collides with objects too!
-	_casterFilter.categoryBits = CASTER_FILTER;
-	_casterFilter.maskBits = CHARACTER_SENSOR_FILTER | OBJECT_FILTER;
-
-	_shadowFilter.groupIndex = -1; // Has to be a negative integer so they never collide with each other
-	_shadowFilter.categoryBits = SHADOW_FILTER;
-	_shadowFilter.maskBits = CHARACTER_SENSOR_FILTER;
-
-	_characterSensorFilter.groupIndex = -2;
-	_characterSensorFilter.categoryBits = CHARACTER_SENSOR_FILTER;
-	_characterSensorFilter.maskBits = SHADOW_FILTER | CASTER_FILTER;
 }
 
 /**
@@ -245,9 +242,9 @@ _debug(false)
  * @retain a reference to the root layer
  * @return  true if the controller is initialized properly, false otherwise.
  */
-bool GameController::init(RootLayer* root) {
+/*bool GameController::init(RootLayer* root) {
     return init(root,Rect(0,0,DEFAULT_WIDTH,DEFAULT_HEIGHT));
-}
+}*/
 
 /**
  * Initializes the controller contents, and starts the game
@@ -261,31 +258,31 @@ bool GameController::init(RootLayer* root) {
  * world, not the screen.
  *
  * @param root	The RootLayer creating this GameController
- * @param rect	The game bounds in Box2d coordinates
  *
  * @retain a reference to the root layer
  * @return  true if the controller is initialized properly, false otherwise.
  */
-bool GameController::init(RootLayer* root, const Rect& rect) {
-
-	// Initialize the collision filters
-
+bool GameController::init(RootLayer* root) {
+	_level = _assets->get<LevelInstance>(LEVEL_ONE_KEY);
+	if (_level == nullptr || root == nullptr) {
+		return false;
+	}
 
     // Determine the center of the screen
     Size dimen  = root->getContentSize();
     Vec2 center(dimen.width/2.0f,dimen.height/2.0f);
-    
-    // Create the scale and notify the input handler
-    _scale.set(root->getContentSize().width/rect.size.width,
-               root->getContentSize().height/rect.size.height);
-    Rect screen = rect;
-    screen.origin.x *= _scale.x;    screen.origin.y *= _scale.y;
-    screen.size.width *= _scale.x;  screen.size.height *= _scale.y;
+   
+	/* Rect screen = Rect(Vec2(0,0), _level->_size);
+   
+    screen.origin.x *= root->getContentSize().width / screen.size.width;
+	screen.origin.y *= root->getContentSize().height / screen.size.height;
+    screen.size.width *= root->getContentSize().width / screen.size.width;
+	screen.size.height *= root->getContentSize().height / screen.size.height; */
 
-    _input.init(screen);
+    _input.init(Rect(0.0f, 0.0f, root->getContentSize().width, root->getContentSize().height));
     _input.start();
 
-	_physics.init(rect);
+	_physics.init(_level->_size);
 
     // Create the scene graph
     _worldnode = Node::create();
@@ -309,6 +306,12 @@ bool GameController::init(RootLayer* root, const Rect& rect) {
                            root->getContentSize().height/2.0f);
     _losenode->setColor(LOSE_COLOR);
     setFailure(false);
+
+	_backgroundnode = PolygonNode::createWithTexture(_assets->get<Texture2D>(BACKGROUND_IMAGE));
+	_backgroundnode->setAnchorPoint(Vec2(0, 0));
+	_backgroundnode->setPosition(0, 0);
+	_backgroundnode->setScale(root->getContentSize().width / _level->_size.width, root->getContentSize().height / _level->_size.height);
+	_backgroundnode->setVisible(true);
 
 	// Starting exposure is 0
 	_exposure = 0.0f;
@@ -343,7 +346,8 @@ bool GameController::init(RootLayer* root, const Rect& rect) {
 
     // Add everything to the root and retain
     root->addChild(_worldnode,0);
-    root->addChild(_debugnode,1);
+	root->addChild(_backgroundnode, 1);
+    root->addChild(_debugnode,2);
     root->addChild(_winnode,3);
     root->addChild(_losenode,4);
 	//root->addChild(_timernode, 5);
@@ -355,8 +359,8 @@ bool GameController::init(RootLayer* root, const Rect& rect) {
 
     // Now populate the physics objects
     populate();
-	_worldnode->runAction(Follow::create(_avatar->getSceneNode())); // TODO uncomment when lazy camera implemented
-	_debugnode->runAction(Follow::create(_avatar->getSceneNode())); // TODO uncomment when lazy camera implemented
+	_worldnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO change when lazy camera implemented
+	_debugnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO change when lazy camera implemented
     _active = true;
     setDebug(false);
     return true;
@@ -403,15 +407,18 @@ void GameController::populate() {
     // If the device is higher resolution than 1024x576, Cocos2d will scale it
     // This was set as the design resolution in AppDelegate
     // To convert from design resolution to real, divide positions by cscale
-    float cscale = Director::getInstance()->getContentScaleFactor();
+    //float cscale = Director::getInstance()->getContentScaleFactor();
+	//PolygonNode* sprite;
+	WireNode* draw;
+
+	Vec2 scale(_rootnode->getContentSize().width / _level->_size.width,
+		_rootnode->getContentSize().height / _level->rootSize.height);
     
 #pragma mark : Goal door
     Texture2D* image = _assets->get<Texture2D>(GOAL_TEXTURE);
-    PolygonNode* sprite;
-    WireNode* draw;
     
     // Create obstacle
-    Vec2 goalPos = GOAL_POS;
+   /* Vec2 goalPos = GOAL_POS;
     Size goalSize(image->getContentSize().width*cscale/_scale.x,
                   image->getContentSize().height*cscale/_scale.y);
     _goalDoor = BoxObstacle::create(goalPos, goalSize, &_casterFilter);
@@ -432,11 +439,19 @@ void GameController::populate() {
     draw = WireNode::create();
     draw->setColor(DEBUG_COLOR);
     draw->setOpacity(DEBUG_OPACITY);
-    _goalDoor->setDebugNode(draw);
-    addObstacle(_goalDoor, 0); // Put this at the very back
+    _goalDoor->setDebugNode(draw); */
+	Texture2D* casterImage = _assets->get<Texture2D>(GOAL_TEXTURE);
+	((PolygonNode*)(_level->_casterPos.object->getObject()->getSceneNode()))->setTexture(casterImage);
+	((PolygonNode*)(_level->_casterPos.object->getObject()->getSceneNode()))->setPolygon(Rect(0, 0, casterImage->getContentSize().width, casterImage->getContentSize().height));
+	_level->_casterPos.object->getObject()->init(_level->_casterPos.position,
+		Size(casterImage->getContentSize().width / scale.x,
+			casterImage->getContentSize().height / scale.y),
+			&casterFilter);
+	_level->_casterPos.object->getObject()->setDebugNode(newDebugNode());
+    addObstacle(_level->_casterPos.object->getObject(), 5);
 
 #pragma mark : Dude
-    Vec2 dudePos = DUDE_POS;
+    /*Vec2 dudePos = DUDE_POS;
     image  = _assets->get<Texture2D>(DUDE_TEXTURE);
     _avatar = Shadow::create(dudePos,_scale*DUDE_SCALE, &_characterFilter, &_characterSensorFilter);
     _avatar->setDrawScale(_scale);
@@ -449,25 +464,60 @@ void GameController::populate() {
     draw = WireNode::create();
     draw->setColor(DEBUG_COLOR);
     draw->setOpacity(DEBUG_OPACITY);
-    _avatar->setDebugNode(draw);
-    addObstacle(_avatar, 4); // Put this at the very front
+    _avatar->setDebugNode(draw); */
+	Texture2D* dudeImage = _assets->get<Texture2D>(DUDE_TEXTURE);
+	((PolygonNode*)(_level->_playerPos.object->getSceneNode()))->setTexture(dudeImage);
+	((PolygonNode*)(_level->_playerPos.object->getSceneNode()))->setPolygon(Rect(0,0,dudeImage->getContentSize().width,dudeImage->getContentSize().height));
+	_level->_playerPos.object->init(_level->_playerPos.position, scale * DUDE_SCALE, &characterFilter, &characterSensorFilter);
+	_level->_playerPos.object->setDebugNode(newDebugNode());
+    addObstacle(_level->_playerPos.object, 4); // Put this at the very front
+
 
 #pragma mark : Buildings
 
-	addBuilding("b1", "s1", Vec2(10, 10), 0.7f);
-	addBuilding("b5", "s5", Vec2(8, 15), 0.5f);
+	for (LevelInstance::StaticObjectMetadata d : _level->_staticObjects) {
+		Texture2D* objectImage = _assets->get<Texture2D>(get<0>(staticObjectTypes.at(d.type)));
+		Texture2D* shadowImage = _assets->get<Texture2D>(get<1>(staticObjectTypes.at(d.type)));
+		((PolygonNode*)(d.object->getSceneNode()))->setTexture(objectImage);
+		((PolygonNode*)(d.shadow->getSceneNode()))->setTexture(shadowImage);
+		((PolygonNode*)(d.object->getSceneNode()))->setPolygon(Rect(0,0,objectImage->getContentSize().width, objectImage->getContentSize().height));
+		((PolygonNode*)(d.shadow->getSceneNode()))->setPolygon(Rect(0,0,shadowImage->getContentSize().width, shadowImage->getContentSize().height));
+		d.object->init(d.position, Size(objectImage->getContentSize().width / scale.x, objectImage->getContentSize().height / scale.y), &objectFilter);
+		d.shadow->init(d.position, Size(shadowImage->getContentSize().width / scale.x, shadowImage->getContentSize().height / scale.y), &shadowFilter);
+		d.object->setDebugNode(newDebugNode());
+		d.shadow->setDebugNode(newDebugNode());
+		addObstacle(d.object, 2);
+		addObstacle(d.shadow, 1);
+	}
+
+	//addBuilding("b1", "s1", Vec2(10, 10), 0.7f);
+	//addBuilding("b5", "s5", Vec2(8, 15), 0.5f);
 
 #pragma mark : Movers
-	Vec2 movPos = { 5.5f, 4.0f };
+	//int carnum = 0;
+	/*Vec2 movPos = { 5.5f, 4.0f };
 	float scale = 0.3f;
 	const char * mname = "car1";
 	const char * sname = "car1s";
-	addMover(mname, sname, movPos, scale);
+	addMover(mname, sname, movPos, scale); */
 
 	// Play the background music on a loop.
-	Sound* source = _assets->get<Sound>(GAME_MUSIC);
-	SoundEngine::getInstance()->playMusic(source, true, MUSIC_VOLUME);
-
+	/*Sound* source = _assets->get<Sound>(GAME_MUSIC);
+	SoundEngine::getInstance()->playMusic(source, true, MUSIC_VOLUME); */
+	Texture2D* objectImage = _assets->get<Texture2D>(PEDESTRIAN_TEXTURE);
+	Texture2D* shadowImage = _assets->get<Texture2D>(PEDESTRIAN_SHADOW_TEXTURE);
+	for (LevelInstance::PedestrianMetadata pd : _level->_pedestrians) {
+		((PolygonNode*)(pd.object->getObject()->getSceneNode()))->setTexture(objectImage);
+		((PolygonNode*)(pd.object->getShadow()->getSceneNode()))->setTexture(shadowImage);
+		((PolygonNode*)(pd.object->getObject()->getSceneNode()))->setPolygon(Rect(0, 0, objectImage->getContentSize().width, objectImage->getContentSize().height));
+		((PolygonNode*)(pd.object->getShadow()->getSceneNode()))->setPolygon(Rect(0, 0, shadowImage->getContentSize().width, shadowImage->getContentSize().height));
+		pd.object->getObject()->init(pd.position, Size(objectImage->getContentSize().width / scale.x, objectImage->getContentSize().height / scale.y), &objectFilter);
+		pd.object->getShadow()->init(pd.position, Size(shadowImage->getContentSize().width / scale.x, shadowImage->getContentSize().height / scale.y), &shadowFilter);
+		pd.object->getObject()->setDebugNode(newDebugNode());
+		pd.object->getShadow()->setDebugNode(newDebugNode());
+		addObstacle(pd.object->getObject(), 3);
+		addObstacle(pd.object->getShadow(), 2);
+	}
 }
 
 /**
@@ -478,7 +528,7 @@ void GameController::populate() {
  * The size of the building and shadow will be the size of their source
  * images scaled by scale.
  */
-void GameController::addBuilding(const char* bname,
+/*void GameController::addBuilding(const char* bname,
 	                             const char* sname,
 	                             const Vec2& pos,
 	                             float scale) {
@@ -488,7 +538,7 @@ void GameController::addBuilding(const char* bname,
 	Size bs(image->getContentSize().width*scale / _scale.x,
 		image->getContentSize().height*scale / _scale.y);
 	Vec2 bpos(pos.x + bs.width / 2, pos.y - bs.height / 2);
-	auto* box = BoxObstacle::create(bpos, bs, &_objectFilter);
+	auto* box = BoxObstacle::create(bpos, bs, &LevelInstance::objectFilter);
 	box->setDrawScale(_scale.x, _scale.y);
 	box->setName(std::string(BUILDING_NAME));
 	box->setBodyType(b2_staticBody);
@@ -508,7 +558,7 @@ void GameController::addBuilding(const char* bname,
 	Size ss(image->getContentSize().width*scale / _scale.x,
 		image->getContentSize().height*scale / _scale.y);
 	Vec2 spos(pos.x + ss.width / 2, pos.y - ss.height / 2);
-	box = BoxObstacle::create(spos, ss, &_shadowFilter);
+	box = BoxObstacle::create(spos, ss, &LevelInstance::shadowFilter);
 	box->setDrawScale(_scale.x, _scale.y);
 	box->setName(std::string(SHADOW_NAME));
 	box->setBodyType(b2_staticBody);
@@ -531,14 +581,14 @@ void GameController::addMover(
 	float scale
 	) {
 	float cscale = Director::getInstance()->getContentScaleFactor();
-	// Mover shadow
+	// Create mover shadow boxobstacle
 	auto * image = _assets->get<Texture2D>(sname);
 	auto * sprite = PolygonNode::createWithTexture(image);
 	sprite->setScale(scale);
 	Size ss(image->getContentSize().width*scale / _scale.x,
 		image->getContentSize().height*scale / _scale.y);
-	Vec2 spos(movPos.x + ss.width / 2, movPos.y - ss.height / 2);
-	auto* box = BoxObstacle::create(spos, ss, &_shadowFilter);
+	Vec2 spos(movPos.x, movPos.y);
+	auto* box = BoxObstacle::create(spos, ss, &LevelInstance::shadowFilter);
 	box->setDrawScale(_scale.x, _scale.y);
 	box->setName(std::string(SHADOW_NAME));
 	box->setBodyType(b2_dynamicBody);
@@ -553,26 +603,56 @@ void GameController::addMover(
 	box->setDebugNode(draw);
 	addObstacle(box, 1);
 
-	// Create mover
+	// Create mover boxobstacle
 	image = _assets->get<Texture2D>(mname);
-	OurMovingObject<Car>* _mover = OurMovingObject<Car>::create(movPos, box, &_objectFilter);
-	_mover->setDrawScale(_scale);
-	_mover->setShadow(box);
-
-	// Add the scene graph nodes to this object
 	sprite = PolygonNode::createWithTexture(image);
-	sprite->setScale(cscale / DUDE_SCALE);
-	_mover->setSceneNode(sprite);
-
+	sprite->setScale(scale);
+	auto* mbox = BoxObstacle::create(spos, ss, &LevelInstance::objectFilter);
+	mbox->setDrawScale(_scale.x, _scale.y);
+	mbox->setName(std::string(SHADOW_NAME));
+	mbox->setBodyType(b2_dynamicBody);
+	mbox->setDensity(0);
+	mbox->setFriction(0);
+	mbox->setRestitution(0);
+	mbox->setSensor(true);
+	mbox->setSceneNode(sprite);
 	draw = WireNode::create();
 	draw->setColor(DEBUG_COLOR);
 	draw->setOpacity(DEBUG_OPACITY);
-	_mover->setDebugNode(draw);
-	addObstacle(_mover, 4); // Put this at the very front
-	_mover->setHorizontalMovement(1.0f);
-	_mover->setVerticalMovement(0.0f);
-	_mover->applyForce();
-}
+	mbox->setDebugNode(draw);
+	addObstacle(mbox, 4);
+
+	// Create mover
+	OurMovingObject<Car>* _mover = OurMovingObject<Car>::create(movPos, mbox, box);
+
+	//_mover->setHorizontalMovement(1.0f);
+	//_mover->setVerticalMovement(0.0f);
+	//_mover->applyForce();
+	_mover->_actionQueue->push(Car::ActionType::GO,100);
+	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
+	_mover->_actionQueue->push(Car::ActionType::GO, 100);
+	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
+	_mover->_actionQueue->push(Car::ActionType::GO, 100);
+	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
+	_mover->_actionQueue->push(Car::ActionType::GO, 100);
+	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
+	_mover->_actionQueue->push(Car::ActionType::GO, 100);
+	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
+	_mover->_actionQueue->push(Car::ActionType::GO, 100);
+	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
+	_mover->_actionQueue->push(Car::ActionType::GO, 100);
+	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
+	_mover->_actionQueue->push(Car::ActionType::GO, 100);
+	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
+	_mover->_actionQueue->push(Car::ActionType::GO, 100);
+	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
+	_mover->_actionQueue->push(Car::ActionType::GO, 100);
+	_mover->_actionQueue->push(Car::ActionType::STOP, 100);
+
+
+	carMovers.push_back(_mover);
+	_mover->retain();
+} */
 
 
 /**
@@ -615,9 +695,10 @@ void GameController::reset() {
 	_exposure = 0;
     setFailure(false);
     setComplete(false);
+	//_level.populateLevel(true) TODO uncomment this after dynamic level loading is implemented
     populate();
-	_worldnode->runAction(Follow::create(_avatar->getSceneNode())); // TODO uncomment when lazy camera implemented
-	_debugnode->runAction(Follow::create(_avatar->getSceneNode())); // TODO uncomment when lazy camera implemented
+	_worldnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO uncomment when lazy camera implemented
+	_debugnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO uncomment when lazy camera implemented
 }
 
 /**
@@ -672,6 +753,7 @@ void GameController::setFailure(bool value) {
  * @param  delta    Number of seconds since last animation frame
  */
 void GameController::update(float dt) {
+	OurMovingObject<Car> * mov = carMovers[0];
 	_input.update(dt);
 
 	// Process the toggled key commands
@@ -684,16 +766,24 @@ void GameController::update(float dt) {
 	if (!_failed && !_complete) {
 	
 		// Process the movement
-		_avatar->setHorizontalMovement(_input.getHorizontal()*_avatar->getForce());
-		_avatar->setVerticalMovement(_input.getVertical()*_avatar->getForce());
+		_level->_playerPos.object->setHorizontalMovement(_input.getHorizontal()*(_level->_playerPos.object->getForce()));
+		_level->_playerPos.object->setVerticalMovement(_input.getVertical()*(_level->_playerPos.object->getForce()));
 		//_avatar->setJumping( _input.didJump());
-		_avatar->applyForce();
+		_level->_playerPos.object->applyForce();
+
+		for (int i = 0; i < carMovers.size(); i++) {
+			OurMovingObject<Car>* car = carMovers[i];
+			car->act();
+			//car->setHorizontalMovement(movvec.x);
+			//car->setVerticalMovement(movvec.y);
+			//car->applyForce();
+		}
 
 	}
 	else {
-		_avatar->setVX(0.0f);
-		_avatar->setVY(0.0f);
-		_avatar->setAngularVelocity(0.0f);
+		_level->_playerPos.object->setVX(0.0f);
+		_level->_playerPos.object->setVY(0.0f);
+		_level->_playerPos.object->setAngularVelocity(0.0f);
 	}
 
     /* if (_avatar->isJumping()) {
@@ -712,7 +802,7 @@ void GameController::update(float dt) {
 		if (!_complete) {
 			// Check for exposure or cover
 			//CCLOG("%1.4f", _avatar->getCoverRatio());
-			_exposure += dt * (1.0f - ((1.0f + EXPOSURE_COOLDOWN_RATIO) * _avatar->getCoverRatio()));
+			_exposure += dt * (1.0f - ((1.0f + EXPOSURE_COOLDOWN_RATIO) * _level->_playerPos.object->getCoverRatio()));
 			if (_exposure < 0.0f) _exposure = 0.0f;
 
 			if (_exposure >= EXPOSURE_LIMIT) {
@@ -768,6 +858,7 @@ void GameController::preload() {
 
     _assets = AssetManager::getInstance()->getCurrent();
     TextureLoader* tloader = (TextureLoader*)_assets->access<Texture2D>();
+	tloader->loadAsync(BACKGROUND_IMAGE, "textures/Background.png");
 
 	for (int building_index = 0; building_index < BUILDING_TYPES; building_index++) {
 		tloader->loadAsync(buildingTextures[building_index * 4],
@@ -785,8 +876,14 @@ void GameController::preload() {
 	tloader->loadAsync(EXPOSURE_FRAME, "textures/exposure_bar_frame.png");
 	tloader->loadAsync(EARTH_TEXTURE,   "textures/earthtile.png", params);
     tloader->loadAsync(DUDE_TEXTURE,    "textures/ShadeDude.png");
+	tloader->loadAsync(PEDESTRIAN_TEXTURE, "textures/pedestrian_td.png");
+	tloader->loadAsync(PEDESTRIAN_SHADOW_TEXTURE, "textures/pedestrian_s_td.png");
     tloader->loadAsync(BULLET_TEXTURE,  "textures/bullet.png");
-    tloader->loadAsync(GOAL_TEXTURE,    "textures/goaldoor.png");
+    tloader->loadAsync(GOAL_TEXTURE,    "textures/owner.png");
+	tloader->loadAsync(PLANT1_TEXTURE, "textures/Plant1.png");
+	tloader->loadAsync(PLANT1S_TEXTURE, "textures/Plant1_S.png");
+	tloader->loadAsync(PLANT2_TEXTURE, "textures/Plant2.png");
+	tloader->loadAsync(PLANT2S_TEXTURE, "textures/Plant2_S.png");
     _assets->loadAsync<Sound>(GAME_MUSIC,   "sounds/DD_Main.mp3");
     _assets->loadAsync<Sound>(WIN_MUSIC,    "sounds/DD_Victory.mp3");
     _assets->loadAsync<Sound>(LOSE_MUSIC,   "sounds/DD_Failure.mp3");
@@ -794,6 +891,27 @@ void GameController::preload() {
     _assets->loadAsync<Sound>(PEW_EFFECT,   "sounds/pew.mp3");
     _assets->loadAsync<Sound>(POP_EFFECT,   "sounds/plop.mp3");
     _assets->loadAsync<TTFont>(MESSAGE_FONT,"fonts/RetroGame.ttf");
+	_assets->loadAsync<LevelInstance>(LEVEL_ONE_KEY, LEVEL_ONE_FILE);
+
+	JSONReader reader;
+	reader.initWithFile(STATIC_OBJECTS);
+	if (!reader.startJSON()) {
+		CCASSERT(false, "Failed to load static objects");
+		return;
+	}
+	int count = reader.startArray("types");
+	for (int index = 0; index < count; index++) {
+		reader.startObject();
+		string name = reader.getString("name");
+		string imageFormat = reader.getString("imageFormat");
+		string shadowImageFormat = reader.getString("shadowImageFormat");
+		staticObjectTypes.insert(std::pair<string, tuple<string, string>>(name, make_tuple<string, string>(name + "." + imageFormat, name + "_S." + shadowImageFormat)));
+		tloader->loadAsync(name + "_o", "textures/static_objects/" + name + "." + imageFormat);
+		tloader->loadAsync(name + "_s", "textures/static_objects/" + name + "_S." + shadowImageFormat);
+		reader.endObject();
+		reader.advance();
+	}
+	reader.endArray();
 }
 
 /**
@@ -801,5 +919,5 @@ void GameController::preload() {
 */
 void GameController::stop() {
 	_physics.stop();
-	_avatar->deleteEverything();
+	_level->_playerPos.object->deleteEverything();
 }

@@ -2,8 +2,10 @@ package groop.shade.editor;
 
 import java.io.File;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 @SuppressWarnings("serial")
 public class Helpers {
@@ -18,13 +20,25 @@ public class Helpers {
 	public static void couldNotOpenFile(StageEditor s) {
 		JOptionPane.showMessageDialog(s, "Could not open file");
 	}
+	
+	public static void couldNotLoadStaticObjectTypes(StageEditor s) {
+		JOptionPane.showMessageDialog(s, "Could not load static object types");
+	}
 
 	public static void couldNotCopyImage(StageEditor s) {
 		JOptionPane.showMessageDialog(s, "Warning: Could not copy background image into the \"backgrounds\" directory");
 	}
+	
+	public static void couldNotCopyObjectImage(StageEditor s) {
+		JOptionPane.showMessageDialog(s, "Could not copy object image into the \"static_objects\" directory");
+	}
 
 	public static void couldNotSaveFile(StageEditor s) {
 		JOptionPane.showMessageDialog(s, "Could not save file");
+	}
+	
+	public static void couldNotSaveStaticObjectTypes(StageEditor s) {
+		JOptionPane.showMessageDialog(s, "Could not save static object types");
 	}
 
 	public static int confirmQuit(StageEditor s) {
@@ -76,8 +90,31 @@ public class Helpers {
 		return chooser;
 	}
 
-	public static int openDialog(JFileChooser chooser) {
+	/*public static int openDialog(JFileChooser chooser) {
 		return chooser.showOpenDialog(null);
+	}*/
+
+	public static void openImageSelectionScreen(JFileChooser chooser) {
+		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		chooser.setAcceptAllFileFilterUsed(false);
+
+		/*
+		 * Code to add image filter to file chooser obtained from
+		 * 
+		 * @link
+		 * http://stackoverflow.com/questions/16303868/jfilechooser-that
+		 * -will-only-select-java-supported-image-file-formats
+		 */
+
+		// Get array of available formats
+		String[] suffixes = ImageIO.getReaderFileSuffixes();
+		String displaySuffixes = "Image files";
+		for (String s : suffixes) {
+			displaySuffixes = displaySuffixes.concat(" (*." + s + ")");
+		}
+		// Add a file filter for each one
+		chooser.addChoosableFileFilter(new FileNameExtensionFilter(displaySuffixes, suffixes));
+		chooser.showOpenDialog(null);
 	}
 
 }

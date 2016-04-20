@@ -27,7 +27,7 @@
     <ClCompile Include="..\Classes\C_Physics.cpp">
       <Filter>controller</Filter>
     </ClCompile>
-    <ClCompile Include="M_LevelInstance.cpp">
+    <ClCompile Include="..\Classes\M_LevelInstance.cpp">
       <Filter>model</Filter>
     </ClCompile>
   </ItemGroup>

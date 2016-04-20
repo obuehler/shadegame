@@ -29,8 +29,10 @@
 #include <Box2D/Dynamics/b2Fixture.h>
 #include "C_Input.h"
 #include "M_Powerup.h"
+#include "M_Car.h"
 #include "C_AI.h"
 #include "C_Physics.h"
+#include "M_LevelInstance.h"
 
 // We need a lot of forward references to the classes used by this controller
 // These forward declarations are in cocos2d namespace
@@ -63,6 +65,18 @@ using namespace std;
  */
 class GameController {
 private:
+
+	vector<OurMovingObject<Car>*> carMovers;
+
+	std::map<string, tuple<string, string>> staticObjectTypes;
+
+	WireNode* newDebugNode() {
+		WireNode* draw = WireNode::create();
+		draw->setColor(DEBUG_COLOR);
+		draw->setOpacity(DEBUG_OPACITY);
+		return draw;
+	}
+
 	/**
 	* Add a horizontal building and shadow to the world.
 	* pos is the position of the upper left corner of the building and shadow.
@@ -81,8 +95,21 @@ private:
 		float scale
 	);
 
+	/** The collision filters for the character */
+	static b2Filter characterFilter;
+	/** The collision filters for the character sensors */
+	static b2Filter characterSensorFilter;
+	/** The collision filters for regular objects */
+	static b2Filter objectFilter;
+	/** The collision filters for shadows */
+	static b2Filter shadowFilter;
+	/** The collision filters for the caster */
+	static b2Filter casterFilter;
+
 
 protected:
+
+	LevelInstance* _level;
 
     /** The scene manager for this game demo */
     SceneManager* _assets;
@@ -100,6 +127,8 @@ protected:
 	Node* _worldnode;
     /** Reference to the debug root of the scene graph */
     Node* _debugnode;
+	/** Reference to the node containing the background */
+	PolygonNode* _backgroundnode;
     /** Reference to the win message label */
     Label* _winnode;
     /** Reference to the lose message label */
@@ -115,25 +144,11 @@ protected:
 	/** Reference to the exposure bar frame */
 	Sprite* _exposureframe;
 
-	/** The world scale (computed from root node) */
-	Vec2 _scale;
-
     // Physics objects for the game
     /** Reference to the goalDoor (for collision detection) */
-    BoxObstacle*    _goalDoor;
+    //BoxObstacle*    _goalDoor;
     /** Reference to the player avatar */
-    Shadow*      _avatar;
-
-	/** The collision filters for the character */
-	b2Filter _characterFilter;
-	/** The collision filters for the character sensors */
-	b2Filter _characterSensorFilter;
-	/** The collision filters for regular objects */
-	b2Filter _objectFilter;
-	/** The collision filters for shadows */
-	b2Filter _shadowFilter;
-	/** The collision filters for the caster */
-	b2Filter _casterFilter;
+    //Shadow*      _avatar;
     
     /** Whether or note this game is still active */
     bool _active;

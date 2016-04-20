@@ -14,6 +14,8 @@
 //
 #include "PFGameRoot.h"
 
+#include <cornell/CUGenericLoader.h>
+
 /** Font size for loading message */
 #define DEFAULT_FONT_SIZE   64.0f
 /** Loading font name */
@@ -35,12 +37,17 @@ using namespace cocos2d;
  */
 void PlatformRoot::start() {
     int scene = AssetManager::getInstance()->createScene();
-    
+	LevelInstance::rootSize = getContentSize();
+
     FontLoader* fonts = FontLoader::create();
     fonts->setDefaultSize(DEFAULT_FONT_SIZE);
     AssetManager::getInstance()->at(scene)->attach<TTFont>(fonts);
     AssetManager::getInstance()->at(scene)->attach<Texture2D>(TextureLoader::create());
     AssetManager::getInstance()->at(scene)->attach<Sound>(SoundLoader::create());
+
+	GenericLoader<LevelInstance>* levels = GenericLoader<LevelInstance>::create();
+	AssetManager::getInstance()->at(scene)->attach<LevelInstance>(levels);
+
     AssetManager::getInstance()->startScene(scene);
     
     // Create a "loading" screen

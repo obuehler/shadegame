@@ -121,12 +121,47 @@ public class MetadataSetters {
 			return name;
 		}
 	}
+	
+	public static String inputStaticObjectName(ArrayList<StaticObjectType> list) {
+		return inputStaticObjectName("", list);
+	}
+	
+	private static String inputStaticObjectName(String preExisting, ArrayList<StaticObjectType> list) {
+		String name = JOptionPane.showInputDialog("Enter object name.", preExisting);
+		/*
+		 * If user selects "Cancel" or quits, name is null. /* This must be
+		 * handled in the function that called this.
+		 */
+		if (name == null) {
+			return name;
+		} else if (name.length() == 0) {
+			return emptyName();
+		} else {
+			for (StaticObjectType t : list) { 
+				if (t.getName() == name) {
+					return nameAlreadyExists(name);
+				}
+			}
+			return name;
+			
+		}
+	}
 
 	private static String emptyName() {
 		int i = JOptionPane.showConfirmDialog(null, "Please enter a name.", "Invalid Name",
 				JOptionPane.OK_CANCEL_OPTION);
 		if (i == JOptionPane.OK_OPTION) {
 			return inputName("");
+		} else {
+			return null;
+		}
+	}
+	
+	private static String nameAlreadyExists(String name) {
+		int i = JOptionPane.showConfirmDialog(null, "This name already exists.", "Invalid Name",
+				JOptionPane.OK_CANCEL_OPTION);
+		if (i == JOptionPane.OK_OPTION) {
+			return inputName(name);
 		} else {
 			return null;
 		}

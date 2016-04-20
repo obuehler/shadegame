@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -59,7 +60,17 @@ import groop.shade.editor.ObjectSelector.SelectorButton;
 @SuppressWarnings("serial")
 public class StageEditor extends JFrame {
 
-	static final String TITLE = "Troll Stomp Level Editor";
+	public static class StaticObjectTypes {
+	/** The list of static object types, loaded from/onto the static object
+	 * constants JSON file */
+		ArrayList<StaticObjectType> types;
+		
+		StaticObjectTypes() {}
+		
+		StaticObjectTypes(ArrayList<StaticObjectType> list) { types = list; }
+	}
+	
+	static final String TITLE = "Shade Level Editor";
 
 	private static final Dimension MINIMUM_WINDOW_SIZE = new Dimension(700, 400);
 
@@ -163,6 +174,8 @@ public class StageEditor extends JFrame {
 			}
 		}
 	};
+	
+	StaticObjectTypes staticObjectTypes;
 
 	/** The currently loaded stage */
 	GameStage stage;
@@ -178,6 +191,9 @@ public class StageEditor extends JFrame {
 
 	/** Panel containing the side menu */
 	JPanel menuPanel;
+	
+	/** Side menu */
+	AttributeMenu sideMenu;
 
 	/** The stage's content pane */
 	JScrollPane scrollPane;
@@ -189,7 +205,7 @@ public class StageEditor extends JFrame {
 	JLabel selectLabel;
 
 	/** The currently selected option in the editor. */
-	EditorItems selectedOption;
+	EditorItem selectedOption;
 
 	/** Path that the background image originally came from. */
 	String backgroundPath;
@@ -208,10 +224,13 @@ public class StageEditor extends JFrame {
 			Dimension size = MetadataSetters.inputSize();
 			if (size != null) {
 				stage = new GameStage(name, size);
+				loadStaticObjectTypes();
 				setAttributes();
 			}
 		}
 	}
+
+	
 
 	/**
 	 * Created from the OpeningScreen.
@@ -227,6 +246,7 @@ public class StageEditor extends JFrame {
 				Dimension size = MetadataSetters.inputSize();
 				if (size != null) {
 					stage = new GameStage(name, size);
+					loadStaticObjectTypes();
 					setAttributes();
 					openingScreen.dispose();
 				} else {
@@ -244,6 +264,7 @@ public class StageEditor extends JFrame {
 	/** Called when loading an existing stage to a new window */
 	public StageEditor(GameStage inputStage) {
 		stage = inputStage;
+		loadStaticObjectTypes();
 		newEditorWithStage();
 		setVisible(true);
 	}
@@ -261,8 +282,14 @@ public class StageEditor extends JFrame {
 			casterSiteIcon = new CasterSiteIcon(stage.casterSite, this);
 			backgroundPanel.add(casterSiteIcon);
 		}
-		for (TreeSite t : stage.trees) {
+		for (TreeSite t : stage.cars) {
 			backgroundPanel.add(new TreeIcon(t, this));
+		}
+		for (TreeSite t : stage.pedestrians) {
+			backgroundPanel.add(new TreeIcon(t, this));
+		}
+		for (StaticObjectSite s : stage.staticObjects) {
+			backgroundPanel.add(new StaticObjectIcon(s, this));
 		}
 		repaint();
 	}
@@ -298,6 +325,11 @@ public class StageEditor extends JFrame {
 		menuPanel.setMinimumSize(new Dimension(200, 1));
 		menuPanel.setSize(menuPanel.getPreferredSize());
 		menuPanel.setBackground(Color.DARK_GRAY);
+		
+		sideMenu = new AttributeMenu();
+		
+		menuPanel.add(sideMenu);
+		
 		menuPanel.setVisible(true);
 		getContentPane().add(menuPanel);
 		backgroundPanel = new BackgroundPanel();
@@ -321,6 +353,7 @@ public class StageEditor extends JFrame {
 		menuBar.add(EditorMenu.fileMenu(this));
 		menuBar.add(EditorMenu.editMenu(this));
 		menuBar.add(EditorMenu.obstacleMenu(this));
+		menuBar.add(EditorMenu.staticObjectsMenu(this));
 		menuBar.add(new PlayerButton(this));
 		menuBar.add(new CasterButton(this));
 		menuBar.add(backgroundButton());
@@ -358,6 +391,19 @@ public class StageEditor extends JFrame {
 		dispose();
 		instancesRunning--;
 		if (instancesRunning <= 0) {
+			String output = new Json(JsonWriter.OutputType.json).toJson(staticObjectTypes);
+			if (output.length() == 0) {
+				Helpers.couldNotSaveFile(this);
+			} else {
+				try {
+					JsonWriter jason = new JsonWriter(new FileWriter(new File(Paths.get(Constants.STATIC_OBJECT_CONSTANTS_FILE_PATH()).toString())));
+					jason.write(output);
+					jason.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+					Helpers.couldNotSaveStaticObjectTypes(this);
+				}
+			}
 			System.exit(0);
 		}
 	}
@@ -384,7 +430,6 @@ public class StageEditor extends JFrame {
 		button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				// TODO Auto-generated method stub
 				JFileChooser chooser = new JFileChooser() {
 
 					@Override
@@ -394,26 +439,7 @@ public class StageEditor extends JFrame {
 						setNewBackgroundImage();
 					}
 				};
-				chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-				chooser.setAcceptAllFileFilterUsed(false);
-
-				/*
-				 * Code to add image filter to file chooser obtained from
-				 * 
-				 * @link
-				 * http://stackoverflow.com/questions/16303868/jfilechooser-that
-				 * -will-only-select-java-supported-image-file-formats
-				 */
-
-				// Get array of available formats
-				String[] suffixes = ImageIO.getReaderFileSuffixes();
-				String displaySuffixes = "Image files";
-				for (String s : suffixes) {
-					displaySuffixes = displaySuffixes.concat(" (*." + s + ")");
-				}
-				// Add a file filter for each one
-				chooser.addChoosableFileFilter(new FileNameExtensionFilter(displaySuffixes, suffixes));
-				Helpers.openDialog(chooser);
+				Helpers.openImageSelectionScreen(chooser);
 			}
 		});
 		return button;
@@ -520,6 +546,7 @@ public class StageEditor extends JFrame {
 					}
 				} else {
 					super.approveSelection();
+					loadStaticObjectTypes();
 					loadIntoExistingInstance(getSelectedFile());
 				}
 			}
@@ -678,6 +705,7 @@ public class StageEditor extends JFrame {
 	}
 
 	private void setNewBackgroundImage() {
+		System.out.println(backgroundPath);
 		try {
 			bufferedImage = ImageIO.read(new File(backgroundPath));
 			backgroundPanel.repaint();
@@ -685,6 +713,27 @@ public class StageEditor extends JFrame {
 			e.printStackTrace();
 			JOptionPane.showMessageDialog(this, "Error recreating image");
 		}
+	}
+	
+	private void loadStaticObjectTypes() {
+		Json jayson = new Json();
+		try {
+			staticObjectTypes = jayson.fromJson(StaticObjectTypes.class, new FileReader(new File(Paths.get(Constants.STATIC_OBJECT_CONSTANTS_FILE_PATH()).toString())));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			Helpers.couldNotOpenFile(this);
+			staticObjectTypes = new StaticObjectTypes(new ArrayList<StaticObjectType>());
+		}
+	}
+
+	/** Deselects the currently selected object by removing its outline. */
+	public void deselect() {
+		if (selectedIcon != null) {
+			selectedIcon.setBorder(Constants.NO_BORDER);
+			selectedIcon.menu.setVisible(false);
+			selectedIcon = null;
+		}
+		sideMenu.setVisible(true);
 	}
 
 }

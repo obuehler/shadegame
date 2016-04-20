@@ -5,12 +5,6 @@
 #include <cornell.h>
 #include <Box2D/Dynamics/Contacts/b2Contact.h>
 
-#define CHARACTER_FILTER 0x01
-#define OBJECT_FILTER 0x02
-#define SHADOW_FILTER 0x04
-#define CASTER_FILTER 0x08
-#define CHARACTER_SENSOR_FILTER 0x10
-
 namespace cocos2d {
 	class WorldController;
 }
@@ -45,7 +39,7 @@ public:
 	* @retain a reference to the root layer
 	* @return  true if the controller is initialized properly, false otherwise.
 	*/
-	bool init(const Rect& rect);
+	bool init(const Size& size);
 
 #pragma mark -
 #pragma mark Allocation

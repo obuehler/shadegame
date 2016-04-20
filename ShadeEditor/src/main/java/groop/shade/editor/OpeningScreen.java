@@ -2,6 +2,7 @@ package groop.shade.editor;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
+import java.nio.file.Paths;
 
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
@@ -13,6 +14,7 @@ import javax.swing.WindowConstants;
 public class OpeningScreen extends JFrame {
 
 	public OpeningScreen() {
+		System.out.println(Paths.get("").toAbsolutePath());
 		setUndecorated(true);
 		getRootPane().setWindowDecorationStyle(JRootPane.PLAIN_DIALOG);
 		setAlwaysOnTop(true);

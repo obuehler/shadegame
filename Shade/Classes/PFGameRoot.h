@@ -17,7 +17,9 @@
 
 #include <cocos2d.h>
 #include <cornell.h>
+#include "M_LevelInstance.h"
 #include "C_Gameplay.h"
+//#include "M_LevelInstance.h"
 
 
 using namespace cocos2d;

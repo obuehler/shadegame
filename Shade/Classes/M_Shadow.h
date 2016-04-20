@@ -302,7 +302,9 @@ CC_CONSTRUCTOR_ACCESS:
      *
      * @return  true if the obstacle is initialized properly, false otherwise.
      */
-    virtual bool init() override { return init(Vec2::ZERO, Vec2::ONE); }
+	// COMMENTED OUT FOR DYNAMIC LEVEL LOADING
+    //virtual bool init() override { return init(Vec2::ZERO, Vec2::ONE); }
+	virtual bool init() override;
     
     /**
      * Initializes a new dude at the given position.

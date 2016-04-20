@@ -47,7 +47,7 @@ public abstract class StageIcon extends JLabel {
 	public StageIcon(Vector2 o, StageEditor e) {
 		preInitializeIcon(Math.round(o.x * Constants.DEFAULT_SCALE),
 				e.backgroundPanel.getHeight() - Math.round(o.y * Constants.DEFAULT_SCALE), e);
-		object = o;
+		setObject(o);
 		initializeIcon();
 	}
 
@@ -96,7 +96,8 @@ public abstract class StageIcon extends JLabel {
 			BufferedImage shadow = ImageIO.read(new File(shadowPath));
 			assert (main.getWidth() == shadow.getWidth());
 			assert (main.getHeight() == shadow.getHeight());
-			BufferedImage combined = new BufferedImage(main.getHeight(), main.getWidth(), BufferedImage.TYPE_INT_ARGB);
+			//BufferedImage combined = new BufferedImage(main.getHeight(), main.getWidth(), BufferedImage.TYPE_INT_ARGB);
+			BufferedImage combined = new BufferedImage(main.getWidth(), main.getHeight(), BufferedImage.TYPE_INT_ARGB);
 			combined.getGraphics().drawImage(shadow, 0, 0, null);
 			combined.getGraphics().drawImage(main, 0, 0, null);
 			setDisplayIcon(combined, scale);
@@ -157,9 +158,18 @@ public abstract class StageIcon extends JLabel {
 	public void select() {
 		editor.selectedIcon = this;
 		setBorder(SELECTED_BORDER);
+		editor.sideMenu.setVisible(false);
 		menu.setVisible(true);
 	}
 
+	/** Sets the object field to the given object (called when loading a file).
+	 * Overridden in MovingObjectIcon.
+	 * @param o	The object supplied from the loaded level file
+	 */
+	protected void setObject(Vector2 o) {
+		object = o;
+	}
+	
 	/** Sets the object with given type and adds it to the stage. */
 	protected abstract void setObject(StageType e, int x, int y);
 

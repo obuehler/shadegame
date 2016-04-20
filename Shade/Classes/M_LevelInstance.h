@@ -6,12 +6,25 @@
 #include <string>
 #include <cocos2d.h>
 #include <cornell.h>
+#include <cornell/CUAsset.h>
 #include <M_MovingObject.h>
 #include <M_Pedestrian.h>
 #include <M_Car.h>
 #include <ActionQueue.h>
 #include <M_Shadow.h>
 #include <M_Caster.h>
+
+// No category bit should have value 0x01 since that's Box2D default
+/** Category bit for solid level objects */
+#define OBJECT_BIT 0x02
+/** Category bit for shadows in a level */
+#define SHADOW_BIT 0x04
+/** Category bit for the caster */
+#define CASTER_BIT 0x08
+/** Category bit for the character sensor fixtures */
+#define CHARACTER_SENSOR_BIT 0x10
+/** Category bit for the character itself */
+#define CHARACTER_BIT 0x20
 
 using namespace std;
 using namespace cocos2d;
@@ -23,29 +36,33 @@ template <class T>
 class LevelObjectMetadata {
 	friend class LevelInstance;
 
-private:
+public:
 	T* object;
 	Vec2 position;
+
+	LevelObjectMetadata<T>() : object(nullptr) {}
 };
 
 
 class LevelInstance : public Asset {
 	
-protected:
+public:
 
-	enum struct StaticObjectType {
+	/* enum struct StaticObjectType {
 		BUILDING_1, // DO NOT INITIALIZE ANY OF THE ENUM CONSTANTS
 
 					// TODO add more static object types
 
 
 
-					/* DO NOT ADD ANY OTHER ENUM CONSTANT BELOW THIS LINE
-					* OTHER THAN NUM_ELEMENTS */
+					// DO NOT ADD ANY OTHER ENUM CONSTANT BELOW THIS LINE
+					//OTHER THAN NUM_ELEMENTS
 		NUM_ELEMENTS
 	};
 
-	static const map<string, StaticObjectType> staticObjectMap;
+	static const map<string, StaticObjectType> staticObjectMap; */
+
+	static Size rootSize;
 
 
 	enum struct MovingObjectType {
@@ -60,15 +77,21 @@ protected:
 	};
 
 
-	struct StaticObjectMetadata : public LevelObjectMetadata<Obstacle> {
-		StaticObjectType type;
+	struct StaticObjectMetadata : public LevelObjectMetadata<BoxObstacle> {
+		string type;
+		BoxObstacle* shadow;
+
+		StaticObjectMetadata() : LevelObjectMetadata<BoxObstacle>(), shadow(nullptr) {}
 	};
 
 
 	template <class T>
 	struct MovingObjectMetadata : public LevelObjectMetadata<OurMovingObject<T>> {
 		float heading;
-		ActionQueue<T> actions;
+		ActionQueue<T>* actions;
+
+		MovingObjectMetadata() : 
+			LevelObjectMetadata<OurMovingObject<T>>(), actions(nullptr) {}
 	};
 
 
@@ -76,33 +99,24 @@ protected:
 
 	typedef MovingObjectMetadata<Car> CarMetadata;
 
+	int _levelIndex;
+	string _backgroundPath;
+	Size _size;
+	ShadowMetadata _playerPos;
+	CasterMetadata _casterPos;
+	vector<StaticObjectMetadata> _staticObjects;
+	vector<PedestrianMetadata> _pedestrians;
+	vector<CarMetadata> _cars;
 
-	struct LevelMetadata {
-		int _levelIndex;
-		string _backgroundPath;
-		Size _size;
-		ShadowMetadata _playerPos;
-		CasterMetadata _casterPos;
-		vector<StaticObjectMetadata> _staticObjects;
-		vector<PedestrianMetadata> _pedestrians;
-		vector<CarMetadata> _cars;
-		// TODO add powerups
-	};
-
-
-	LevelMetadata _metadata;
-	// TODO add stuff from JSLevelModel
-
-	/** The root node of this level */
-	Node* _root;
-	/** The level drawing scale (difference between physics and drawing coordinates) */
-	Vec2 _scale;
-	/** Reference to the physics root of the scene graph */
-	Node* _worldnode;
-	/** Reference to the debug root of the scene graph */
-	Node* _debugnode;
-	/** The physics word; part of the model (though listeners elsewhere) */
-	WorldController* _world;
+	/**
+	* Creates a new game level with no source file.
+	*
+	* The source file can be set at any time via the setFile() method. This method
+	* does NOT load the asset.  You must call the load() method to do that.
+	*
+	* @return  an autoreleased level file
+	*/
+	static LevelInstance* create();
 
 	/**
 	* Creates a new game level with the given source file.
@@ -126,22 +140,23 @@ protected:
 	*/
 	bool initializeMetadata();
 
-	bool populateLevel();
-
-	bool loadTextures();
-
-	void reset();
-
-	virtual bool load() override {
-		if (initializeMetadata()) return populateLevel();
-		return false;
+	inline void failToLoad(const string& errorMessage) {
+		failToLoad(errorMessage.c_str());
 	}
+
+	void failToLoad(const char* errorMessage);
+
+public:
+
+	void populateLevel(bool reset);
+
+	virtual bool load() override;
 
 	virtual void unload() override;
 
-	LevelInstance();
+	LevelInstance(void);
 
-	virtual ~LevelInstance();
+	virtual ~LevelInstance(void);
 };
 
 

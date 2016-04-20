@@ -153,6 +153,11 @@ Shadow* Shadow::create(const Vec2& pos, const Vec2& scale, const b2Filter* const
 #pragma mark -
 #pragma mark Initializers
 
+/** Pre-initializer used with dynamic level loading. */
+bool Shadow::init() {
+	return true;
+}
+
 /**
  * Initializes a new dude at the given position.
  *

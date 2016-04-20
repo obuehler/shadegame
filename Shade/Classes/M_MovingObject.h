@@ -6,6 +6,7 @@
 
 #include <cornell/CUSimpleObstacle.h>
 #include <cornell/CUPolygonNode.h>
+#include <cornell/CUBoxObstacle.h>
 #include <cornell/CUAssetManager.h>
 #include <cornell/CUSceneManager.h>
 #include <cornell.h>
@@ -19,7 +20,7 @@
 
 
 //#include <ActionQueue.h>
-#include <MovingObjectMetadata.h>
+//#include <MovingObjectMetadata.h>
 
 
 #pragma mark : Constants
@@ -39,6 +40,7 @@
 
 
 using namespace std;
+using namespace cocos2d;
 
 /*template <class T>
 class ActionQueue; */
@@ -46,12 +48,12 @@ class ActionQueue; */
 // T must be an enum, whose values all have a method named
 // act(SimpleObstacle object, SimpleObstacle shadow).
 template <class T>
-class OurMovingObject : public BoxObstacle {
+class OurMovingObject : public Ref {
 
 protected:
 
-	SimpleObstacle object;
-	BoxObstacle * shadow;
+	BoxObstacle* object;
+	BoxObstacle* shadow;
 
 	/** The current horizontal movement of the movingobject */
 	float _horizontalMovement;
@@ -62,16 +64,23 @@ protected:
 	/** Ground sensor to represent our feet */
 	b2Fixture*  _sensorFixture; // TODO change this with many small fixtures for exposure calculation
 
+	OurMovingObject() : Ref(), object(nullptr), shadow(nullptr) {}
+	~OurMovingObject() {		
+		releaseShadow();
+		releaseObject();
+
+		// DO NOT RELEASE THE ACTION QUEUE, THE LEVEL METADATA OWNS IT
+		_actionQueue = nullptr;
+	}
+
 public:
 	ActionQueue<T>* _actionQueue;
 
-	OurMovingObject<T>(MovingObjectMetaData* data) {} // TODO implement this
-	OurMovingObject<T>() : BoxObstacle(), _actionQueue(new ActionQueue<T>()) {}
-
-	static OurMovingObject* create(const Vec2& pos, BoxObstacle * s, const b2Filter* const filter) {
+	/** Creates the moving object with object = m and shadow = s */
+	static OurMovingObject* create(ActionQueue<T>* queue, BoxObstacle * m, BoxObstacle * s) {
 		OurMovingObject* mover = new (std::nothrow) OurMovingObject();
-		if (mover && mover->init(pos, filter)) {
-			mover->setShadow(s);
+		if (mover && mover->init(queue, m, s)) {
+			CCLOG("%s", "asd");
 			mover->autorelease();
 			return mover;
 		}
@@ -79,36 +88,24 @@ public:
 		return nullptr;
 	}
 
-	bool init(const Vec2& pos, const b2Filter* const filter) {
-		SceneManager* scene = AssetManager::getInstance()->getCurrent();
-		Texture2D* image = scene->get<Texture2D>("b1");
+	/** Initializes the moving object with object = m and shadow = s */
+	bool init(ActionQueue<T>* queue, BoxObstacle * m, BoxObstacle * s) {
+		_actionQueue = queue; // queue is owned by the level metadata
 
-		// Multiply by the scaling factor so we can be resolution independent
-		float cscale = Director::getInstance()->getContentScaleFactor();
-		Size nsize = image->getContentSize()*cscale;
-
-		_filterPtr = filter;
+		setShadow(s);
+		setObject(m);
 
 		/*nsize.width *= scale.x;
 		nsize.height *= scale.y;
-
-		//if (BoxObstacle::init(pos, nsize, filter)) { */ // TODO uncomment this after merging with Owen's code
-		if (SimpleObstacle::init(pos)) {  // TODO delete this line after merging with Owen's code
-			//setDensity(1.0f);
-			setFriction(0.0f);      // HE WILL STICK TO WALLS IF YOU FORGET
-			setFixedRotation(true); // OTHERWISE, HE IS A WEEBLE WOBBLE
-			//setSensor(true);
-			_faceRight = true;
-
-			return true;
-		}
-		return false;
+		*/
+		return true;
 	}
 	
 	/**
 	* Executes the next move in the _actionQueue.
 	*/
 	void act() {
+		CCLOG("%s", "act called");
 		if (!_actionQueue->isEmpty()) {
 			while (!_actionQueue->isEmpty() && _actionQueue->_head->_counter <= 0) {
 				assert(_actionQueue->_head->_length > 0);
@@ -123,13 +120,38 @@ public:
 				shared_ptr<ActionQueue<T>::ActionNode> action(_actionQueue->_head);
 				// TODO the act() method of action types take the current and remaining
 				// number of frames as arguments
-				action->_type->act(action->_length - action->_counter, action->_counter);
+				if (_actionQueue->_head->_counter == _actionQueue->_head->_length) {
+					T::act(action->_type, this->object, this->shadow);
+				}
 				action->_counter--;
 			}
 		}
 	}
 	void setShadow(BoxObstacle * s) {
+		releaseShadow();
 		shadow = s;
+		if (shadow != nullptr) shadow->retain();
+	}
+	void setObject(BoxObstacle * o) {
+		releaseObject();
+		object = o;
+		object->retain();
+	}
+
+	BoxObstacle* getShadow() {
+		return shadow;
+	}
+
+	BoxObstacle* getObject() {
+		return object;
+	}
+
+	void releaseShadow() {
+		if (shadow != nullptr) shadow->release();
+	}
+
+	void releaseObject() {
+		if (object != nullptr) object->release();
 	}
 
 	void setHorizontalMovement(float value) {
@@ -163,11 +185,12 @@ public:
 	}
 
 	void applyForce() {
-		if (!isActive()) {
+		if (!object->isActive()) {
 			return;
 		}
 		b2Vec2 moveVector = b2Vec2(getHorizontalMovement(), getVerticalMovement());
-		_body->SetLinearVelocity(moveVector);
+		b2Body* obody = object->getBody();
+		obody->SetLinearVelocity(moveVector);
 		b2Body* sbody = shadow->getBody();
 		sbody->SetLinearVelocity(moveVector);
 		

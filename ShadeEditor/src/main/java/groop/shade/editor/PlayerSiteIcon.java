@@ -32,13 +32,14 @@ public class PlayerSiteIcon extends StageIcon {
 	public void delete() {
 		object = null;
 		editor.backgroundPanel.remove(this);
+		editor.playerSiteIcon = null;
 		editor.stage.playerSite = null;
 	}
 
 	@Override
 	public void changeEditor(StageEditor e) {
 		if (editor.selectedIcon == this) {
-			EditorItems.deselect(editor);
+			editor.deselect();
 		}
 		Vector2 originalPosition = editor.stage.playerSite;
 		editor.stage.playerSite = null;
@@ -51,7 +52,7 @@ public class PlayerSiteIcon extends StageIcon {
 		}
 		editor.playerSiteIcon = this;
 		editor.stage.playerSite = new PlayerSite(originalPosition);
-		EditorItems.deselect(editor);
+		editor.deselect();
 		select();
 	}
 
