@@ -42,7 +42,7 @@
 /** Radius of each of the shadow sensor fixtures */
 #define SENSOR_RADIUS 0.0001f
 /** Distance between adjacent sensors' centers, in Box2D coordinates */
-#define SENSOR_INTERVAL 0.1f
+#define SENSOR_INTERVAL 0.3f
 /** The density of the character */
 #define DUDE_DENSITY    1.0f
 /** The impulse for the character jump */

@@ -651,29 +651,38 @@ void LevelInstance::populateLevel(bool reset) {
 
 	if (!reset) {
 		// Initialize the static objects
-		for (StaticObjectMetadata data : _staticObjects) {
+		for (StaticObjectMetadata &data : _staticObjects) {
 			//data.object = BoxObstacle::create(data.position, Size::ZERO, &objectFilter);
 			data.object = BoxObstacle::create();
-			data.object->retain();
+			data.object->setBodyType(b2_staticBody);
+			data.object->setDensity(BASIC_DENSITY);
+			data.object->setFriction(BASIC_FRICTION);
+			data.object->setRestitution(BASIC_RESTITUTION);
 			data.object->setDrawScale(_scale);
 			sprite = PolygonNode::create();
 			sprite->setScale(cscale);
 			data.object->setSceneNode(sprite);
-			CCLOG("%i", (int)data.object);
+			data.object->retain();
 
 			//data.shadow = BoxObstacle::create(data.position, Size::ZERO, &objectFilter);
 			data.shadow = BoxObstacle::create();
-			data.shadow->retain();
 			data.shadow->setDrawScale(_scale);
+			data.shadow->setBodyType(b2_dynamicBody);
+			data.shadow->setDensity(0);
+			data.shadow->setFriction(0);
+			data.shadow->setRestitution(0);
 			sprite = PolygonNode::create();
 			sprite->setScale(cscale);
 			data.shadow->setSceneNode(sprite);
+			data.shadow->retain();
 
 		}
 	}
 
+
+
 	// Initialize the pedestrians
-	for (PedestrianMetadata data : _pedestrians) {
+	for (PedestrianMetadata &data : _pedestrians) {
 		sprite = PolygonNode::create();
 		sprite->setScale(cscale / DUDE_SCALE);
 		//auto* pedestrianShadow = BoxObstacle::create(data.position, Size::ZERO, &shadowFilter);
@@ -709,7 +718,7 @@ void LevelInstance::populateLevel(bool reset) {
 	}
 
 	// Initialize the cars
-	for (CarMetadata data : _cars) {
+	for (CarMetadata &data : _cars) {
 		sprite = PolygonNode::create();
 		sprite->setScale(cscale / DUDE_SCALE);
 		//auto* carShadow = BoxObstacle::create(data.position, Size::ZERO, &shadowFilter);

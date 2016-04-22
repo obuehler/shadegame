@@ -165,6 +165,10 @@ const string buildingTextures[] = {
 #define SHADOW_NAME "shadow"
 /** The name of a building (for object identification) */
 #define BUILDING_NAME "building"
+/* The tag for the object in an object-shadow pair, used for loading */
+#define OBJECT_TAG "_o"
+/* The tag for the shadow in an object-shadow pair, used for loading */
+#define SHADOW_TAG "_s"
 /** The font for victory/failure messages */
 #define MESSAGE_FONT    "retro"
 /** The message for winning the game */
@@ -263,10 +267,14 @@ _debug(false)
  * @return  true if the controller is initialized properly, false otherwise.
  */
 bool GameController::init(RootLayer* root) {
+
 	_level = _assets->get<LevelInstance>(LEVEL_ONE_KEY);
+
 	if (_level == nullptr || root == nullptr) {
 		return false;
 	}
+
+	_level->retain();
 
     // Determine the center of the screen
     Size dimen  = root->getContentSize();
@@ -346,7 +354,7 @@ bool GameController::init(RootLayer* root) {
 
     // Add everything to the root and retain
     root->addChild(_worldnode,0);
-	root->addChild(_backgroundnode, 1);
+	//root->addChild(_backgroundnode, 1);
     root->addChild(_debugnode,2);
     root->addChild(_winnode,3);
     root->addChild(_losenode,4);
@@ -431,6 +439,7 @@ void GameController::populate() {
     _goalDoor->setRestitution(0.0f);
     _goalDoor->setSensor(true);
     
+
     // Add the scene graph nodes to this object
     sprite = PolygonNode::createWithTexture(image);
     sprite->setScale(cscale);
@@ -448,7 +457,9 @@ void GameController::populate() {
 			casterImage->getContentSize().height / scale.y),
 			&casterFilter);
 	_level->_casterPos.object->getObject()->setDebugNode(newDebugNode());
+
     addObstacle(_level->_casterPos.object->getObject(), 5);
+
 
 #pragma mark : Dude
     /*Vec2 dudePos = DUDE_POS;
@@ -476,18 +487,23 @@ void GameController::populate() {
 #pragma mark : Buildings
 
 	for (LevelInstance::StaticObjectMetadata d : _level->_staticObjects) {
-		Texture2D* objectImage = _assets->get<Texture2D>(get<0>(staticObjectTypes.at(d.type)));
-		Texture2D* shadowImage = _assets->get<Texture2D>(get<1>(staticObjectTypes.at(d.type)));
+
+		Texture2D* objectImage = _assets->get<Texture2D>(d.type + OBJECT_TAG);
+		Texture2D* shadowImage = _assets->get<Texture2D>(d.type + SHADOW_TAG);
 		((PolygonNode*)(d.object->getSceneNode()))->setTexture(objectImage);
 		((PolygonNode*)(d.shadow->getSceneNode()))->setTexture(shadowImage);
 		((PolygonNode*)(d.object->getSceneNode()))->setPolygon(Rect(0,0,objectImage->getContentSize().width, objectImage->getContentSize().height));
 		((PolygonNode*)(d.shadow->getSceneNode()))->setPolygon(Rect(0,0,shadowImage->getContentSize().width, shadowImage->getContentSize().height));
 		d.object->init(d.position, Size(objectImage->getContentSize().width / scale.x, objectImage->getContentSize().height / scale.y), &objectFilter);
 		d.shadow->init(d.position, Size(shadowImage->getContentSize().width / scale.x, shadowImage->getContentSize().height / scale.y), &shadowFilter);
+
 		d.object->setDebugNode(newDebugNode());
 		d.shadow->setDebugNode(newDebugNode());
+		d.object->setBodyType(b2_staticBody);
 		addObstacle(d.object, 2);
 		addObstacle(d.shadow, 1);
+
+
 	}
 
 	//addBuilding("b1", "s1", Vec2(10, 10), 0.7f);
@@ -753,12 +769,14 @@ void GameController::setFailure(bool value) {
  * @param  delta    Number of seconds since last animation frame
  */
 void GameController::update(float dt) {
-	OurMovingObject<Car> * mov = carMovers[0];
 	_input.update(dt);
 
 	// Process the toggled key commands
 	if (_input.didDebug()) { setDebug(!isDebug()); }
-	if (_input.didReset()) { reset(); }
+	if (_input.didReset()) { 
+
+		reset(); 
+	}
 	if (_input.didExit()) {
 		_rootnode->shutdown();
 	}
@@ -786,11 +804,15 @@ void GameController::update(float dt) {
 		_level->_playerPos.object->setAngularVelocity(0.0f);
 	}
 
+
+
     /* if (_avatar->isJumping()) {
         Sound* source = _assets->get<Sound>(JUMP_EFFECT);
         SoundEngine::getInstance()->playEffect(JUMP_EFFECT,source,false,EFFECT_VOLUME);
      */
 	_physics.update(dt);
+
+
     
 	/* if (_avatar->getVX() != 0.0f || _avatar->getVY() != 0.0f) {
 		_worldnode->stopAllActionsByTag(FOLLOW_ACTION_TAG);
@@ -893,6 +915,8 @@ void GameController::preload() {
     _assets->loadAsync<TTFont>(MESSAGE_FONT,"fonts/RetroGame.ttf");
 	_assets->loadAsync<LevelInstance>(LEVEL_ONE_KEY, LEVEL_ONE_FILE);
 
+	
+
 	JSONReader reader;
 	reader.initWithFile(STATIC_OBJECTS);
 	if (!reader.startJSON()) {
@@ -905,9 +929,11 @@ void GameController::preload() {
 		string name = reader.getString("name");
 		string imageFormat = reader.getString("imageFormat");
 		string shadowImageFormat = reader.getString("shadowImageFormat");
-		staticObjectTypes.insert(std::pair<string, tuple<string, string>>(name, make_tuple<string, string>(name + "." + imageFormat, name + "_S." + shadowImageFormat)));
-		tloader->loadAsync(name + "_o", "textures/static_objects/" + name + "." + imageFormat);
-		tloader->loadAsync(name + "_s", "textures/static_objects/" + name + "_S." + shadowImageFormat);
+		if (shadowImageFormat == "") {
+			shadowImageFormat = imageFormat;
+		}
+		tloader->loadAsync(name + OBJECT_TAG, "textures/static_objects/" + name + "." + imageFormat);
+		tloader->loadAsync(name + SHADOW_TAG, "textures/static_objects/" + name + "_S." + shadowImageFormat);
 		reader.endObject();
 		reader.advance();
 	}
@@ -920,4 +946,5 @@ void GameController::preload() {
 void GameController::stop() {
 	_physics.stop();
 	_level->_playerPos.object->deleteEverything();
+	_level->release();
 }

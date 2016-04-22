@@ -68,8 +68,6 @@ private:
 
 	vector<OurMovingObject<Car>*> carMovers;
 
-	std::map<string, tuple<string, string>> staticObjectTypes;
-
 	WireNode* newDebugNode() {
 		WireNode* draw = WireNode::create();
 		draw->setColor(DEBUG_COLOR);
