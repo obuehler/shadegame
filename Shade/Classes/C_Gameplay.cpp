@@ -66,7 +66,7 @@ float WALL[WALL_COUNT][WALL_VERTS] = {
 /** The goal door position */
 float GOAL_POS[] = { 59.0f,50.0f};
 /** The initial position of the dude */
-float DUDE_POS[] = { 45.5f, 45.5f};
+float DUDE_POS[] = { 11.5f, 15.5f};
 
 #pragma mark -
 #pragma mark Physics Constants
