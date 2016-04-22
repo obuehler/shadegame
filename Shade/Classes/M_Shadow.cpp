@@ -42,7 +42,7 @@
 /** Radius of each of the shadow sensor fixtures */
 #define SENSOR_RADIUS 0.0001f
 /** Distance between adjacent sensors' centers, in Box2D coordinates */
-#define SENSOR_INTERVAL 0.1f
+#define SENSOR_INTERVAL 0.3f
 /** The density of the character */
 #define DUDE_DENSITY    1.0f
 /** The impulse for the character jump */
@@ -185,6 +185,7 @@ bool Shadow::init(const Vec2& pos, const Vec2& scale, const b2Filter* const char
     if (CapsuleObstacle::init(pos, nsize, characterFilter)) {
         setDensity(DUDE_DENSITY);
         setFriction(0.0f);      // HE WILL STICK TO WALLS IF YOU FORGET
+		//setDensity(1.0f);
         setFixedRotation(true); // OTHERWISE, HE IS A WEEBLE WOBBLE
         
         // Gameplay attributes

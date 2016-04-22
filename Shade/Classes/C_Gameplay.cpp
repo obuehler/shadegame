@@ -25,6 +25,7 @@
 #include "M_Shadow.h"
 #include "M_MovingObject.h"
 #include "ActionQueue.h"
+#include "M_Caster.cpp"
 
 
 using namespace cocos2d;
@@ -36,7 +37,7 @@ using namespace std;
 /** Width of the game world in Box2d units */
 #define DEFAULT_WIDTH   60.0f
 /** Height of the game world in Box2d units */
-#define DEFAULT_HEIGHT  20.0f
+#define DEFAULT_HEIGHT  60.0f
 
 // Since these appear only once, we do not care about the magic numbers.
 // In an actual game, this information would go in a data file.
@@ -61,28 +62,11 @@ float WALL[WALL_COUNT][WALL_VERTS] = {
 /** The number of types of buildings */
 #define BUILDING_TYPES 11
 
-/** The outlines of all of the platforms */
-float PLATFORMS[PLATFORM_COUNT][PLATFORM_VERTS] = {
-    { 1.0f, 3.0f, 6.0f, 3.0f, 6.0f, 2.5f, 1.0f, 2.5f},
-    { 6.0f, 4.0f, 9.0f, 4.0f, 9.0f, 2.5f, 6.0f, 2.5f},
-    {23.0f, 4.0f,31.0f, 4.0f,31.0f, 2.5f,23.0f, 2.5f},
-    {26.0f, 5.5f,28.0f, 5.5f,28.0f, 5.0f,26.0f, 5.0f},
-    {29.0f, 7.0f,31.0f, 7.0f,31.0f, 6.5f,29.0f, 6.5f},
-    {24.0f, 8.5f,27.0f, 8.5f,27.0f, 8.0f,24.0f, 8.0f},
-    {29.0f,10.0f,31.0f,10.0f,31.0f, 9.5f,29.0f, 9.5f},
-    {23.0f,11.5f,27.0f,11.5f,27.0f,11.0f,23.0f,11.0f},
-    {19.0f,12.5f,23.0f,12.5f,23.0f,12.0f,19.0f,12.0f},
-    { 1.0f,12.5f, 7.0f,12.5f, 7.0f,12.0f, 1.0f,12.0f}
-};
 
 /** The goal door position */
-float GOAL_POS[] = { 59.0f,19.0f};
-/** The position of the spinning barrier */
-float SPIN_POS[] = {13.0f,12.5f};
+float GOAL_POS[] = { 59.0f,50.0f};
 /** The initial position of the dude */
-float DUDE_POS[] = { 2.5f, 7.5f};
-/** The position of the rope bridge */
-float BRIDGE_POS[] = {9.0f, 3.8f};
+float DUDE_POS[] = { 45.5f, 45.5f};
 
 #pragma mark -
 #pragma mark Physics Constants
@@ -94,12 +78,6 @@ float BRIDGE_POS[] = {9.0f, 3.8f};
 #define BASIC_FRICTION  0.4f
 /** The restitution for all physics objects */
 #define BASIC_RESTITUTION   0.0f
-/** The width of the rope bridge */
-#define BRIDGE_WIDTH    14.0f
-/** Offset for bullet when firing */
-#define BULLET_OFFSET   0.5f
-/** The speed of the bullet after firing */
-#define BULLET_SPEED   20.0f
 /** The number of frame to wait before reinitializing the game */
 #define EXIT_COUNT      240
 /** The integer used as the action tag for the layer movement */
@@ -268,28 +246,28 @@ bool GameController::init(RootLayer* root) {
 bool GameController::init(RootLayer* root, const Rect& rect) {
 
 	// Initialize the collision filters
+	// Create the scene graph
+	_worldnode = Node::create();
+	_worldnode->setContentSize(Size(1500, 1500));
 
 
     // Determine the center of the screen
     Size dimen  = root->getContentSize();
     Vec2 center(dimen.width/2.0f,dimen.height/2.0f);
-    
+
     // Create the scale and notify the input handler
-    _scale.set(root->getContentSize().width/rect.size.width,
-               root->getContentSize().height/rect.size.height);
+    _scale.set(_worldnode->getContentSize().width/rect.size.width,
+               _worldnode->getContentSize().height/rect.size.height);
     Rect screen = rect;
     screen.origin.x *= _scale.x;    screen.origin.y *= _scale.y;
     screen.size.width *= _scale.x;  screen.size.height *= _scale.y;
 
-    _input.init(screen);
+    _input.init(root->boundingBox());
     _input.start();
 
 	_physics.init(rect);
 
-    // Create the scene graph
-	_worldnode = Node::create();
-    //_worldnode = PolygonNode::createWithTexture(_assets->get<Texture2D>("background"));
-    _debugnode = Node::create();
+    _debugnode = PolygonNode::create();
     _winnode = Label::create();
     
     _winnode->setTTFConfig(_assets->get<TTFont>(MESSAGE_FONT)->getTTF());
@@ -333,13 +311,15 @@ bool GameController::init(RootLayer* root, const Rect& rect) {
 	_exposureframe->setPosition(root->getContentSize().width - EXPOSURE_X_OFFSET - 3, root->getContentSize().height - EXPOSURE_Y_OFFSET - 3);
 	_exposureframe->setScale(Director::getInstance()->getContentScaleFactor());
 	_exposureframe->setVisible(true);
-
+	
+	/*
 	_exposurenode = Label::create();
 	_exposurenode->setTTFConfig(_assets->get<TTFont>(MESSAGE_FONT)->getTTF());
 	_exposurenode->setString("");
 	_exposurenode->setPosition(root->getContentSize().width - EXPOSURE_X_OFFSET, root->getContentSize().height - EXPOSURE_Y_OFFSET);
 	_exposurenode->setColor(WIN_COLOR);
 	//_exposurenode->setVisible(true);
+	*/
 
     // Add everything to the root and retain
     root->addChild(_worldnode,0);
@@ -347,9 +327,10 @@ bool GameController::init(RootLayer* root, const Rect& rect) {
     root->addChild(_winnode,3);
     root->addChild(_losenode,4);
 	//root->addChild(_timernode, 5);
-	root->addChild(_exposurenode, 6);
+	//root->addChild(_exposurenode, 6);
 	root->addChild(_exposurebar, 6);
 	root->addChild(_exposureframe, 7);
+	//_worldnode->addChild(_backgroundnode, 0);
     _rootnode = root;
     _rootnode->retain();
 
@@ -381,7 +362,7 @@ void GameController::dispose() {
     _debugnode = nullptr;
     _winnode = nullptr;
 	_timernode = nullptr;
-	_exposurenode = nullptr;
+	//_exposurenode = nullptr;
 	_exposurebar = nullptr;
 	_exposureframe = nullptr;
     _rootnode->removeAllChildren();
@@ -405,6 +386,13 @@ void GameController::populate() {
     // To convert from design resolution to real, divide positions by cscale
     float cscale = Director::getInstance()->getContentScaleFactor();
     
+	_backgroundnode = PolygonNode::createWithTexture(_assets->get<Texture2D>("background"));
+	_backgroundnode->setAnchorPoint(Vec2(0.0f, 0.0f));
+	_backgroundnode->setScale(_worldnode->getContentSize().width/_backgroundnode->getContentSize().width,
+								_worldnode->getContentSize().height / _backgroundnode->getContentSize().height
+		);
+	_worldnode->addChild(_backgroundnode, 0);
+
 #pragma mark : Goal door
     Texture2D* image = _assets->get<Texture2D>(GOAL_TEXTURE);
     PolygonNode* sprite;
@@ -418,7 +406,7 @@ void GameController::populate() {
     _goalDoor->setDrawScale(_scale.x, _scale.y);
     
     // Set the physics attributes
-    _goalDoor->setBodyType(b2_staticBody);
+    _goalDoor->setBodyType(b2_dynamicBody);
     _goalDoor->setDensity(0.0f);
     _goalDoor->setFriction(0.0f);
     _goalDoor->setRestitution(0.0f);
@@ -434,6 +422,14 @@ void GameController::populate() {
     draw->setOpacity(DEBUG_OPACITY);
     _goalDoor->setDebugNode(draw);
     addObstacle(_goalDoor, 0); // Put this at the very back
+
+	_caster = OurMovingObject<Caster>::create(goalPos, _goalDoor, nullptr);
+	_caster->retain();
+
+	_caster->_actionQueue->push(Caster::ActionType::TURN_RIGHT, 10);
+	_caster->_actionQueue->push(Caster::ActionType::GO, 200);
+	_caster->_actionQueue->push(Caster::ActionType::TURN_RIGHT, 10);
+	_caster->_actionQueue->setCycling(true);
 
 #pragma mark : Dude
     Vec2 dudePos = DUDE_POS;
@@ -457,16 +453,19 @@ void GameController::populate() {
     SoundEngine::getInstance()->playMusic(source, true, MUSIC_VOLUME);
 
 #pragma mark : Buildings
-	addBuilding("b5", "s5", Vec2(8, 15), 0.6f);
-	addBuilding("b2", "s2", Vec2(37, 15), 0.8f);
-	addBuilding("b3", "s3", Vec2(55, 15), 0.8f);
-	addBuilding("b2", "s2", Vec2(1, 9), 0.7f);
+	addBuilding("b5", "s5", Vec2(40, 58), 1.6f);
+	addBuilding("b2", "s2", Vec2(0, 45), 1.8f);
+	addBuilding("b3", "s3", Vec2(37, 35), 1.8f);
+	addBuilding("b2", "s2", Vec2(0, 20), 1.7f);
+
+	addBuilding("b5", "s5", Vec2(17, 58), 1.6f);
+	//addBuilding("b2", "s2", Vec2(15, 25), 1.8f);
 
 #pragma mark : Movers
-	Vec2 movPos = { 30.5f, 4.0f };
+	Vec2 movPos = { 32.5f, 10.0f };
 	float scale = 0.3f;
-	const char * mname = "car2";
-	const char * sname = "car2s";
+	const char * mname = "car1";
+	const char * sname = "car1s";
 	addMover(mname, sname, movPos, scale);
 }
 
@@ -531,7 +530,7 @@ void GameController::addMover(
 	float scale
 	) {
 	float cscale = Director::getInstance()->getContentScaleFactor();
-	Vec2 offset = { .75,-.75 };
+	Vec2 offset = { 1.75,-1.5 };
 	// Create mover shadow boxobstacle
 	auto * image = _assets->get<Texture2D>(sname);
 	auto * sprite = PolygonNode::createWithTexture(image);
@@ -580,7 +579,7 @@ void GameController::addMover(
 	//_mover->setHorizontalMovement(1.0f);
 	//_mover->setVerticalMovement(0.0f);
 	//_mover->applyForce();
-	_mover->_actionQueue->push(Car::ActionType::GO,200);
+	_mover->_actionQueue->push(Car::ActionType::GO,560);
 	_mover->_actionQueue->push(Car::ActionType::TURN_RIGHT, 10);
 	_mover->_actionQueue->setCycling(true);
 
@@ -698,12 +697,13 @@ void GameController::update(float dt) {
 	}
 
 	if (!_failed && !_complete) {
-	
 		// Process the movement
 		_avatar->setHorizontalMovement(_input.getHorizontal()*_avatar->getForce());
 		_avatar->setVerticalMovement(_input.getVertical()*_avatar->getForce());
 		//_avatar->setJumping( _input.didJump());
 		_avatar->applyForce();
+
+		_caster->act();
 
 		for (int i = 0; i < carMovers.size(); i++) {
 			OurMovingObject<Car>* car = carMovers[i];
@@ -716,6 +716,7 @@ void GameController::update(float dt) {
 	else {
 		_avatar->setVX(0.0f);
 		_avatar->setVY(0.0f);
+		//_avatar->setAwake(false);
 		_avatar->setAngularVelocity(0.0f);
 		for (int i = 0; i < carMovers.size(); i++) {
 			OurMovingObject<Car>* car = carMovers[i];
@@ -748,8 +749,8 @@ void GameController::update(float dt) {
 				_exposure = EXPOSURE_LIMIT;
 				setFailure(true);
 			}
-			_exposurenode->setString(cocos2d::to_string((int)(
-				(_exposure / EXPOSURE_LIMIT) * 100)) + "%");
+			//_exposurenode->setString(cocos2d::to_string((int)(
+			//	(_exposure / EXPOSURE_LIMIT) * 100)) + "%");
 			_exposurebar->setPolygon(_exposurepoly * Vec2(_exposure / EXPOSURE_LIMIT, 1.0f));
 			_exposurebar->setVisible(true);
 		}
@@ -805,17 +806,22 @@ void GameController::preload() {
 			"textures/buildings/" + buildingTextures[building_index * 4 + 3]);
 	}
 	
+
+	// Cars
 	tloader->loadAsync("car1", "textures/Car1.png");
 	tloader->loadAsync("car1s", "textures/Car1_S.png");
 	tloader->loadAsync("car2", "textures/Car2.png");
 	tloader->loadAsync("car2s", "textures/Car2_S.png");
+
+	//Caster
+	//tloader->loadAsync("caster", "textures/Car1_S.png");
 
 	tloader->loadAsync(EXPOSURE_BAR, "textures/exposure_bar.png");
 	tloader->loadAsync(EXPOSURE_FRAME, "textures/exposure_bar_frame.png");
 	//tloader->loadAsync(EARTH_TEXTURE,   "textures/earthtile.png", params);
     tloader->loadAsync(DUDE_TEXTURE,    "textures/ShadeDude.png");
     tloader->loadAsync(GOAL_TEXTURE,    "textures/goaldoor.png");
-	//tloader->loadAsync(BACKGROUND_TEXTURE, "textures/Background.png");
+	tloader->loadAsync(BACKGROUND_TEXTURE, "textures/Background.png");
     _assets->loadAsync<Sound>(GAME_MUSIC,   "sounds/DD_Main.mp3");
     _assets->loadAsync<Sound>(WIN_MUSIC,    "sounds/DD_Victory.mp3");
     _assets->loadAsync<Sound>(LOSE_MUSIC,   "sounds/DD_Failure.mp3");

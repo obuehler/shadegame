@@ -30,6 +30,7 @@
 #include "C_Input.h"
 #include "M_Powerup.h"
 #include "M_Car.h"
+#include "M_Caster.h"
 #include "C_AI.h"
 #include "C_Physics.h"
 
@@ -66,6 +67,7 @@ class GameController {
 private:
 
 	vector<OurMovingObject<Car>*> carMovers;
+	OurMovingObject<Caster>* _caster;
 
 	/**
 	* Add a horizontal building and shadow to the world.
@@ -79,6 +81,13 @@ private:
 		float scale
 	);
 
+
+	/**
+	* Add a moving car and shadow to the world.
+	* pos is the position of the upper left corner of the car and shadow.
+	* The size of the car and shadow will be the size of their source
+	* images scaled by scale.
+	*/
 	void addMover(const char* mname,
 		const char* sname,
 		const Vec2& pos,
@@ -101,10 +110,10 @@ protected:
     /** Reference to the root node of the scene graph */
     RootLayer* _rootnode;
 	/** Reference to the game world in the scene graph */
-	//PolygonNode* _worldnode;
+	PolygonNode* _backgroundnode;
 	Node* _worldnode;
 	/** Reference to the debug root of the scene graph */
-    Node* _debugnode;
+    PolygonNode* _debugnode;
     /** Reference to the win message label */
     Label* _winnode;
     /** Reference to the lose message label */

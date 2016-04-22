@@ -26,7 +26,10 @@ class PhysicsController {
 
 	/** The Box2D world */
 	WorldController* _world;
-	
+	// Currently colliding fixtures
+	b2Fixture* _collidingfixture1;
+	b2Fixture* _collidingfixture2;
+
 
 
 public:

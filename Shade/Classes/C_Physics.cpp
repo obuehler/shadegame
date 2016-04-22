@@ -25,7 +25,9 @@ bool PhysicsController::init(const Rect& rect) {
 
 PhysicsController::PhysicsController() :
 	_world(nullptr),
-	_reachedCaster(false)
+	_reachedCaster(false),
+	_collidingfixture1(nullptr),
+	_collidingfixture2(nullptr)
 {
 }
 
@@ -66,6 +68,9 @@ void PhysicsController::update(float dt) {
 void PhysicsController::beginContact(b2Contact* contact) {
 	b2Fixture* fix1 = contact->GetFixtureA();
 	b2Fixture* fix2 = contact->GetFixtureB();
+	_collidingfixture1 = fix1;
+	_collidingfixture2 = fix2;
+
 
 	/*b2Body* body1 = fix1->GetBody();
 	b2Body* body2 = fix2->GetBody();
@@ -90,7 +95,7 @@ void PhysicsController::beginContact(b2Contact* contact) {
 	if (fix1->GetFilterData().categoryBits == SHADOW_FILTER) {
 		((unordered_set<b2Fixture*>*)(fix2->GetUserData()))->emplace(fix1);
 	}
-	if (fix2->GetFilterData().categoryBits == SHADOW_FILTER) {
+	else if (fix2->GetFilterData().categoryBits == SHADOW_FILTER) {
 		((unordered_set<b2Fixture*>*)(fix1->GetUserData()))->emplace(fix2);
 	}
 
@@ -134,6 +139,7 @@ void PhysicsController::endContact(b2Contact* contact) {
 void PhysicsController::reset() {
 	_reachedCaster = false;
 	_world->clear();
+	
 }
 
 
