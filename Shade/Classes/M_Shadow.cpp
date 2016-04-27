@@ -91,7 +91,7 @@ Shadow* Shadow::create() {
  */
 Shadow* Shadow::create(const Vec2& pos) {
     Shadow* dude = new (std::nothrow) Shadow();
-    if (dude && dude->init(pos, true)) {
+    if (dude && dude->init(pos)) {
         dude->autorelease();
         return dude;
     }
@@ -116,7 +116,7 @@ Shadow* Shadow::create(const Vec2& pos) {
  */
 Shadow* Shadow::create(const Vec2& pos, const Vec2& scale) {
     Shadow* dude = new (std::nothrow) Shadow();
-    if (dude && dude->init(pos, scale, true)) {
+    if (dude && dude->init(pos, scale)) {
         dude->autorelease();
         return dude;
     }
@@ -141,7 +141,7 @@ Shadow* Shadow::create(const Vec2& pos, const Vec2& scale) {
 */
 Shadow* Shadow::create(const Vec2& pos, const Vec2& scale, const b2Filter* const characterFilter, const b2Filter* const sensorFilter) {
 	Shadow* dude = new (std::nothrow) Shadow();
-	if (dude && dude->init(pos, scale, characterFilter, sensorFilter, true)) {
+	if (dude && dude->init(pos, scale, characterFilter, sensorFilter)) {
 		dude->autorelease();
 		return dude;
 	}
@@ -168,7 +168,7 @@ Shadow* Shadow::create(const Vec2& pos, const Vec2& scale, const b2Filter* const
  *
  * @return  true if the obstacle is initialized properly, false otherwise.
  */
-bool Shadow::init(const Vec2& pos, const Vec2& scale, const b2Filter* const characterFilter, const b2Filter* const sensorFilter, bool resetDrawScale) {
+bool Shadow::init(const Vec2& pos, const Vec2& scale, const b2Filter* const characterFilter, const b2Filter* const sensorFilter) {
     SceneManager* scene = AssetManager::getInstance()->getCurrent();
     Texture2D* image = scene->get<Texture2D>(DUDE_TEXTURE);
     
@@ -182,7 +182,7 @@ bool Shadow::init(const Vec2& pos, const Vec2& scale, const b2Filter* const char
 
 	_sensorFilter = sensorFilter;
 
-    if (CapsuleObstacle::init(pos, nsize, characterFilter, resetDrawScale)) {
+    if (CapsuleObstacle::init(pos, nsize, characterFilter)) {
         setDensity(DUDE_DENSITY);
         setFriction(0.0f);      // HE WILL STICK TO WALLS IF YOU FORGET
         setFixedRotation(true); // OTHERWISE, HE IS A WEEBLE WOBBLE

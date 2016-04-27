@@ -20,7 +20,7 @@ NS_CC_BEGIN
 #define BODY_DEBUG_SEGS 12
 
 /** Epsilon factor to prevent issues with the fixture seams */
-#define DEFAULT_EPSILON 0.01
+#define DEFAULT_EPSILON 0.01f
 
 #pragma mark -
 #pragma mark Static Constructors

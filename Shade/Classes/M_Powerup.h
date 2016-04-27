@@ -32,7 +32,7 @@ private:
 	static Powerup* create(const Vec2& pos, const PowerupType& t, int i=0);
 
 	/** Initializes a new power-up object with the supplied position and index. */
-	bool init(const Vec2& pos, const PowerupType& t, int i, bool resetDrawScale);
+	bool init(const Vec2& pos, const PowerupType& t, int i);
 
 public:
 	/** Returns the type */

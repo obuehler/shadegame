@@ -320,7 +320,7 @@ CC_CONSTRUCTOR_ACCESS:
      *
      * @return  true if the obstacle is initialized properly, false otherwise.
      */
-    virtual bool init(const Vec2& pos, bool resetDrawScale) override { return init(pos, Vec2::ONE, resetDrawScale); }
+    virtual bool init(const Vec2& pos) override { return init(pos, Vec2::ONE); }
     
     /**
      * Initializes a new dude at the given position.
@@ -337,7 +337,7 @@ CC_CONSTRUCTOR_ACCESS:
      *
      * @return  true if the obstacle is initialized properly, false otherwise.
      */
-	virtual bool init(const Vec2& pos, const Vec2& scale, bool resetDrawScale) { return init(pos, scale, nullptr, nullptr, resetDrawScale); }
+	virtual bool init(const Vec2& pos, const Vec2& scale) { return init(pos, scale, nullptr, nullptr); }
 
 	/**
 	* Initializes a new dude at the given position.
@@ -354,7 +354,7 @@ CC_CONSTRUCTOR_ACCESS:
 	*
 	* @return  true if the obstacle is initialized properly, false otherwise.
 	*/
-	virtual bool init(const Vec2& pos, const Vec2& scale, const b2Filter* const characterFilter, const b2Filter* const sensorFilter, bool resetDrawScale);
+	virtual bool init(const Vec2& pos, const Vec2& scale, const b2Filter* const characterFilter, const b2Filter* const sensorFilter);
 };
 
 #endif /* __M_SHADOW_H__ */

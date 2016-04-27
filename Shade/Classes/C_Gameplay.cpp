@@ -470,7 +470,7 @@ void GameController::populate() {
 	_level->_casterPos.object->getObject()->init(_level->_casterPos.position,
 		Size((image->getContentSize().width * cscale) / (CASTER_SCALE_DOWN * scale.x),
 			(image->getContentSize().height * cscale) / (CASTER_SCALE_DOWN * scale.y)),
-			&casterFilter, false);
+			&casterFilter);
 	_level->_casterPos.object->getObject()->setDrawScale(scale);
 	_level->_casterPos.object->getObject()->positionSceneNode();
 	_level->_casterPos.object->getObject()->resetSceneNode();
@@ -496,7 +496,7 @@ void GameController::populate() {
 	image = _assets->get<Texture2D>(DUDE_TEXTURE);
 	((PolygonNode*)(_level->_playerPos.object->getSceneNode()))->initWithTexture(image);
 	((PolygonNode*)(_level->_playerPos.object->getSceneNode()))->setScale(cscale / DUDE_SCALE);
-	_level->_playerPos.object->init(_level->_playerPos.position, scale * DUDE_SCALE, &characterFilter, &characterSensorFilter, false);
+	_level->_playerPos.object->init(_level->_playerPos.position, scale * DUDE_SCALE, &characterFilter, &characterSensorFilter);
 	_level->_playerPos.object->setDrawScale(scale);
 	_level->_playerPos.object->positionSceneNode();
 	_level->_playerPos.object->resetSceneNode();
@@ -511,12 +511,12 @@ void GameController::populate() {
 		image = _assets->get<Texture2D>(d.type + OBJECT_TAG);
 		((PolygonNode*)(d.object->getSceneNode()))->initWithTexture(image);
 		((PolygonNode*)(d.object->getSceneNode()))->setScale(cscale);
-		d.object->init(d.position, Size(image->getContentSize().width * cscale / scale.x, image->getContentSize().height * cscale / scale.y), &objectFilter, false);
+		d.object->init(d.position, Size(image->getContentSize().width * cscale / scale.x, image->getContentSize().height * cscale / scale.y), &objectFilter);
 
 		image = _assets->get<Texture2D>(d.type + SHADOW_TAG);
 		((PolygonNode*)(d.shadow->getSceneNode()))->initWithTexture(image);		
 		((PolygonNode*)(d.shadow->getSceneNode()))->setScale(cscale);
-		d.shadow->init(d.position, Size(image->getContentSize().width * cscale / scale.x, image->getContentSize().height * cscale / scale.y), &shadowFilter, false);
+		d.shadow->init(d.position, Size(image->getContentSize().width * cscale / scale.x, image->getContentSize().height * cscale / scale.y), &shadowFilter);
 
 		d.object->setDrawScale(scale);
 		d.object->positionSceneNode();
@@ -553,13 +553,13 @@ void GameController::populate() {
 		((PolygonNode*)(pd.object->getObject()->getSceneNode()))->setScale(cscale / PEDESTRIAN_SCALE_DOWN);
 		pd.object->getObject()->init(pd.position, Size((image->getContentSize().width * cscale)
 			/ (scale.x * PEDESTRIAN_SCALE_DOWN), (image->getContentSize().height * cscale)
-			/ (scale.y * PEDESTRIAN_SCALE_DOWN)), &objectFilter, false);
+			/ (scale.y * PEDESTRIAN_SCALE_DOWN)), &objectFilter);
 
 		((PolygonNode*)(pd.object->getShadow()->getSceneNode()))->initWithTexture(shadowImage);
 		((PolygonNode*)(pd.object->getShadow()->getSceneNode()))->setScale(cscale / PEDESTRIAN_SCALE_DOWN);
 		pd.object->getShadow()->init(pd.position, Size((shadowImage->getContentSize().width * cscale)
 			/ (scale.x * PEDESTRIAN_SCALE_DOWN), (shadowImage->getContentSize().height * cscale)
-			/ (PEDESTRIAN_SCALE_DOWN * scale.y)), &shadowFilter, false);
+			/ (PEDESTRIAN_SCALE_DOWN * scale.y)), &shadowFilter);
 
 		pd.object->getObject()->setDrawScale(scale);
 		pd.object->getObject()->positionSceneNode();
@@ -582,10 +582,10 @@ void GameController::populate() {
 		((PolygonNode*)(pd.object->getShadow()->getSceneNode()))->setScale(cscale / CAR_SCALE_DOWN);
 		pd.object->getObject()->init(pd.position, Size((image->getContentSize().width * cscale)
 			/ (scale.x * CAR_SCALE_DOWN), (image->getContentSize().height * cscale)
-			/ (scale.y * CAR_SCALE_DOWN)), &objectFilter, false);
+			/ (scale.y * CAR_SCALE_DOWN)), &objectFilter);
 		pd.object->getShadow()->init(pd.position, Size((shadowImage->getContentSize().width * cscale)
 			/ (scale.x * CAR_SCALE_DOWN), (shadowImage->getContentSize().height * cscale)
-			/ (scale.y * CAR_SCALE_DOWN)), &shadowFilter, false);
+			/ (scale.y * CAR_SCALE_DOWN)), &shadowFilter);
 		pd.object->getObject()->setDrawScale(scale);
 		pd.object->getObject()->positionSceneNode();
 		pd.object->getObject()->resetSceneNode();
