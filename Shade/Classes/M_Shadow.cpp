@@ -42,7 +42,7 @@
 /** Radius of each of the shadow sensor fixtures */
 #define SENSOR_RADIUS 0.0001f
 /** Distance between adjacent sensors' centers, in Box2D coordinates */
-#define SENSOR_INTERVAL 0.3f
+#define SENSOR_INTERVAL 0.1f
 /** The density of the character */
 #define DUDE_DENSITY    1.0f
 /** The impulse for the character jump */
@@ -316,6 +316,34 @@ void Shadow::releaseFixtures() {
 	}
 }
 
+/** Changes the velocity of the character by normalizing the input x and y
+* values and multiplying it with the desired speed. */
+void Shadow::changeVelocity(float x, float y) {
+	if (_body != nullptr) {
+		b2Vec2 movement;
+		movement.x = x;
+		movement.y = y;
+		movement.Normalize();
+		movement *= getSpeed();
+		_body->SetLinearVelocity(movement);
+	}
+	else {
+		_bodyinfo.linearVelocity.x = x;
+		_bodyinfo.linearVelocity.y = y;
+	}
+}
+
+/** Stops the character by setting the body velocity to zero. */
+void Shadow::stopMovement() {
+	if (_body != nullptr) {
+		_body->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
+	}
+	else {
+		_bodyinfo.linearVelocity.x = 0.0f;
+		_bodyinfo.linearVelocity.y = 0.0f;
+	}
+}
+
 /**
  * Applies the force to the body of this dude
  *
@@ -347,7 +375,7 @@ void Shadow::applyForce() {
 		setVX((getVX() / pow(pow(getVX(), 2) + pow(getVY(), 2), 0.5)) * getMaxSpeed());
 		setVY((getVY() / pow(pow(getVX(), 2) + pow(getVY(), 2), 0.5)) * getMaxSpeed());
 	} */
-	_body->SetLinearVelocity(b2Vec2(getHorizontalMovement(), getVerticalMovement()));
+	//_body->SetLinearVelocity(b2Vec2(getHorizontalMovement(), getVerticalMovement()).Normalize());
 }
 
 /**

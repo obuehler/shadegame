@@ -348,7 +348,6 @@ bool InputController::touchBeganCB(Touch* t, timestamp_t current) {
     Vec2 pos = t->getLocation();
     _vertical = (pos.y - _bounds.getMidY()) / (_bounds.size.height / 2.0f);
     _horizontal = (pos.x - _bounds.getMidX()) / (_bounds.size.width / 2.0f);
-    
     /*Zone zone = getZone(pos);
      switch (zone) {
      case Zone::LEFT:
@@ -408,7 +407,7 @@ bool InputController::touchBeganCB(Touch* t, timestamp_t current) {
  */
 void InputController::touchEndedCB(Touch* t, timestamp_t current) {
     // Reset all keys that might have been set
-    CCLOG("Touch is up %d", t->getID());
+    //CCLOG("Touch is up %d", t->getID());
     /*if (_ltouch.touchid == t->getID()) {
      _ltouch.touchid = -1;
      _ltouch.count = 0;

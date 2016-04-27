@@ -66,7 +66,7 @@ using namespace std;
 class GameController {
 private:
 
-	vector<OurMovingObject<Car>*> carMovers;
+	//vector<OurMovingObject<Car>*> carMovers;
 
 	WireNode* newDebugNode() {
 		WireNode* draw = WireNode::create();
@@ -122,8 +122,9 @@ protected:
     /** Reference to the root node of the scene graph */
     RootLayer* _rootnode;
 	/** Reference to the game world in the scene graph */
+	//PolygonNode* _worldnode;
 	Node* _worldnode;
-    /** Reference to the debug root of the scene graph */
+	/** Reference to the debug root of the scene graph */
     Node* _debugnode;
 	/** Reference to the node containing the background */
 	PolygonNode* _backgroundnode;

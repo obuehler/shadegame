@@ -100,6 +100,10 @@ float BRIDGE_POS[] = {9.0f, 3.8f};
 /** The integer used as the action tag for the layer movement */
 #define FOLLOW_ACTION_TAG 5
 
+/** The ratio of the y-radius of the area in the center that stops the
+ * character to the half of the height of the screen (or x-radius and width) */
+#define DEADSPACE_SIZE 0.2f
+
 /** Horizontal positioning of the exposure bar */
 #define EXPOSURE_X_OFFSET 220
 /** Vertical positioning of the exposure bar */
@@ -422,18 +426,13 @@ void GameController::dispose() {
  * with your serialization loader, which would process a level file.
  */
 void GameController::populate() {
-    // We need to know the content scale for resolution independence
-    // If the device is higher resolution than 1024x576, Cocos2d will scale it
-    // This was set as the design resolution in AppDelegate
-    // To convert from design resolution to real, divide positions by cscale
-    //float cscale = Director::getInstance()->getContentScaleFactor();
-	//PolygonNode* sprite;
-	WireNode* draw;
 
-	//Vec2 scale(_rootnode->getContentSize().width / _level->_size.width,
-	//	_rootnode->getContentSize().height / _level->_size.height);
 	Vec2 scale(BOX2D_SCALE, BOX2D_SCALE);
 
+	// We need to know the content scale for resolution independence
+	// If the device is higher resolution than 1024x576, Cocos2d will scale it
+	// This was set as the design resolution in AppDelegate
+	// To convert from design resolution to real, divide positions by cscale
 	float cscale = Director::getInstance()->getContentScaleFactor();
     
 #pragma mark : Goal door
@@ -846,12 +845,17 @@ void GameController::update(float dt) {
 	}
 
 	if (!_failed && !_complete) {
-	
 		// Process the movement
-		_level->_playerPos.object->setHorizontalMovement(_input.getHorizontal()*(_level->_playerPos.object->getForce()));
-		_level->_playerPos.object->setVerticalMovement(_input.getVertical()*(_level->_playerPos.object->getForce()));
+		if (_input.getHorizontal() * _input.getHorizontal() + _input.getVertical()
+			* _input.getVertical() < DEADSPACE_SIZE * DEADSPACE_SIZE) {
+			_level->_playerPos.object->stopMovement();
+		}
+		else {
+			_level->_playerPos.object->changeVelocity(_input.getHorizontal(), _input.getVertical());
+		}
+
 		//_avatar->setJumping( _input.didJump());
-		_level->_playerPos.object->applyForce();
+		//_level->_playerPos.object->applyForce();
 
 		/* for (int i = 0; i < carMovers.size(); i++) {
 			OurMovingObject<Car>* car = carMovers[i];
@@ -865,8 +869,7 @@ void GameController::update(float dt) {
 
 	}
 	else {
-		_level->_playerPos.object->setVX(0.0f);
-		_level->_playerPos.object->setVY(0.0f);
+		_level->_playerPos.object->stopMovement();
 		_level->_playerPos.object->setAngularVelocity(0.0f);
 	}
 
@@ -877,9 +880,6 @@ void GameController::update(float dt) {
         SoundEngine::getInstance()->playEffect(JUMP_EFFECT,source,false,EFFECT_VOLUME);
      */
 	_physics.update(dt);
-
-	CCLOG("%f, %f", _level->_playerPos.object->getBody()->GetPosition().x,
-		_level->_playerPos.object->getBody()->GetPosition().y);
     
 	/* if (_avatar->getVX() != 0.0f || _avatar->getVY() != 0.0f) {
 		_worldnode->stopAllActionsByTag(FOLLOW_ACTION_TAG);

@@ -41,7 +41,7 @@ using namespace cocos2d;
 #pragma mark -
 #pragma mark Physics Constants
 /** The factor to multiply by the input */
-#define DUDE_FORCE      7.0f //20.0f
+#define DUDE_FORCE      5.0f //20.0f
 /** The factor by which to scale down the avatar image */
 #define DUDE_SCALE	7.0f
 /** The amount to slow the character down */
@@ -200,13 +200,13 @@ public:
 	void setVerticalMovement(float value);
     
     /**
-     * Returns how much force to apply to get the dude moving
+     * Returns the speed the character moves at
      *
      * Multiply this by the input to get the movement value.
      *
-     * @return how much force to apply to get the dude moving
+     * @return the speed the character moves at
      */
-    float getForce() const { return DUDE_FORCE; }
+    float getSpeed() const { return DUDE_FORCE; }
     
     /**
      * Returns ow hard the brakes are applied to get a dude to stop moving
@@ -274,6 +274,13 @@ public:
      * This method should be called after the force attribute is set.
      */
     void applyForce();
+
+	/** Stops the character by setting the body velocity to zero. */
+	void stopMovement();
+
+	/** Changes the velocity of the character by normalizing the input x and y
+	 * values and multiplying it with the desired speed. */
+	void changeVelocity(float x, float y);
 
 	/** Delete everything allocated with new. */
 	void deleteEverything();

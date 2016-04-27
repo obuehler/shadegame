@@ -90,11 +90,11 @@ void PhysicsController::beginContact(b2Contact* contact) {
 	// definitely our character. Mark as in shadow if so.
 	if (fix1->GetFilterData().categoryBits == SHADOW_BIT) {
 		((unordered_set<b2Fixture*>*)(fix2->GetUserData()))->emplace(fix1);
-		CCLOG("%s", "hi");
+		CCLOG("hi");
 	}
 	if (fix2->GetFilterData().categoryBits == SHADOW_BIT) {
 		((unordered_set<b2Fixture*>*)(fix1->GetUserData()))->emplace(fix2);
-		CCLOG("%s", "hi2");
+		CCLOG("hi2");
 	}
 
 	// If we hit the caster, we are done
@@ -126,11 +126,11 @@ void PhysicsController::endContact(b2Contact* contact) {
 
 	if (fix1->GetFilterData().categoryBits == SHADOW_BIT) {
 		((unordered_set<b2Fixture*>*)(fix2->GetUserData()))->erase(fix1);
-		CCLOG("%s", "bye");
+		CCLOG("bye");
 	}
 	if (fix2->GetFilterData().categoryBits == SHADOW_BIT) {
 		((unordered_set<b2Fixture*>*)(fix1->GetUserData()))->erase(fix2);
-		CCLOG("%s", "bye2");
+		CCLOG("bye2");
 	}
 	
 }
