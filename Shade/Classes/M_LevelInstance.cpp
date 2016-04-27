@@ -7,7 +7,6 @@
 */
 #define DEFAULT_CYCLING_VALUE false
 
-#define BOX2D_SCALE 50.0f
 /** The name of the level index field */
 #define LEVEL_INDEX_FIELD "index"
 /** The name of the level background path field */
@@ -62,8 +61,6 @@
 * will be cyclic or not
 */
 #define CYCLIC_FIELD "cycleStart"
-
-Size LevelInstance::rootSize = Size(0, 0);
 
 LevelInstance::LevelInstance(void) : Asset() {}
 
@@ -141,13 +138,6 @@ bool LevelInstance::initializeMetadata() {
 		failToLoad("Failed to assign level index");
 		return false;
 	}
-
-	/* Set the background image file path. If the associated field does not
-	* exist in the JSON file, the JSON reader sets _backgroundPath to an empty
-	* string. Levels without background images are still fine, we will just set
-	* the background to a plain color in loadTextures(). */
-	_backgroundPath = reader.getString(BACKGROUND_PATH_FIELD);
-	if (_backgroundPath == "") CCLOG("%s", "No background path");
 
 	// Set the level width and height values
 	if (reader.startObject(SIZE_FIELD)) {
@@ -615,7 +605,6 @@ void LevelInstance::populateLevel(bool reset) {
 	// This was set as the design resolution in AppDelegate
 	// To convert from design resolution to real, divide positions by cscale
 	float cscale = Director::getInstance()->getContentScaleFactor();
-	Vec2 _scale(rootSize.width / _size.width, rootSize.height / _size.height);
 
 	/* Local pointers to hold newly created sprites before they get assigned
 	* as the scene nodes to obstacles */
@@ -625,7 +614,6 @@ void LevelInstance::populateLevel(bool reset) {
 	_playerPos.object = Shadow::create(); // Initialize in GameController
 	//_playerPos.object = Shadow::create(_playerPos.position, _scale * DUDE_SCALE, &characterFilter, &characterSensorFilter);
 	_playerPos.object->retain();
-	_playerPos.object->setDrawScale(_scale);
 	sprite = PolygonNode::create();
 	sprite->setScale(cscale / DUDE_SCALE);
 	_playerPos.object->setSceneNode(sprite);
@@ -636,7 +624,6 @@ void LevelInstance::populateLevel(bool reset) {
 	sprite->setScale(cscale / DUDE_SCALE);
 	auto* casterObject = BoxObstacle::create();
 	//auto* casterObject = BoxObstacle::create(_casterPos.position, Size::ZERO, &casterFilter);
-	casterObject->setDrawScale(_scale.x, _scale.y);
 	casterObject->setBodyType(b2_dynamicBody);
 	casterObject->setDensity(BASIC_DENSITY);
 	casterObject->setFriction(BASIC_FRICTION);
@@ -658,15 +645,13 @@ void LevelInstance::populateLevel(bool reset) {
 			data.object->setDensity(BASIC_DENSITY);
 			data.object->setFriction(BASIC_FRICTION);
 			data.object->setRestitution(BASIC_RESTITUTION);
-			data.object->setDrawScale(_scale);
 			sprite = PolygonNode::create();
 			sprite->setScale(cscale);
 			data.object->setSceneNode(sprite);
 			data.object->retain();
 
 			//data.shadow = BoxObstacle::create(data.position, Size::ZERO, &objectFilter);
-			data.shadow = BoxObstacle::create();
-			data.shadow->setDrawScale(_scale);
+			data.shadow = BoxObstacle::create();	
 			data.shadow->setBodyType(b2_dynamicBody);
 			data.shadow->setDensity(0);
 			data.shadow->setFriction(0);
@@ -687,7 +672,6 @@ void LevelInstance::populateLevel(bool reset) {
 		sprite->setScale(cscale / DUDE_SCALE);
 		//auto* pedestrianShadow = BoxObstacle::create(data.position, Size::ZERO, &shadowFilter);
 		auto* pedestrianShadow = BoxObstacle::create();
-		pedestrianShadow->setDrawScale(_scale.x, _scale.y);
 		pedestrianShadow->setBodyType(b2_dynamicBody);
 		pedestrianShadow->setDensity(0);
 		pedestrianShadow->setFriction(0);
@@ -699,7 +683,6 @@ void LevelInstance::populateLevel(bool reset) {
 		sprite->setScale(cscale / DUDE_SCALE);
 		//auto* pedestrianObject = BoxObstacle::create(data.position, Size::ZERO, &objectFilter);
 		auto* pedestrianObject = BoxObstacle::create();
-		pedestrianObject->setDrawScale(_scale.x, _scale.y);
 		pedestrianObject->setBodyType(b2_dynamicBody);
 		pedestrianObject->setDensity(BASIC_DENSITY);
 		pedestrianObject->setFriction(BASIC_FRICTION);
@@ -723,7 +706,6 @@ void LevelInstance::populateLevel(bool reset) {
 		sprite->setScale(cscale / DUDE_SCALE);
 		//auto* carShadow = BoxObstacle::create(data.position, Size::ZERO, &shadowFilter);
 		auto* carShadow = BoxObstacle::create();
-		carShadow->setDrawScale(_scale.x, _scale.y);
 		carShadow->setBodyType(b2_dynamicBody);
 		carShadow->setDensity(0);
 		carShadow->setFriction(0);
@@ -735,7 +717,6 @@ void LevelInstance::populateLevel(bool reset) {
 		sprite->setScale(cscale / DUDE_SCALE);
 		//auto* carObject = BoxObstacle::create(data.position, Size::ZERO, &objectFilter);
 		auto* carObject = BoxObstacle::create();
-		carObject->setDrawScale(_scale.x, _scale.y);
 		carObject->setBodyType(b2_dynamicBody);
 		carObject->setDensity(BASIC_DENSITY);
 		carObject->setFriction(BASIC_FRICTION);

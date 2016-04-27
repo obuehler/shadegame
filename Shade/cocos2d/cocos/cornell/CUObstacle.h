@@ -67,54 +67,6 @@ protected:
     /** A tag for debugging purposes */
     std::string _tag;
     
-    
-#pragma mark -
-#pragma mark Scene Graph Internals
-    /**
-     * Performs any necessary additions to the scene graph node.
-     *
-     * This method is necessary for custom physics objects that are composed 
-     * of multiple scene graph nodes.
-     */
-    virtual void resetSceneNode() { }
-    
-    /**
-     * Repositions the scene node so that it agrees with the physics object.
-     *
-     * By default, the position of a node should be the body position times
-     * the draw scale.  However, for some obstacles (particularly complex
-     * obstacles), it may be desirable to turn the default functionality 
-     * off.  Hence we have made this virtual.
-     */
-     virtual void positionSceneNode();
-
-    /**
-     * Redraws the outline of the physics fixtures to the debug node
-     *
-     * The debug node is use to outline the fixtures attached to this object.
-     * This is very useful when the fixtures have a very different shape than
-     * the texture (e.g. a circular shape attached to a square texture).
-     *
-     * Unfortunately, the current implementation is very inefficient.  Cocos2d
-     * does not batch drawnode commands like it does Sprites or PolygonSprites.
-     * Therefore, every distinct DrawNode is a distinct OpenGL call.  This can
-     * really hurt framerate when debugging mode is on.  Ideally, we would refactor
-     * this so that we only draw to a single, master draw node.  However, this
-     * means that we would have to handle our own vertex transformations, instead
-     * of relying on the transforms in the scene graph.
-     */
-    virtual void resetDebugNode() { }
-    
-    /**
-     * Repositions the debug node so that it agrees with the physics object.
-     *
-     * By default, the position of a node should be the body position times
-     * the draw scale.  However, for some obstacles (particularly complex
-     * obstacles), it may be desirable to turn the default functionality
-     * off.  Hence we have made this virtual.
-     */
-    virtual void positionDebugNode();
-    
 private:
     /// Track garbage collection status
     /** Whether the object should be removed from the world on next pass */
@@ -124,6 +76,53 @@ private:
     
     
 public:
+#pragma mark -
+#pragma mark Scene Graph Internals
+	/**
+	* Performs any necessary additions to the scene graph node.
+	*
+	* This method is necessary for custom physics objects that are composed
+	* of multiple scene graph nodes.
+	*/
+	virtual void resetSceneNode() { }
+
+	/**
+	* Repositions the scene node so that it agrees with the physics object.
+	*
+	* By default, the position of a node should be the body position times
+	* the draw scale.  However, for some obstacles (particularly complex
+	* obstacles), it may be desirable to turn the default functionality
+	* off.  Hence we have made this virtual.
+	*/
+	virtual void positionSceneNode();
+
+	/**
+	* Redraws the outline of the physics fixtures to the debug node
+	*
+	* The debug node is use to outline the fixtures attached to this object.
+	* This is very useful when the fixtures have a very different shape than
+	* the texture (e.g. a circular shape attached to a square texture).
+	*
+	* Unfortunately, the current implementation is very inefficient.  Cocos2d
+	* does not batch drawnode commands like it does Sprites or PolygonSprites.
+	* Therefore, every distinct DrawNode is a distinct OpenGL call.  This can
+	* really hurt framerate when debugging mode is on.  Ideally, we would refactor
+	* this so that we only draw to a single, master draw node.  However, this
+	* means that we would have to handle our own vertex transformations, instead
+	* of relying on the transforms in the scene graph.
+	*/
+	virtual void resetDebugNode() { }
+
+	/**
+	* Repositions the debug node so that it agrees with the physics object.
+	*
+	* By default, the position of a node should be the body position times
+	* the draw scale.  However, for some obstacles (particularly complex
+	* obstacles), it may be desirable to turn the default functionality
+	* off.  Hence we have made this virtual.
+	*/
+	virtual void positionDebugNode();
+
 #pragma mark -
 #pragma mark BodyDef Methods
     
@@ -979,7 +978,8 @@ CC_CONSTRUCTOR_ACCESS:
      *
      * @return  true if the obstacle is initialized properly, false otherwise.
      */
-    virtual bool init() { return init(Vec2::ZERO); }
+    //virtual bool init() { return init(Vec2::ZERO); }
+	virtual bool init() { return true; }
 
     /**
      * Initializes a new physics object at the given point

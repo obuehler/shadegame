@@ -4,6 +4,8 @@
 #include <map>
 #include <string>
 
+#define PEDESTRIAN_SCALE_DOWN 8.0f
+
 using namespace std;
 
 struct Pedestrian {

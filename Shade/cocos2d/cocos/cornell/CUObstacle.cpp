@@ -56,7 +56,7 @@ Obstacle::~Obstacle() {
  * @return  true if the obstacle is initialized properly, false otherwise.
  */
 bool Obstacle::init(const Vec2& vec) {
-    _drawScale.set(1.0f,1.0f);
+	_drawScale.set(1.0f,1.0f);
     
     // Object has yet to be deactivated
     _remove = false;

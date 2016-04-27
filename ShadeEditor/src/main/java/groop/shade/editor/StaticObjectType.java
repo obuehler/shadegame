@@ -3,7 +3,6 @@ package groop.shade.editor;
 public class StaticObjectType implements StageType {
 
 	private String name;
-	private double scale;
 	public String imageFormat;
 	public String shadowImageFormat;
 	
@@ -38,7 +37,7 @@ public class StaticObjectType implements StageType {
 
 	@Override
 	public double getDefaultScale() {
-		return scale;
+		return 1.0;
 	}
 	
 	

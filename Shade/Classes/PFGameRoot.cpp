@@ -37,7 +37,6 @@ using namespace cocos2d;
  */
 void PlatformRoot::start() {
     int scene = AssetManager::getInstance()->createScene();
-	LevelInstance::rootSize = getContentSize();
 
     FontLoader* fonts = FontLoader::create();
     fonts->setDefaultSize(DEFAULT_FONT_SIZE);

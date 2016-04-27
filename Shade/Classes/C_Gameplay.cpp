@@ -137,10 +137,15 @@ const string buildingTextures[] = {
 
 /** The key for the (temporary) background image */
 #define BACKGROUND_IMAGE "bimage"
-/** The key for the pedestrian object image */
+/** The key for the pedestrian object texture in the asset manager */
 #define PEDESTRIAN_TEXTURE "pimage"
-/** The key for the pedestrian shadow image */
+/** The key for the pedestrian shadow texture in the asset manager */
 #define PEDESTRIAN_SHADOW_TEXTURE "psimage"
+/** The key for the car object texture in the asset manager */
+#define CAR_TEXTURE "cimage"
+/** The key for the car shadow texture in the asset manager */
+#define CAR_SHADOW_TEXTURE "csimage"
+
 #define PLANT1_TEXTURE "plt1image"
 #define PLANT1S_TEXTURE "plt1simage"
 #define PLANT2_TEXTURE "plt2image"
@@ -318,7 +323,11 @@ bool GameController::init(RootLayer* root) {
 	_backgroundnode = PolygonNode::createWithTexture(_assets->get<Texture2D>(BACKGROUND_IMAGE));
 	_backgroundnode->setAnchorPoint(Vec2(0, 0));
 	_backgroundnode->setPosition(0, 0);
-	_backgroundnode->setScale(root->getContentSize().width / _level->_size.width, root->getContentSize().height / _level->_size.height);
+	{
+		float cascale = Director::getInstance()->getContentScaleFactor();
+		_backgroundnode->setScale((_level->_size.width * BOX2D_SCALE) / _backgroundnode->getContentSize().width,
+			(_level->_size.height * BOX2D_SCALE) / _backgroundnode->getContentSize().height);
+	}
 	_backgroundnode->setVisible(true);
 
 	// Starting exposure is 0
@@ -353,8 +362,8 @@ bool GameController::init(RootLayer* root) {
 	//_exposurenode->setVisible(true);
 
     // Add everything to the root and retain
-    root->addChild(_worldnode,0);
-	//root->addChild(_backgroundnode, 1);
+	root->addChild(_backgroundnode, 0);
+	root->addChild(_worldnode,1);
     root->addChild(_debugnode,2);
     root->addChild(_winnode,3);
     root->addChild(_losenode,4);
@@ -367,8 +376,10 @@ bool GameController::init(RootLayer* root) {
 
     // Now populate the physics objects
     populate();
+	Follow* followAction = Follow::create(_level->_playerPos.object->getSceneNode());
 	_worldnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO change when lazy camera implemented
 	_debugnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO change when lazy camera implemented
+	_backgroundnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode()));
     _active = true;
     setDebug(false);
     return true;
@@ -419,8 +430,11 @@ void GameController::populate() {
 	//PolygonNode* sprite;
 	WireNode* draw;
 
-	Vec2 scale(_rootnode->getContentSize().width / _level->_size.width,
-		_rootnode->getContentSize().height / _level->rootSize.height);
+	//Vec2 scale(_rootnode->getContentSize().width / _level->_size.width,
+	//	_rootnode->getContentSize().height / _level->_size.height);
+	Vec2 scale(BOX2D_SCALE, BOX2D_SCALE);
+
+	float cscale = Director::getInstance()->getContentScaleFactor();
     
 #pragma mark : Goal door
     Texture2D* image = _assets->get<Texture2D>(GOAL_TEXTURE);
@@ -449,15 +463,18 @@ void GameController::populate() {
     draw->setColor(DEBUG_COLOR);
     draw->setOpacity(DEBUG_OPACITY);
     _goalDoor->setDebugNode(draw); */
-	Texture2D* casterImage = _assets->get<Texture2D>(GOAL_TEXTURE);
-	((PolygonNode*)(_level->_casterPos.object->getObject()->getSceneNode()))->setTexture(casterImage);
-	((PolygonNode*)(_level->_casterPos.object->getObject()->getSceneNode()))->setPolygon(Rect(0, 0, casterImage->getContentSize().width, casterImage->getContentSize().height));
-	_level->_casterPos.object->getObject()->init(_level->_casterPos.position,
-		Size(casterImage->getContentSize().width / scale.x,
-			casterImage->getContentSize().height / scale.y),
-			&casterFilter);
-	_level->_casterPos.object->getObject()->setDebugNode(newDebugNode());
 
+
+	((PolygonNode*)(_level->_casterPos.object->getObject()->getSceneNode()))->initWithTexture(image);
+	((PolygonNode*)(_level->_casterPos.object->getObject()->getSceneNode()))->setScale(cscale / CASTER_SCALE_DOWN);
+	_level->_casterPos.object->getObject()->init(_level->_casterPos.position,
+		Size((image->getContentSize().width * cscale) / (CASTER_SCALE_DOWN * scale.x),
+			(image->getContentSize().height * cscale) / (CASTER_SCALE_DOWN * scale.y)),
+			&casterFilter, false);
+	_level->_casterPos.object->getObject()->setDrawScale(scale);
+	_level->_casterPos.object->getObject()->positionSceneNode();
+	_level->_casterPos.object->getObject()->resetSceneNode();
+	_level->_casterPos.object->getObject()->setDebugNode(newDebugNode());
     addObstacle(_level->_casterPos.object->getObject(), 5);
 
 
@@ -476,10 +493,13 @@ void GameController::populate() {
     draw->setColor(DEBUG_COLOR);
     draw->setOpacity(DEBUG_OPACITY);
     _avatar->setDebugNode(draw); */
-	Texture2D* dudeImage = _assets->get<Texture2D>(DUDE_TEXTURE);
-	((PolygonNode*)(_level->_playerPos.object->getSceneNode()))->setTexture(dudeImage);
-	((PolygonNode*)(_level->_playerPos.object->getSceneNode()))->setPolygon(Rect(0,0,dudeImage->getContentSize().width,dudeImage->getContentSize().height));
-	_level->_playerPos.object->init(_level->_playerPos.position, scale * DUDE_SCALE, &characterFilter, &characterSensorFilter);
+	image = _assets->get<Texture2D>(DUDE_TEXTURE);
+	((PolygonNode*)(_level->_playerPos.object->getSceneNode()))->initWithTexture(image);
+	((PolygonNode*)(_level->_playerPos.object->getSceneNode()))->setScale(cscale / DUDE_SCALE);
+	_level->_playerPos.object->init(_level->_playerPos.position, scale * DUDE_SCALE, &characterFilter, &characterSensorFilter, false);
+	_level->_playerPos.object->setDrawScale(scale);
+	_level->_playerPos.object->positionSceneNode();
+	_level->_playerPos.object->resetSceneNode();
 	_level->_playerPos.object->setDebugNode(newDebugNode());
     addObstacle(_level->_playerPos.object, 4); // Put this at the very front
 
@@ -488,22 +508,28 @@ void GameController::populate() {
 
 	for (LevelInstance::StaticObjectMetadata d : _level->_staticObjects) {
 
-		Texture2D* objectImage = _assets->get<Texture2D>(d.type + OBJECT_TAG);
-		Texture2D* shadowImage = _assets->get<Texture2D>(d.type + SHADOW_TAG);
-		((PolygonNode*)(d.object->getSceneNode()))->setTexture(objectImage);
-		((PolygonNode*)(d.shadow->getSceneNode()))->setTexture(shadowImage);
-		((PolygonNode*)(d.object->getSceneNode()))->setPolygon(Rect(0,0,objectImage->getContentSize().width, objectImage->getContentSize().height));
-		((PolygonNode*)(d.shadow->getSceneNode()))->setPolygon(Rect(0,0,shadowImage->getContentSize().width, shadowImage->getContentSize().height));
-		d.object->init(d.position, Size(objectImage->getContentSize().width / scale.x, objectImage->getContentSize().height / scale.y), &objectFilter);
-		d.shadow->init(d.position, Size(shadowImage->getContentSize().width / scale.x, shadowImage->getContentSize().height / scale.y), &shadowFilter);
+		image = _assets->get<Texture2D>(d.type + OBJECT_TAG);
+		((PolygonNode*)(d.object->getSceneNode()))->initWithTexture(image);
+		((PolygonNode*)(d.object->getSceneNode()))->setScale(cscale);
+		d.object->init(d.position, Size(image->getContentSize().width * cscale / scale.x, image->getContentSize().height * cscale / scale.y), &objectFilter, false);
 
+		image = _assets->get<Texture2D>(d.type + SHADOW_TAG);
+		((PolygonNode*)(d.shadow->getSceneNode()))->initWithTexture(image);		
+		((PolygonNode*)(d.shadow->getSceneNode()))->setScale(cscale);
+		d.shadow->init(d.position, Size(image->getContentSize().width * cscale / scale.x, image->getContentSize().height * cscale / scale.y), &shadowFilter, false);
+
+		d.object->setDrawScale(scale);
+		d.object->positionSceneNode();
+		d.object->resetSceneNode();
+		d.shadow->setDrawScale(scale);
+		d.shadow->positionSceneNode();
+		d.shadow->resetSceneNode();
 		d.object->setDebugNode(newDebugNode());
 		d.shadow->setDebugNode(newDebugNode());
 		d.object->setBodyType(b2_staticBody);
 		addObstacle(d.object, 2);
 		addObstacle(d.shadow, 1);
-
-
+		
 	}
 
 	//addBuilding("b1", "s1", Vec2(10, 10), 0.7f);
@@ -520,18 +546,56 @@ void GameController::populate() {
 	// Play the background music on a loop.
 	/*Sound* source = _assets->get<Sound>(GAME_MUSIC);
 	SoundEngine::getInstance()->playMusic(source, true, MUSIC_VOLUME); */
-	Texture2D* objectImage = _assets->get<Texture2D>(PEDESTRIAN_TEXTURE);
+	image = _assets->get<Texture2D>(PEDESTRIAN_TEXTURE);
 	Texture2D* shadowImage = _assets->get<Texture2D>(PEDESTRIAN_SHADOW_TEXTURE);
 	for (LevelInstance::PedestrianMetadata pd : _level->_pedestrians) {
-		((PolygonNode*)(pd.object->getObject()->getSceneNode()))->setTexture(objectImage);
-		((PolygonNode*)(pd.object->getShadow()->getSceneNode()))->setTexture(shadowImage);
-		((PolygonNode*)(pd.object->getObject()->getSceneNode()))->setPolygon(Rect(0, 0, objectImage->getContentSize().width, objectImage->getContentSize().height));
-		((PolygonNode*)(pd.object->getShadow()->getSceneNode()))->setPolygon(Rect(0, 0, shadowImage->getContentSize().width, shadowImage->getContentSize().height));
-		pd.object->getObject()->init(pd.position, Size(objectImage->getContentSize().width / scale.x, objectImage->getContentSize().height / scale.y), &objectFilter);
-		pd.object->getShadow()->init(pd.position, Size(shadowImage->getContentSize().width / scale.x, shadowImage->getContentSize().height / scale.y), &shadowFilter);
+		((PolygonNode*)(pd.object->getObject()->getSceneNode()))->initWithTexture(image);
+		((PolygonNode*)(pd.object->getObject()->getSceneNode()))->setScale(cscale / PEDESTRIAN_SCALE_DOWN);
+		pd.object->getObject()->init(pd.position, Size((image->getContentSize().width * cscale)
+			/ (scale.x * PEDESTRIAN_SCALE_DOWN), (image->getContentSize().height * cscale)
+			/ (scale.y * PEDESTRIAN_SCALE_DOWN)), &objectFilter, false);
+
+		((PolygonNode*)(pd.object->getShadow()->getSceneNode()))->initWithTexture(shadowImage);
+		((PolygonNode*)(pd.object->getShadow()->getSceneNode()))->setScale(cscale / PEDESTRIAN_SCALE_DOWN);
+		pd.object->getShadow()->init(pd.position, Size((shadowImage->getContentSize().width * cscale)
+			/ (scale.x * PEDESTRIAN_SCALE_DOWN), (shadowImage->getContentSize().height * cscale)
+			/ (PEDESTRIAN_SCALE_DOWN * scale.y)), &shadowFilter, false);
+
+		pd.object->getObject()->setDrawScale(scale);
+		pd.object->getObject()->positionSceneNode();
+		pd.object->getObject()->resetSceneNode();
+		pd.object->getShadow()->setDrawScale(scale);
+		pd.object->getShadow()->positionSceneNode();
+		pd.object->getShadow()->resetSceneNode();
 		pd.object->getObject()->setDebugNode(newDebugNode());
 		pd.object->getShadow()->setDebugNode(newDebugNode());
 		addObstacle(pd.object->getObject(), 3);
+		addObstacle(pd.object->getShadow(), 2);
+	}
+
+	image = _assets->get<Texture2D>(CAR_TEXTURE);
+	shadowImage = _assets->get<Texture2D>(CAR_SHADOW_TEXTURE);
+	for (LevelInstance::CarMetadata pd : _level->_cars) {
+		((PolygonNode*)(pd.object->getObject()->getSceneNode()))->initWithTexture(image);
+		((PolygonNode*)(pd.object->getShadow()->getSceneNode()))->initWithTexture(shadowImage);		
+		((PolygonNode*)(pd.object->getObject()->getSceneNode()))->setScale(cscale / CAR_SCALE_DOWN);
+		((PolygonNode*)(pd.object->getShadow()->getSceneNode()))->setScale(cscale / CAR_SCALE_DOWN);
+		pd.object->getObject()->init(pd.position, Size((image->getContentSize().width * cscale)
+			/ (scale.x * CAR_SCALE_DOWN), (image->getContentSize().height * cscale)
+			/ (scale.y * CAR_SCALE_DOWN)), &objectFilter, false);
+		pd.object->getShadow()->init(pd.position, Size((shadowImage->getContentSize().width * cscale)
+			/ (scale.x * CAR_SCALE_DOWN), (shadowImage->getContentSize().height * cscale)
+			/ (scale.y * CAR_SCALE_DOWN)), &shadowFilter, false);
+		pd.object->getObject()->setDrawScale(scale);
+		pd.object->getObject()->positionSceneNode();
+		pd.object->getObject()->resetSceneNode();
+		pd.object->getShadow()->setDrawScale(scale);
+		pd.object->getShadow()->positionSceneNode();
+		pd.object->getShadow()->resetSceneNode();
+		pd.object->getObject()->setDebugNode(newDebugNode());
+		pd.object->getShadow()->setDebugNode(newDebugNode());
+		addObstacle(pd.object->getObject(), 3);
+
 		addObstacle(pd.object->getShadow(), 2);
 	}
 }
@@ -789,13 +853,15 @@ void GameController::update(float dt) {
 		//_avatar->setJumping( _input.didJump());
 		_level->_playerPos.object->applyForce();
 
-		for (int i = 0; i < carMovers.size(); i++) {
+		/* for (int i = 0; i < carMovers.size(); i++) {
 			OurMovingObject<Car>* car = carMovers[i];
 			car->act();
 			//car->setHorizontalMovement(movvec.x);
 			//car->setVerticalMovement(movvec.y);
 			//car->applyForce();
-		}
+		} */
+		for (LevelInstance::CarMetadata car : _level->_cars) car.object->act();
+		for (LevelInstance::PedestrianMetadata ped : _level->_pedestrians) ped.object->act();
 
 	}
 	else {
@@ -812,7 +878,8 @@ void GameController::update(float dt) {
      */
 	_physics.update(dt);
 
-
+	CCLOG("%f, %f", _level->_playerPos.object->getBody()->GetPosition().x,
+		_level->_playerPos.object->getBody()->GetPosition().y);
     
 	/* if (_avatar->getVX() != 0.0f || _avatar->getVY() != 0.0f) {
 		_worldnode->stopAllActionsByTag(FOLLOW_ACTION_TAG);
@@ -880,7 +947,7 @@ void GameController::preload() {
 
     _assets = AssetManager::getInstance()->getCurrent();
     TextureLoader* tloader = (TextureLoader*)_assets->access<Texture2D>();
-	tloader->loadAsync(BACKGROUND_IMAGE, "textures/Background.png");
+	//tloader->loadAsync(BACKGROUND_IMAGE, "textures/Background.png");
 
 	for (int building_index = 0; building_index < BUILDING_TYPES; building_index++) {
 		tloader->loadAsync(buildingTextures[building_index * 4],
@@ -889,9 +956,9 @@ void GameController::preload() {
 			"textures/buildings/" + buildingTextures[building_index * 4 + 3]);
 	}
 	
-	tloader->loadAsync("car1", "textures/Car1.png");
-	tloader->loadAsync("car1s", "textures/Car1_S.png");
-	tloader->loadAsync("car2", "textures/Car2.png");
+	//tloader->loadAsync("car1", "textures/Car1.png");
+	//tloader->loadAsync("car1s", "textures/Car1_S.png");
+	//tloader->loadAsync("car2", "textures/Car2.png");
 	//tloader->loadAsync("car2s", "textures/Car2_S.png");
 
 	tloader->loadAsync(EXPOSURE_BAR, "textures/exposure_bar.png");
@@ -900,6 +967,8 @@ void GameController::preload() {
     tloader->loadAsync(DUDE_TEXTURE,    "textures/ShadeDude.png");
 	tloader->loadAsync(PEDESTRIAN_TEXTURE, "textures/pedestrian_td.png");
 	tloader->loadAsync(PEDESTRIAN_SHADOW_TEXTURE, "textures/pedestrian_s_td.png");
+	tloader->loadAsync(CAR_TEXTURE, "textures/Car1.png");
+	tloader->loadAsync(CAR_SHADOW_TEXTURE, "textures/Car1_S.png");
     tloader->loadAsync(BULLET_TEXTURE,  "textures/bullet.png");
     tloader->loadAsync(GOAL_TEXTURE,    "textures/owner.png");
 	tloader->loadAsync(PLANT1_TEXTURE, "textures/Plant1.png");
@@ -938,6 +1007,14 @@ void GameController::preload() {
 		reader.advance();
 	}
 	reader.endArray();
+	reader.endJSON();
+
+	reader.initWithFile(LEVEL_ONE_FILE);
+	if (!reader.startJSON()) {
+		CCASSERT(false, "Failed to load background image");
+		return;
+	}
+	tloader->loadAsync(BACKGROUND_IMAGE, "textures/backgrounds/" + reader.getString("name") + "." + reader.getString("imageFormat"));
 }
 
 /**

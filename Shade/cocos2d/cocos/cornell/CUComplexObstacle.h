@@ -25,7 +25,7 @@
 NS_CC_BEGIN
 
 #pragma mark -
-#pragma mark Simple Obstacle
+#pragma mark Complex Obstacle
 
 
 /**

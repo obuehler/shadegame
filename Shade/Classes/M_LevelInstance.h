@@ -25,6 +25,8 @@
 #define CHARACTER_SENSOR_BIT 0x10
 /** Category bit for the character itself */
 #define CHARACTER_BIT 0x20
+/** Default scale from Box2D to intended pixel coordinates */
+#define BOX2D_SCALE 50.0f
 
 using namespace std;
 using namespace cocos2d;
@@ -62,8 +64,6 @@ public:
 
 	static const map<string, StaticObjectType> staticObjectMap; */
 
-	static Size rootSize;
-
 
 	enum struct MovingObjectType {
 		PEDESTRIAN, CAR
@@ -100,7 +100,6 @@ public:
 	typedef MovingObjectMetadata<Car> CarMetadata;
 
 	int _levelIndex;
-	string _backgroundPath;
 	Size _size;
 	ShadowMetadata _playerPos;
 	CasterMetadata _casterPos;

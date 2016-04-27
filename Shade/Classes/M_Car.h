@@ -7,6 +7,8 @@
 #include <cornell.h>
 //#include "M_MovingObject.h"
 
+#define CAR_SCALE_DOWN 5.0f
+
 using namespace cocos2d;
 using namespace std;
 

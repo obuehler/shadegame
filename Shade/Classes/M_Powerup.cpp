@@ -12,7 +12,7 @@
 */
 Powerup* Powerup::create(const Vec2& pos, const PowerupType& t, int i) {
 	Powerup* p = new (std::nothrow) Powerup();
-	if (p && p->init(pos, t, i)) {
+	if (p && p->init(pos, t, i, true)) {
 		p->autorelease();
 		return p;
 	}
@@ -21,8 +21,8 @@ Powerup* Powerup::create(const Vec2& pos, const PowerupType& t, int i) {
 };
 
 /** Initializes a new power-up object with the supplied position and index. */
-bool Powerup::init(const Vec2& pos, const PowerupType& t, int i) {
-	if (CapsuleObstacle::init(pos)) {
+bool Powerup::init(const Vec2& pos, const PowerupType& t, int i, bool resetDrawScale) {
+	if (CapsuleObstacle::init(pos, resetDrawScale)) {
 		_type = t;
 		_index = i;
 		setDensity(0.0f);

@@ -291,7 +291,7 @@ CC_CONSTRUCTOR_ACCESS:
 		_sensorCount(0), _sensorFixtures(nullptr), _unorderedSets(nullptr) { }
 
     /**
-     * Initializes a new dude at the origin.
+     * Initializes a new dude with no attributes.
      *
      * The dude is scaled so that 1 pixel = 1 Box2d unit
      *
@@ -304,7 +304,7 @@ CC_CONSTRUCTOR_ACCESS:
      */
 	// COMMENTED OUT FOR DYNAMIC LEVEL LOADING
     //virtual bool init() override { return init(Vec2::ZERO, Vec2::ONE); }
-	virtual bool init() override;
+	virtual bool init() override { return Obstacle::init(); }
     
     /**
      * Initializes a new dude at the given position.
@@ -320,7 +320,7 @@ CC_CONSTRUCTOR_ACCESS:
      *
      * @return  true if the obstacle is initialized properly, false otherwise.
      */
-    virtual bool init(const Vec2& pos) override { return init(pos, Vec2::ONE); }
+    virtual bool init(const Vec2& pos, bool resetDrawScale) override { return init(pos, Vec2::ONE, resetDrawScale); }
     
     /**
      * Initializes a new dude at the given position.
@@ -337,7 +337,7 @@ CC_CONSTRUCTOR_ACCESS:
      *
      * @return  true if the obstacle is initialized properly, false otherwise.
      */
-	virtual bool init(const Vec2& pos, const Vec2& scale) { return init(pos, scale, nullptr, nullptr); }
+	virtual bool init(const Vec2& pos, const Vec2& scale, bool resetDrawScale) { return init(pos, scale, nullptr, nullptr, resetDrawScale); }
 
 	/**
 	* Initializes a new dude at the given position.
@@ -354,7 +354,7 @@ CC_CONSTRUCTOR_ACCESS:
 	*
 	* @return  true if the obstacle is initialized properly, false otherwise.
 	*/
-	virtual bool init(const Vec2& pos, const Vec2& scale, const b2Filter* const characterFilter, const b2Filter* const sensorFilter);
+	virtual bool init(const Vec2& pos, const Vec2& scale, const b2Filter* const characterFilter, const b2Filter* const sensorFilter, bool resetDrawScale);
 };
 
 #endif /* __M_SHADOW_H__ */
