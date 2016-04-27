@@ -14,7 +14,9 @@ using namespace std;
 /** Linked list of ActionNodes. Manipulated by the AI Controller. */
 
 template <class T>
-class ActionQueue : Ref {
+class ActionQueue : public Ref {
+
+	CC_DISALLOW_COPY_AND_ASSIGN(ActionQueue<T>);
 
 private:
 	class ActionNode;
@@ -64,31 +66,48 @@ public:
 		cout << "-------------------------------" << endl;
 	}
 */
-
+	
 	ActionQueue<T>() : _head(nullptr), _tail(nullptr), _initialHead(nullptr) {}
 
-	/** Creates a new ActionQueue from the given action chain. */
-	ActionQueue<T>(ActionNode& action) { initialize(action); }
-
-	/** Creates a new ActionQueue from the given action chain that already
-	* survives in a shared pointer. */
-	ActionQueue<T>(shared_ptr<ActionNode> actionPtr) { initialize(actionPtr); }
-
 	static ActionQueue<T> * create() {
-		ActionQueue* q = new (std::nothrow) ActionQueue();
+		ActionQueue<T>* q = new (std::nothrow) ActionQueue<T>();
 		if (q && q->init()) {
-			//q->autorelease();
+			q->autorelease();
 			return q;
 		}
 		CC_SAFE_DELETE(q);
 		return nullptr;
 	}
 
-	bool init() {
-		_head = nullptr;
-		_tail = nullptr;
-		_initialHead = nullptr;
-		return true;
+	static ActionQueue<T> * create(ActionNode& action) {
+		ActionQueue<T>* q = new (std::nothrow) ActionQueue<T>();
+		if (q && q->initialize(action)) {
+			q->autorelease();
+			return q;
+		}
+		CC_SAFE_DELETE(q);
+		return nullptr;
+	}
+
+	static ActionQueue<T> * create(shared_ptr<ActionNode> actionPtr) {
+		ActionQueue<T>* q = new (std::nothrow) ActionQueue<T>();
+		if (q && q->initialize(actionPtr)) {
+			q->autorelease();
+			return q;
+		}
+		CC_SAFE_DELETE(q);
+		return nullptr;
+	}
+
+	/** Creates a copy of queue with new copies of all action nodes */
+	static ActionQueue<T> * create(ActionQueue<T>& queue) {
+		ActionQueue<T>* q = new (std::nothrow) ActionQueue<T>();
+		if (q && q->init(queue)) {
+			q->autorelease();
+			return q;
+		}
+		CC_SAFE_DELETE(q);
+		return nullptr;
 	}
 
 	/** Returns whether the queue is empty by checking if _head is nullptr. */
@@ -139,47 +158,49 @@ public:
 		}
 	}
 
-	inline void pushOne(ActionNode& action) {
-		setTailNext(make_shared<ActionNode>(action));
-		bumpTail();
-	}
-
 	/** Pushes a copy of an action onto the queue. The copy does not
 	* preserve the _next attribute, it sets it to nullptr. */
 	void pushCopy(ActionNode action) {
-		pushOne(action);
+		pushNode(make_shared<ActionNode>(action));
 	}
 
 	/** Constructs a new ActionNode with the given arguments and pushes it
 	* onto the queue. */
-	void push(ActionType type, int length) {  // TODO replace char with T
-		pushNode(ActionNode(type, length));
+	void push(ActionType type, int length) {
+		pushNode(make_shared<ActionNode>(ActionNode(type, length)));
 	}
 
 	/** Constructs a new ActionNode with the given arguments and pushes it
 	* onto the queue. */
-	void push(ActionType type) { // TODO replace char with T
-		pushNode(ActionNode(type));
+	void push(ActionType type) {
+		pushNode(make_shared<ActionNode>(ActionNode(type)));
 	}
 
 	/** Constructs a new ActionNode with the given arguments and pushes it
 	* onto the queue. */
-	void push(ActionType type, int length, int counter) { // TODO replace char with T
-		pushNode(ActionNode(type, length, counter));
+	void push(ActionType type, int length, int counter) {
+		pushNode(make_shared<ActionNode>(ActionNode(type, length, counter)));
+	}
+
+	/** Constructs a new ActionNode with the given arguments and pushes it
+	* onto the queue. */
+	void push(ActionType type, int length, int counter, float heading) {
+		pushNode(make_shared<ActionNode>(ActionNode(type, length, counter, heading)));
 	}
 
 	/** Pushes the given node onto the queue. */
-	void pushNode(ActionNode& action) {
-		if (_head == nullptr) {
+	void pushNode(shared_ptr<ActionNode> action) {
+		if (isEmpty()) {
 			initialize(action);
 		}
 		else {
-			pushOne(action);
+			setTailNext(action);
+			bumpTail();
 		}
 	}
 
 	/** Reinitializes the queue from the queue supplied. */
-	void reinitialize(const ActionQueue& actions) {
+	void reinitialize(const ActionQueue<T>& actions) {
 		_head = actions._head;
 		_tail = actions._tail;
 		_initialHead = actions._initialHead;
@@ -196,17 +217,20 @@ public:
 	*						after finishing the forced section or continue from
 	*						where it left off.
 	*/
-	void force(const ActionQueue& actions, bool fromBeginning) {
+	void force(const ActionQueue<T>& queue, bool fromBeginning) {
+		ActionQueue<T> actions;
+		actions.init(queue);
 		if (_head == nullptr) { // This queue is empty
 			reinitialize(actions);
 		}
 		else if (actions.tailHasNext()) { // actions is cyclic
 
-										  // Retain _initialHead to check for circular references. Wrap a copy in
-										  // a new ActionQueue in order to manipulate _next without declaring an
-										  // additional friend function or changing _next's access specifier,
-										  // through the setTailNext() function which is a friend of ActionNode.
-			ActionQueue temp(_initialHead);
+			// Retain _initialHead to check for circular references. Wrap a copy in
+			// a new action queue in order to manipulate _next without declaring an
+			// additional friend function or changing _next's access specifier,
+			// through the setTailNext() function which is a friend of ActionNode.
+			ActionQueue<T> temp;
+			temp.pushNode(_initialHead);
 
 			reinitialize(actions);
 			int useCount = temp._head.use_count();
@@ -273,14 +297,50 @@ private:
 	* @friendof ActionNode
 	*/
 	bool tailLinksTo(shared_ptr<ActionNode> action) {
-		return _tail != nullptr &&_tail->_next == action;
+		return _tail != nullptr &&_tail->getNext() == action;
+	}
+
+	// INITIALIZATION
+
+	bool init() {
+		_head = nullptr;
+		_tail = nullptr;
+		_initialHead = nullptr;
+		return true;
+	}
+
+	bool init(const ActionQueue<T>& actions) {
+		assert((actions._initialHead == nullptr) == (actions._head == nullptr));
+		if (init()) {
+			shared_ptr<ActionNode> current = actions._head;
+			bool initialHeadSet = false;
+			while (current != nullptr) {
+				if (!initialHeadSet) {
+					pushCopy(*current);
+					if (current == actions._initialHead) {
+						_initialHead = _tail;
+						initialHeadSet = true;
+					}
+				}
+				else if (current == actions._initialHead) {
+					setTailNext(_initialHead);
+					return true;
+				}
+				else {
+					pushCopy(*current);
+				}
+				current = current->getNext();
+			}
+			return true;
+		}
+		return false;
 	}
 
 	/** Empties the queue and reinitializes it with the supplied action.
 	*
 	* @param	actionPtr	Points to the action to reinitialize the queue with
 	*/
-	void initialize(shared_ptr<ActionNode> actionPtr) {
+	bool initialize(shared_ptr<ActionNode> actionPtr) {
 		// Initialize the shared pointers
 		_head = shared_ptr<ActionNode>(actionPtr);  // copies actionPtr
 		_tail = shared_ptr<ActionNode>(actionPtr);  // copies actionPtr
@@ -288,13 +348,14 @@ private:
 		//
 		// Correct the tail
 		resetTail();
+		return true;
 	}
 
 	/** Empties the queue and reinitializes it with the supplied action.
 	*
 	* @param	action		The action to reinitialize the queue with
 	*/
-	void initialize(ActionNode& action) {
+	bool initialize(ActionNode& action) {
 		// Initialize the shared pointers
 		_head = make_shared<ActionNode>(action);
 		_tail = shared_ptr<ActionNode>(_head);  // copies _head
@@ -302,6 +363,7 @@ private:
 		//
 		// Correct the tail
 		resetTail();
+		return true;
 	}
 
 	/**
@@ -313,7 +375,7 @@ private:
 	*/
 	shared_ptr<ActionNode> bumpHead() {
 		shared_ptr<ActionNode> action(_head);
-		_head = _head->_next;
+		_head = _head->getNext();
 		// Reset initialHead if about to be popped from the queue
 		if (_initialHead == action && !tailLinksTo(action)) {
 			_initialHead = _head;
@@ -327,18 +389,25 @@ private:
 	*
 	* @friendof ActionNode
 	*/
-	void bumpTail() { _tail = _tail->_next; }
+	void bumpTail() { _tail = _tail->getNext(); }
 
 	/**
 	* Sets _tail->_next for cycling purposes.
 	*
 	* @friendof ActionNode
 	*/
-	void setTailNext(shared_ptr<ActionNode> next) const { _tail->_next = next; }
+	void setTailNext(shared_ptr<ActionNode> next) { 
+		if (tailHasNext()) {
+			_tail->_next = next;
+		}
+		else {
+			initialize(next);
+		}
+	}
 
 	/** Returns whether _tail points to another ActionNode. */
 	const bool tailHasNext() const {
-		if (_tail != nullptr && _tail->_next != nullptr) {
+		if (_tail != nullptr && _tail->getNext() != nullptr) {
 			/* cout << (_tail->_next == _head) << endl;
 			cout << (_tail->_next == _initialHead) << endl; */
 			//assert(_tail->_next == _initialHead);  TODO uncomment
@@ -352,12 +421,8 @@ private:
 	private:
 		shared_ptr<ActionNode> _next;
 	public:
-		friend shared_ptr<ActionNode> ActionQueue::bumpHead();
-		friend void ActionQueue::bumpTail();
-		friend void ActionQueue::setTailNext(shared_ptr<ActionNode> next) const;
-		friend bool ActionQueue::tailLinksTo(shared_ptr<ActionNode> action);
-		friend const bool ActionQueue::tailHasNext() const;
-		//friend void ActionQueue::printContents();  // TODO remove this
+
+		friend void ActionQueue<T>::setTailNext(shared_ptr<ActionNode> next);
 
 		ActionType _type;
 		int _length;
@@ -401,6 +466,8 @@ private:
 			// destroyed automatically if there is nothing pointing to it.
 			_next = nullptr;  // THIS SHOULD COME LAST FOR TAIL RECURSION.
 		}
+
+		const shared_ptr<ActionNode> getNext() const { return _next; }
 	};
 
 };
