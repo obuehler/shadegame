@@ -266,6 +266,7 @@ bool GameController::init(RootLayer* root, const Rect& rect) {
     _input.start();
 
 	_physics.init(rect);
+	_ai.init(pedMovers, _caster, _avatar);
 
     _debugnode = PolygonNode::create();
     _winnode = Label::create();
@@ -400,10 +401,12 @@ void GameController::populate() {
     
     // Create obstacle
     Vec2 goalPos = GOAL_POS;
-    Size goalSize(image->getContentSize().width*cscale/_scale.x,
-                  image->getContentSize().height*cscale/_scale.y);
+    //Size goalSize(image->getContentSize().width*cscale/_scale.x,
+    //             image->getContentSize().height*cscale/_scale.y);
+	Size goalSize(10, 10);
     _goalDoor = BoxObstacle::create(goalPos, goalSize, &_casterFilter);
     _goalDoor->setDrawScale(_scale.x, _scale.y);
+	
     
     // Set the physics attributes
     _goalDoor->setBodyType(b2_dynamicBody);
@@ -414,7 +417,8 @@ void GameController::populate() {
     
     // Add the scene graph nodes to this object
     sprite = PolygonNode::createWithTexture(image);
-    sprite->setScale(cscale);
+    sprite->setScale(cscale / 7.0f);
+	//sprite->setContentSize(Size(10, 10));
     _goalDoor->setSceneNode(sprite);
     
     draw = WireNode::create();
@@ -462,11 +466,13 @@ void GameController::populate() {
 	//addBuilding("b2", "s2", Vec2(15, 25), 1.8f);
 
 #pragma mark : Movers
-	Vec2 movPos = { 32.5f, 10.0f };
+	Vec2 movPos = { 33.5f, 10.0f };
 	float scale = 0.3f;
-	const char * mname = "car1";
-	const char * sname = "car1s";
+	const char * mname = "car2";
+	const char * sname = "car2s";
 	addMover(mname, sname, movPos, scale);
+
+	addPedestrian("ped1", "ped1s", { 12,15 }, .5f);
 }
 
 /**
@@ -530,7 +536,7 @@ void GameController::addMover(
 	float scale
 	) {
 	float cscale = Director::getInstance()->getContentScaleFactor();
-	Vec2 offset = { 1.75,-1.5 };
+	Vec2 offset = { 1.5,-1.5 };
 	// Create mover shadow boxobstacle
 	auto * image = _assets->get<Texture2D>(sname);
 	auto * sprite = PolygonNode::createWithTexture(image);
@@ -587,6 +593,63 @@ void GameController::addMover(
 	_mover->retain();
 }
 
+void GameController::addPedestrian(
+	const char * mname,
+	const char * sname,
+	const Vec2& movPos,
+	float scale
+	) {
+	float cscale = Director::getInstance()->getContentScaleFactor();
+	Vec2 offset = { 0.0,0.0 };
+	// Create mover shadow boxobstacle
+	auto * image = _assets->get<Texture2D>(sname);
+	auto * sprite = PolygonNode::createWithTexture(image);
+	sprite->setScale(scale);
+	Size ss(image->getContentSize().width*scale / _scale.x,
+		image->getContentSize().height*scale / _scale.y);
+	//Vec2 spos(movPos.x + offset.x, movPos.y + offset.y);
+	Vec2 spos = movPos + offset;
+	auto* boxob = BoxObstacle::create(spos, ss, &_shadowFilter);
+	boxob->setDrawScale(_scale.x, _scale.y);
+	boxob->setName(std::string(SHADOW_NAME));
+	boxob->setBodyType(b2_dynamicBody);
+	boxob->setDensity(0);
+	boxob->setFriction(0);
+	boxob->setRestitution(0);
+	boxob->setSensor(true);
+	boxob->setSceneNode(sprite);
+	auto * draw = WireNode::create();
+	draw->setColor(DEBUG_COLOR);
+	draw->setOpacity(DEBUG_OPACITY);
+	boxob->setDebugNode(draw);
+	addObstacle(boxob, 1);
+
+	// Create mover boxobstacle
+	image = _assets->get<Texture2D>(mname);
+	sprite = PolygonNode::createWithTexture(image);
+	sprite->setScale(scale);
+	auto* mbox = BoxObstacle::create(movPos, ss, &_objectFilter);
+	mbox->setDrawScale(_scale.x, _scale.y);
+	mbox->setName(std::string(SHADOW_NAME));
+	mbox->setBodyType(b2_dynamicBody);
+	mbox->setDensity(0);
+	mbox->setFriction(0);
+	mbox->setRestitution(0);
+	mbox->setSensor(true);
+	mbox->setSceneNode(sprite);
+	draw = WireNode::create();
+	draw->setColor(DEBUG_COLOR);
+	draw->setOpacity(DEBUG_OPACITY);
+	mbox->setDebugNode(draw);
+	addObstacle(mbox, 4);
+
+	// Create mover
+	OurMovingObject<Pedestrian>* _ped = OurMovingObject<Pedestrian>::create(movPos, mbox, boxob);
+
+	pedMovers.push_back(_ped);
+	_ped->retain();
+}
+
 
 /**
  * Immediately adds the object to the physics world
@@ -621,6 +684,7 @@ void GameController::addObstacle(Obstacle* obj, int zOrder) {
  */
 void GameController::reset() {
 	_physics.reset();
+	_ai.reset();
     _worldnode->removeAllChildren();
     _debugnode->removeAllChildren();
 	carMovers.clear();
@@ -686,7 +750,7 @@ void GameController::setFailure(bool value) {
  * @param  delta    Number of seconds since last animation frame
  */
 void GameController::update(float dt) {
-	OurMovingObject<Car> * mov = carMovers[0];
+	_ai.update();
 	_input.update(dt);
 
 	// Process the toggled key commands
@@ -711,6 +775,11 @@ void GameController::update(float dt) {
 			//car->setHorizontalMovement(movvec.x);
 			//car->setVerticalMovement(movvec.y);
 			//car->applyForce();
+		}
+
+		for (int i = 0; i < pedMovers.size(); i++) {
+			OurMovingObject<Pedestrian>* ped = pedMovers[i];
+			ped->act();
 		}
 	}
 	else {
@@ -813,6 +882,10 @@ void GameController::preload() {
 	tloader->loadAsync("car2", "textures/Car2.png");
 	tloader->loadAsync("car2s", "textures/Car2_S.png");
 
+	// Pedestrians
+	tloader->loadAsync("ped1", "textures/Pedestrian.png");
+	tloader->loadAsync("ped1s", "textures/Pedestrian_S.png");
+
 	//Caster
 	//tloader->loadAsync("caster", "textures/Car1_S.png");
 
@@ -820,7 +893,7 @@ void GameController::preload() {
 	tloader->loadAsync(EXPOSURE_FRAME, "textures/exposure_bar_frame.png");
 	//tloader->loadAsync(EARTH_TEXTURE,   "textures/earthtile.png", params);
     tloader->loadAsync(DUDE_TEXTURE,    "textures/ShadeDude.png");
-    tloader->loadAsync(GOAL_TEXTURE,    "textures/goaldoor.png");
+    tloader->loadAsync(GOAL_TEXTURE,    "textures/Owner.png");
 	tloader->loadAsync(BACKGROUND_TEXTURE, "textures/Background.png");
     _assets->loadAsync<Sound>(GAME_MUSIC,   "sounds/DD_Main.mp3");
     _assets->loadAsync<Sound>(WIN_MUSIC,    "sounds/DD_Victory.mp3");

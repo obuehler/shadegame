@@ -9,7 +9,7 @@ void Caster::act(Caster::ActionType action, BoxObstacle * object, BoxObstacle * 
 	b2Body* obody;
 	Vec2 pos = object->getPosition();
 
-	float angle = object->getAngle() - M_PI;
+	float angle = object->getAngle();
 	float speed = 2.0f; // Speed should be pulled out and made a parameter
 
 	//CCLOG("%f", angle);

@@ -31,6 +31,7 @@
 #include "M_Powerup.h"
 #include "M_Car.h"
 #include "M_Caster.h"
+#include "M_Pedestrian.h"
 #include "C_AI.h"
 #include "C_Physics.h"
 
@@ -67,7 +68,9 @@ class GameController {
 private:
 
 	vector<OurMovingObject<Car>*> carMovers;
+	vector<OurMovingObject<Pedestrian>*> pedMovers;
 	OurMovingObject<Caster>* _caster;
+
 
 	/**
 	* Add a horizontal building and shadow to the world.
@@ -93,6 +96,12 @@ private:
 		const Vec2& pos,
 		float scale
 	);
+
+	void addPedestrian(const char* mname,
+		const char* sname,
+		const Vec2& pos,
+		float scale
+		);
 
 
 protected:
