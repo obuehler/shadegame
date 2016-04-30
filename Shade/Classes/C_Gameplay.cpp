@@ -205,9 +205,6 @@ const string buildingTextures[] = {
 /** The volume for sound effects */
 #define EFFECT_VOLUME   0.8f
 
-#define LEVEL_ONE_KEY "level1"
-#define LEVEL_ONE_FILE "levels/level1.shadl"
-
 /** Color to outline the physics nodes */
 #define DEBUG_COLOR     Color3B::YELLOW
 /** Opacity of the physics outlines */
@@ -232,13 +229,15 @@ b2Filter GameController::characterSensorFilter = b2Filter(CHARACTER_SENSOR_BIT, 
  * This constructor does not allocate any objects or start the controller.
  * This allows us to use a controller without a heap pointer.
  */
-GameController::GameController() :
+GameController::GameController(string& levelkey, string& levelpath) :
 _rootnode(nullptr),
 _worldnode(nullptr),
 _backgroundnode(nullptr),
 _debugnode(nullptr),
 _active(false),
-_debug(false)
+_debug(false),
+_levelKey(levelkey),
+_levelPath(levelpath)
 {
 }
 
@@ -250,8 +249,7 @@ _debug(false)
  * memory allocation.  Instead, allocation happens in this method.
  *
  * The game world is scaled so that the screen coordinates do not agree
- * with the Box2d coordinates.  This initializer uses the default scale.
- *
+ * with the Box2d coordinates.  This initializer uses the default scale *
  * @retain a reference to the root layer
  * @return  true if the controller is initialized properly, false otherwise.
  */
@@ -277,7 +275,7 @@ _debug(false)
  */
 bool GameController::init(RootLayer* root) {
 
-	_level = _assets->get<LevelInstance>(LEVEL_ONE_KEY);
+	_level = _assets->get<LevelInstance>(_levelKey);
 
 	if (_level == nullptr || root == nullptr) {
 		return false;
@@ -996,7 +994,7 @@ void GameController::preload() {
     _assets->loadAsync<Sound>(PEW_EFFECT,   "sounds/pew.mp3");
     _assets->loadAsync<Sound>(POP_EFFECT,   "sounds/plop.mp3");
     _assets->loadAsync<TTFont>(MESSAGE_FONT,"fonts/RetroGame.ttf");
-	_assets->loadAsync<LevelInstance>(LEVEL_ONE_KEY, LEVEL_ONE_FILE);
+	_assets->loadAsync<LevelInstance>(_levelKey, _levelPath);
 
 	
 
@@ -1023,7 +1021,7 @@ void GameController::preload() {
 	reader.endArray();
 	reader.endJSON();
 
-	reader.initWithFile(LEVEL_ONE_FILE);
+	reader.initWithFile(_levelPath);
 	if (!reader.startJSON()) {
 		CCASSERT(false, "Failed to load background image");
 		return;

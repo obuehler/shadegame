@@ -18,7 +18,7 @@
 #include <cocos2d.h>
 #include <cornell.h>
 #include "M_LevelInstance.h"
-#include "C_Gameplay.h"
+#include "C_MainMenu.h"
 //#include "M_LevelInstance.h"
 
 
@@ -40,7 +40,7 @@ class PlatformRoot : public RootLayer {
 protected:
 	// CONTROLLERS
 	/** The primary controller for the game world */
-	GameController _gameplay;
+	MainMenuController _gameplay;
 
 	/** Whether or not we have finished preloading all assets */
 	bool _preloaded;

@@ -143,6 +143,10 @@ public:
 		return object;
 	}
 
+	Vec2 getPosition(){
+		return object->getPosition();
+	}
+
 	void releaseShadow() {
 		if (shadow != nullptr) shadow->release();
 	}

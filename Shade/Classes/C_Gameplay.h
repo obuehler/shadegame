@@ -142,6 +142,10 @@ protected:
 	Poly2 _exposurepoly;
 	/** Reference to the exposure bar frame */
 	Sprite* _exposureframe;
+	// Level key string
+	string _levelKey;
+	/** Path to the level file */
+	string _levelPath;
 
     // Physics objects for the game
     /** Reference to the goalDoor (for collision detection) */
@@ -295,7 +299,7 @@ public:
      * This constructor does not allocate any objects or start the controller.
      * This allows us to use a controller without a heap pointer.
      */
-    GameController();
+    GameController(string& levelkey, string& levelpath);
     
     /**
      * Disposes of all (non-static) resources allocated to this mode.
