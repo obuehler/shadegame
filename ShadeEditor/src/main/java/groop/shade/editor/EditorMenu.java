@@ -105,7 +105,7 @@ public class EditorMenu extends JMenu {
 										super.approveSelection();
 										String shadowPath = getSelectedFile().getAbsolutePath();
 										if (shadowPath != null) {
-											StaticObjectType newType = new StaticObjectType(name, 1.0);
+											StaticObjectType newType = new StaticObjectType(name);
 											BuildingImageCopier copier = new BuildingImageCopier(objectPath, shadowPath, newType, s, menu);
 											copier.execute();
 										}

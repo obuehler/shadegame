@@ -39,7 +39,7 @@ public class StaticObjectIcon extends StageIcon {
 	@Override
 	protected void setDisplayIcon() {
 		setDisplayIcon(staticObjectType.getIconPath(), staticObjectType.getIconShadowPath(),
-				staticObjectType.getDefaultScale());
+				staticObjectType.getScale());
 	}
 
 	@Override

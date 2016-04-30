@@ -3,22 +3,23 @@
 #include "M_Car.h"
 #include <cocos2d.h>
 
+#define CAR_SPEED 2.0f
+
 using namespace cocos2d;
 
-void Car::act(Car::ActionType action, BoxObstacle * object, BoxObstacle * shadow) {
+void Car::act(Car::ActionType action, int actionLength, int actionCounter, BoxObstacle * object, BoxObstacle * shadow) {
 	b2Vec2 moveVector;
 	b2Body* obody;
 	b2Body* sbody;
 	Vec2 pos = object->getPosition();
 
-	float angle = object->getAngle() - M_PI;
-	float speed = 2.0f; // Speed should be pulled out and made a parameter
+	float angle = object->getAngle();
 
 	//CCLOG("%f", angle);
 	switch (action) {
 		case GO: // Go forward in the current direction
 			//CCLOG("%s", "GO");
-			moveVector = b2Vec2(speed*cos(angle), speed*sin(angle));
+			moveVector = b2Vec2(CAR_SPEED*cos(angle), CAR_SPEED*sin(angle));
 			obody = object->getBody();
 			obody->SetLinearVelocity(moveVector);
 			sbody = shadow->getBody();

@@ -16,7 +16,7 @@ struct Pedestrian {
 
 	static const map<string, ActionType> actionMap;
 
-	static void act(ActionType, BoxObstacle*, BoxObstacle*) {} // TODO define this
+	static void act(ActionType action, int actionLength, int actionCounter, BoxObstacle* object, BoxObstacle* shadow) {} // TODO define this
 };
 
 #endif /* __M_PEDESTRIAN_H__ */

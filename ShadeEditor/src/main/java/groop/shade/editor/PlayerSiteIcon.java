@@ -23,7 +23,7 @@ public class PlayerSiteIcon extends StageIcon {
 		setDisplayIcon(PlayerSite.DEFAULT_SCALE);
 	}
 
-	protected void setDisplayIcon(double scale) {
+	protected void setDisplayIcon(float scale) {
 		setDisplayIcon(PlayerSite.IMAGE_PATH, scale);
 		editor.stage.playerSite.scale = scale;
 	}

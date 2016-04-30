@@ -380,7 +380,6 @@ bool GameController::init(RootLayer* root) {
 
     // Now populate the physics objects
     populate();
-	Follow* followAction = Follow::create(_level->_playerPos.object->getSceneNode());
 	_worldnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO change when lazy camera implemented
 	_debugnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO change when lazy camera implemented
 	_backgroundnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode()));
@@ -776,6 +775,20 @@ void GameController::reset() {
     setComplete(false);
 	//_level.populateLevel(true) TODO uncomment this after dynamic level loading is implemented
     populate();
+
+	// Reset the moving objects' action queues
+	_level->_casterPos.object->_actionQueue = ActionQueue<Caster>::create();
+	for (LevelInstance::CarMetadata &car : _level->_cars) {
+		car.object->_actionQueue->release();
+		car.object->_actionQueue = ActionQueue<Car>::create(*(car.actions));
+		car.object->_actionQueue->retain();
+	}
+	for (LevelInstance::PedestrianMetadata &ped : _level->_pedestrians) {
+		ped.object->_actionQueue->release();
+		ped.object->_actionQueue = ActionQueue<Pedestrian>::create(*(ped.actions));
+		ped.object->_actionQueue->retain();
+	}
+
 	_worldnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO uncomment when lazy camera implemented
 	_debugnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO uncomment when lazy camera implemented
 }
@@ -864,7 +877,8 @@ void GameController::update(float dt) {
 			//car->setVerticalMovement(movvec.y);
 			//car->applyForce();
 		} */
-		for (LevelInstance::CarMetadata car : _level->_cars) car.object->act();
+		for (LevelInstance::CarMetadata car : _level->_cars) 
+			car.object->act();
 		for (LevelInstance::PedestrianMetadata ped : _level->_pedestrians) ped.object->act();
 
 	}

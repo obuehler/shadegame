@@ -9,5 +9,5 @@ public interface StageType {
 
 	public abstract String getIconShadowPath();
 
-	public abstract double getDefaultScale();
+	public abstract float getDefaultScale();
 }

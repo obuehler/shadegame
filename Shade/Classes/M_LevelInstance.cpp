@@ -196,8 +196,8 @@ bool LevelInstance::initializeMetadata() {
 			failToLoad("Failed to assign caster position.y");
 			return false;
 		}
-		_casterPos.heading = reader.getNumber(HEADING_FIELD, -1.0f);
-		if (_casterPos.heading < 0.0f || _casterPos.heading >= 360.0f) {
+		_casterPos.heading = CC_DEGREES_TO_RADIANS(reader.getNumber(HEADING_FIELD, -90.0f));
+		if (_casterPos.heading < -1.0f) {
 			failToLoad("Failed to assign caster heading");
 			return false;
 		}
@@ -272,8 +272,8 @@ bool LevelInstance::initializeMetadata() {
 					failToLoad("Failed to assign pedestrian " + std::to_string(pedestrianIndex + 1) + " position.y");
 					return false;
 				}
-				data.heading = reader.getNumber(HEADING_FIELD, -1.0f);
-				if (data.heading < 0.0f || data.heading >= 360.0f) {
+				data.heading = CC_DEGREES_TO_RADIANS(reader.getNumber(HEADING_FIELD, -90.0f));
+				if (data.heading < -1.0f) {
 					failToLoad("Failed to assign pedestrian " + std::to_string(pedestrianIndex + 1) + " heading");
 					return false;
 				}
@@ -293,7 +293,7 @@ bool LevelInstance::initializeMetadata() {
 								return false;
 							}
 							if (cyclic2) {
-								actionStartIndex = actionCoun;
+								actionStartIndex = actionInde;
 								queueIsCyclic = true;
 							}
 							reader.endObject();
@@ -334,8 +334,8 @@ bool LevelInstance::initializeMetadata() {
 								failToLoad("Failed to assign pedestrian " + std::to_string(pedestrianIndex + 1) + " action " + std::to_string(actionIndex + 1) + " length");
 								return false;
 							}
-							float heading = reader.getNumber(HEADING_FIELD, -1.0f);
-							if (heading < 0.0f || heading >= 360.0f) {
+							float heading = CC_DEGREES_TO_RADIANS(reader.getNumber(HEADING_FIELD, -90.0f));
+							if (heading < -1.0f) {
 								failToLoad("Failed to assign pedestrian " + std::to_string(pedestrianIndex + 1) + " action " + std::to_string(actionIndex + 1) + " heading");
 								return false;
 							}
@@ -375,8 +375,8 @@ bool LevelInstance::initializeMetadata() {
 								failToLoad("Failed to assign pedestrian " + std::to_string(pedestrianIndex + 1) + " action " + std::to_string(count + 1) + " length");
 								return false;
 							}
-							float heading = reader.getNumber(HEADING_FIELD, -1.0f);
-							if (heading < 0.0f || heading >= 360.0f) {
+							float heading = CC_DEGREES_TO_RADIANS(reader.getNumber(HEADING_FIELD, -90.0f));
+							if (heading < -1.0f) {
 								failToLoad("Failed to assign pedestrian " + std::to_string(pedestrianIndex + 1) + " action " + std::to_string(count + 1) + " heading");
 								return false;
 							}
@@ -429,8 +429,8 @@ bool LevelInstance::initializeMetadata() {
 					failToLoad("Failed to assign car " + std::to_string(carIndex + 1) + " position.y");
 					return false;
 				}
-				data.heading = reader.getNumber(HEADING_FIELD, -1.0f);
-				if (data.heading < 0.0f || data.heading >= 360.0f) {
+				data.heading = CC_DEGREES_TO_RADIANS(reader.getNumber(HEADING_FIELD, -90.0f));
+				if (data.heading < -1.0f) {
 					failToLoad("Failed to assign car " + std::to_string(carIndex + 1) + " heading");
 					return false;
 				}
@@ -450,7 +450,7 @@ bool LevelInstance::initializeMetadata() {
 								return false;
 							}
 							if (cyclic2) {
-								actionStartIndex = actionCoun;
+								actionStartIndex = actionInde;
 								queueIsCyclic = true;
 							}
 							reader.endObject();
@@ -491,8 +491,8 @@ bool LevelInstance::initializeMetadata() {
 								failToLoad("Failed to assign car " + std::to_string(carIndex + 1) + " action " + std::to_string(actionIndex + 1) + " length");
 								return false;
 							}
-							float heading = reader.getNumber(HEADING_FIELD, -1.0f);
-							if (heading < 0.0f || heading >= 360.0f) {
+							float heading = CC_DEGREES_TO_RADIANS(reader.getNumber(HEADING_FIELD, -90.0f));
+							if (heading < -1.0f) {
 								failToLoad("Failed to assign car " + std::to_string(carIndex + 1) + " action " + std::to_string(actionIndex + 1) + " heading");
 								return false;
 							}
@@ -532,8 +532,8 @@ bool LevelInstance::initializeMetadata() {
 								failToLoad("Failed to assign car " + std::to_string(carIndex + 1) + " action " + std::to_string(count + 1) + " length");
 								return false;
 							}
-							float heading = reader.getNumber(HEADING_FIELD, -1.0f);
-							if (heading < 0.0f || heading >= 360.0f) {
+							float heading = CC_DEGREES_TO_RADIANS(reader.getNumber(HEADING_FIELD, -90.0f));
+							if (heading < -1.0f) {
 								failToLoad("Failed to assign car " + std::to_string(carIndex + 1) + " action " + std::to_string(count + 1) + " heading");
 								return false;
 							}

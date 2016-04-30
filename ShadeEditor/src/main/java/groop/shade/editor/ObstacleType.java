@@ -24,8 +24,8 @@ public enum ObstacleType implements StageType {
 		}
 
 		@Override
-		public double getDefaultScale() {
-			return 0.2;
+		public float getDefaultScale() {
+			return 0.2f;
 		}
 	},
 	
@@ -51,8 +51,8 @@ public enum ObstacleType implements StageType {
 		}
 
 		@Override
-		public double getDefaultScale() {
-			return 0.2;
+		public float getDefaultScale() {
+			return 0.2f;
 		}
 	}
 }

@@ -3,18 +3,27 @@ package groop.shade.editor;
 public class StaticObjectType implements StageType {
 
 	private String name;
+	private float scale;
 	public String imageFormat;
 	public String shadowImageFormat;
 	
 	StaticObjectType() {}
 	
-	StaticObjectType(String n, double s)
+	StaticObjectType(String n, float s)
 	{
 		name = n;
 		scale = s;
 		imageFormat = null;
 		shadowImageFormat = null;
 	}
+	
+	StaticObjectType(String n) {
+		name = n;
+		scale = getDefaultScale();
+		imageFormat = null;
+		shadowImageFormat = null;
+	}
+	
 	@Override
 	public String getName() {
 		return name;
@@ -35,9 +44,13 @@ public class StaticObjectType implements StageType {
 		return Constants.STATIC_OBJECT_ASSETS_FILE_PATH() + getName() + "_S." + imageFormat;
 	}
 
+	public float getScale() {
+		return scale;
+	}
+
 	@Override
-	public double getDefaultScale() {
-		return 1.0;
+	public float getDefaultScale() {
+		return 1.0f;
 	}
 	
 	

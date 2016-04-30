@@ -115,9 +115,11 @@ public:
 				shared_ptr<ActionQueue<typename T>::ActionNode> action(_actionQueue->_head);
 				// TODO the act() method of action types take the current and remaining
 				// number of frames as arguments
-				if (_actionQueue->_head->_counter == _actionQueue->_head->_length) {
-					T::act(action->_type, this->object, this->shadow);
+				if (action->_counter == action->_length) {
+					object->setAngle(action->_bearing);
+					shadow->setAngle(action->_bearing);
 				}
+				T::act(action->_type, action->_length, action->_counter, object, shadow);
 				action->_counter--;
 			}
 		}

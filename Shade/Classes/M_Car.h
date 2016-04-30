@@ -17,7 +17,7 @@ struct Car {
 	static const map<string, ActionType> actionMap;
 	ActionType actionType;
 
-	static void act(ActionType, BoxObstacle*, BoxObstacle*);
+	static void act(ActionType action, int actionLength, int actionCounter, BoxObstacle* object, BoxObstacle* shadow);
 };
 
 #endif /* __M_CAR_H__ */

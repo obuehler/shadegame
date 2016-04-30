@@ -14,6 +14,9 @@ using namespace std;
 /** Linked list of ActionNodes. Manipulated by the AI Controller. */
 
 template <class T>
+class OurMovingObject;
+
+template <class T>
 class ActionQueue : public Ref {
 
 	CC_DISALLOW_COPY_AND_ASSIGN(ActionQueue<T>);
@@ -27,8 +30,7 @@ public:
 
 	friend class AIController;
 
-	template <class T>
-	friend class OurMovingObject;
+	friend class OurMovingObject<T>;
 	friend class GameController;
 
 /*
@@ -397,7 +399,7 @@ private:
 	* @friendof ActionNode
 	*/
 	void setTailNext(shared_ptr<ActionNode> next) { 
-		if (tailHasNext()) {
+		if (_tail != nullptr) {
 			_tail->_next = next;
 		}
 		else {

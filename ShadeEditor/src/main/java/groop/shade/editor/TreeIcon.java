@@ -120,8 +120,12 @@ public class TreeIcon extends StageIcon {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				cyclicButtons.beginningOfCycle.data.cycleStart = false;
-				cyclicButtons.beginningOfCycle = null;
+				try {
+					cyclicButtons.beginningOfCycle.data.cycleStart = false;
+					cyclicButtons.beginningOfCycle = null;
+				} catch (NullPointerException e) {
+					e.printStackTrace();
+				}
 			}
 			
 		});

@@ -74,14 +74,14 @@ public abstract class StageIcon extends JLabel {
 	}
 
 	protected void setDisplayIcon(String path) {
-		setDisplayIcon(path, 1.0);
+		setDisplayIcon(path, 1.0f);
 	}
 
 	protected void setDisplayIcon(String path, String shadowPath) {
-		setDisplayIcon(path, shadowPath, 1.0);
+		setDisplayIcon(path, shadowPath, 1.0f);
 	}
 
-	protected void setDisplayIcon(String path, double scale) {
+	protected void setDisplayIcon(String path, float scale) {
 		try {
 			BufferedImage original = ImageIO.read(new File(path));
 			setDisplayIcon(original, scale);
@@ -90,7 +90,7 @@ public abstract class StageIcon extends JLabel {
 		}
 	}
 
-	protected void setDisplayIcon(String path, String shadowPath, double scale) {
+	protected void setDisplayIcon(String path, String shadowPath, float scale) {
 		try {
 			BufferedImage main = ImageIO.read(new File(path));
 			BufferedImage shadow = ImageIO.read(new File(shadowPath));
@@ -106,7 +106,7 @@ public abstract class StageIcon extends JLabel {
 		}
 	}
 
-	protected void setDisplayIcon(BufferedImage original, double scale) {
+	protected void setDisplayIcon(BufferedImage original, float scale) {
 		Image scaled = original.getScaledInstance((int) (original.getWidth() * scale),
 				(int) (original.getHeight() * scale), Image.SCALE_SMOOTH);
 		setDisplayIcon(scaled);
