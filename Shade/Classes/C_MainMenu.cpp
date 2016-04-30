@@ -1,8 +1,10 @@
 #include <string>
 #include <cornell.h>
-#include "C_Gameplay.h"
+#include <cocos2d/cocos/ui/UIButton.h>
+#include "C_MainMenu.h"
 
 using namespace cocos2d;
+using namespace ui;
 using namespace std;
 
 // Define constants here
@@ -16,16 +18,61 @@ MainMenuController::MainMenuController() :
 	_rootnode(nullptr),
 	_worldnode(nullptr),
 	_active(false)
+{
+}
 
 bool MainMenuController::init(RootLayer* root) {
 	return init(root, Rect(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT));
 }
 
 bool MainMenuController::init(RootLayer* root, const Rect& rect) {
+	// Determine the center of the screen
+	Size dimen = root->getContentSize();
+	Vec2 center(dimen.width / 2.0f, dimen.height / 2.0f);
+
+	Texture2D * background = _assets->get<Texture2D>("background");
+	Size bsize = background->getContentSize();
+
 	// Create the scene graph
 	_worldnode = Node::create();
+	_backgroundnode = PolygonNode::createWithTexture(background);
+	_backgroundnode->setScale(dimen.width / bsize.width, dimen.height / bsize.height);
+	_backgroundnode->setPosition(center.x,center.y);
+	_worldnode->addChild(_backgroundnode, 0);
 
 	root->addChild(_worldnode, 0);
+
+	//Add buttons
+	Vec2 start = { 350,450 };
+	int os = 170;
+	int xbutt = 3;
+	int ybutt = 3;
+
+	int ypos = 0;
+	for (int i = 0; i < ybutt; i++) {
+		int xpos = 0;
+		for (int j = 0; j < xbutt; j++) {
+			Button * button = Button::create();
+			Vec2 pos = { start.x + xpos, start.y - ypos };
+
+			button->setTouchEnabled(true);
+			button->loadTextures("textures/Owen.jpg", "textures/Owen.jpg");
+			button->setPosition(pos);
+			button->setScale(.8,.8);
+			root->addChild(button, 1);
+			int num = i*j + j;
+			//Add event listener
+			button->addTouchEventListener([&](Ref* sender, Widget::TouchEventType type) {
+				switch (type) {
+				case Widget::TouchEventType::ENDED:
+					CCLOG("%s#%f", "CLICKERINO", num);
+				}
+			});
+
+			xpos = xpos + os;
+		}
+		ypos = ypos + os;
+	}
 	_rootnode = root;
 	_rootnode->retain();
 
@@ -53,11 +100,10 @@ void MainMenuController::preload() {
 	TextureLoader* tloader = (TextureLoader*)_assets->access<Texture2D>();
 
 
-	// Cars
-	tloader->loadAsync("car1", "textures/Car1.png");
-	tloader->loadAsync("car1s", "textures/Car1_S.png");
-	tloader->loadAsync("car2", "textures/Car2.png");
-	tloader->loadAsync("car2s", "textures/Car2_S.png");
+	// Background
+	tloader->loadAsync("background", "textures/LevelChoice.png");
+	// Button
+	tloader->loadAsync("button", "textures/Owen.jpg");
 }
 
 /**

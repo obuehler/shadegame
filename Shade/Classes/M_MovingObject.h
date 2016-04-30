@@ -68,7 +68,6 @@ public:
 	static OurMovingObject* create(const Vec2& pos, BoxObstacle * m, BoxObstacle * s) {
 		OurMovingObject* mover = new (std::nothrow) OurMovingObject();
 		if (mover && mover->init(pos, m, s)) {
-			CCLOG("%s", "asd");
 			mover->autorelease();
 			//mover->retain();
 			return mover;
@@ -157,6 +156,10 @@ public:
 	}
 	float getVerticalMovement() {
 		return _verticalMovement;
+	}
+
+	Vec2 getPosition() {
+		return object->getPosition();
 	}
 
 	void applyForce() {

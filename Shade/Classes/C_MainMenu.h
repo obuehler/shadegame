@@ -28,9 +28,13 @@ class MainMenuController {
 private:
 
 protected:
+	/** The scene manager for this game demo */
+	SceneManager* _assets;
 	/** Reference to the root node of the scene graph */
 	RootLayer* _rootnode;
 	Node* _worldnode;
+	// Background node
+	PolygonNode* _backgroundnode;
 
 	/** Whether or not this menu is still active */
 	bool _active;
@@ -85,18 +89,6 @@ public:
 	* This method disposes of the world and creates a new one.
 	*/
 	void reset();
-
-	/**
-	* Executes the core gameplay loop of this world.
-	*
-	* This method contains the specific update code for this mini-game. It does
-	* not handle collisions, as those are managed by the parent class WorldController.
-	* This method is called after input is read, but before collisions are resolved.
-	* The very last thing that it should do is apply forces to the appropriate objects.
-	*
-	* @param  delta    Number of seconds since last animation frame
-	*/
-	void update(float dt);
 
 	/**
 	* Clear all memory when exiting.

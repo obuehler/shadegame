@@ -5,6 +5,7 @@
 using namespace cocos2d;
 
 void Car::act(Car::ActionType action, BoxObstacle * object, BoxObstacle * shadow) {
+	CCLOG("%s", "Car act called");
 	b2Vec2 moveVector;
 	b2Body* obody;
 	b2Body* sbody;

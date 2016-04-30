@@ -266,7 +266,6 @@ bool GameController::init(RootLayer* root, const Rect& rect) {
     _input.start();
 
 	_physics.init(rect);
-	_ai.init(pedMovers, _caster, _avatar);
 
     _debugnode = PolygonNode::create();
     _winnode = Label::create();
@@ -473,6 +472,7 @@ void GameController::populate() {
 	addMover(mname, sname, movPos, scale);
 
 	addPedestrian("ped1", "ped1s", { 12,15 }, .5f);
+	_ai.init(pedMovers, _caster, _avatar);
 }
 
 /**
@@ -688,6 +688,7 @@ void GameController::reset() {
     _worldnode->removeAllChildren();
     _debugnode->removeAllChildren();
 	carMovers.clear();
+	pedMovers.clear();
 
 	_input.setZero();
 	_exposure = 0;
@@ -750,7 +751,6 @@ void GameController::setFailure(bool value) {
  * @param  delta    Number of seconds since last animation frame
  */
 void GameController::update(float dt) {
-	_ai.update();
 	_input.update(dt);
 
 	// Process the toggled key commands
@@ -761,6 +761,7 @@ void GameController::update(float dt) {
 	}
 
 	if (!_failed && !_complete) {
+		_ai.update();
 		// Process the movement
 		_avatar->setHorizontalMovement(_input.getHorizontal()*_avatar->getForce());
 		_avatar->setVerticalMovement(_input.getVertical()*_avatar->getForce());
@@ -792,6 +793,12 @@ void GameController::update(float dt) {
 			car->setHorizontalMovement(0.0f);
 			car->setVerticalMovement(0.0f);
 			car->applyForce();
+		}
+		for (int i = 0; i < pedMovers.size(); i++) {
+			OurMovingObject<Pedestrian>* ped = pedMovers[i];
+			ped->setHorizontalMovement(0.0f);
+			ped->setVerticalMovement(0.0f);
+			ped->applyForce();
 		}
 	}
 
@@ -909,5 +916,6 @@ void GameController::preload() {
 */
 void GameController::stop() {
 	_physics.stop();
+	_ai.stop();
 	_avatar->deleteEverything();
 }

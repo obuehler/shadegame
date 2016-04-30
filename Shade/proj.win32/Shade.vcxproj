@@ -146,6 +146,7 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
   <ItemGroup>
     <ClCompile Include="..\Classes\AppDelegate.cpp" />
     <ClCompile Include="..\Classes\C_AI.cpp" />
+    <ClCompile Include="..\Classes\C_MainMenu.cpp" />
     <ClCompile Include="..\Classes\C_Physics.cpp" />
     <ClCompile Include="..\Classes\M_Car.cpp" />
     <ClCompile Include="..\Classes\M_Pedestrian.cpp" />
@@ -159,6 +160,7 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y
   <ItemGroup>
     <ClInclude Include="..\Classes\AppDelegate.h" />
     <ClInclude Include="..\Classes\C_AI.h" />
+    <ClInclude Include="..\Classes\C_MainMenu.h" />
     <ClInclude Include="..\Classes\C_Physics.h" />
     <ClInclude Include="..\Classes\MovingObjectMetadata.h" />
     <ClInclude Include="..\Classes\ActionQueue.h" />

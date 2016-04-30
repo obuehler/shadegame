@@ -18,6 +18,7 @@
 #include <cocos2d.h>
 #include <cornell.h>
 #include "C_Gameplay.h"
+#include "C_MainMenu.h"
 
 
 using namespace cocos2d;
@@ -39,7 +40,7 @@ protected:
 	// CONTROLLERS
 	/** The primary controller for the game world */
 	//MainMenuController _gameplay;
-	GameController _gameplay;
+	MainMenuController _gameplay;
 
 	/** Whether or not we have finished preloading all assets */
 	bool _preloaded;

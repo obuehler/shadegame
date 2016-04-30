@@ -11,6 +11,8 @@ using namespace cocos2d;
 class AIController {
 	friend class GameController;
 
+	bool _active = false;
+
 	vector<OurMovingObject<Pedestrian>*> _pedMovers;
 	OurMovingObject<Caster>* _caster;
 	Shadow* _avatar;
@@ -46,7 +48,7 @@ class AIController {
 
 	void updatePed(OurMovingObject<Pedestrian>*);
 
-	void updateCaster(OurMovingObject<Caster>*);
+	void updateCaster();
 	
 
 
