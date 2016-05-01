@@ -83,7 +83,12 @@ void PlatformRoot::update(float deltaTime) {
         // Transfer control to the gameplay subcontroller
         removeAllChildren();
         _gameplay.init(this);
-    } else if (!_preloaded) {
+	}
+	else if (_gameplay.isActive()) {
+		_gameplay.update(deltaTime);
+	}
+	
+	else if (!_preloaded) {
         _preloaded = true;
         _gameplay.preload();
     }

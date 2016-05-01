@@ -40,7 +40,7 @@ protected:
 	// CONTROLLERS
 	/** The primary controller for the game world */
 	//MainMenuController _gameplay;
-	MainMenuController _gameplay;
+	GameController _gameplay;
 
 	/** Whether or not we have finished preloading all assets */
 	bool _preloaded;

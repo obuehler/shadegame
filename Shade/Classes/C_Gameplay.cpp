@@ -471,7 +471,7 @@ void GameController::populate() {
 	const char * sname = "car2s";
 	addMover(mname, sname, movPos, scale);
 
-	addPedestrian("ped1", "ped1s", { 12,15 }, .5f);
+	addPedestrian("ped1", "ped1s", { 30,55 }, .5f);
 	_ai.init(pedMovers, _caster, _avatar);
 }
 
