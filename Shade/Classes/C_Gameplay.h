@@ -34,6 +34,37 @@
 #include "C_Physics.h"
 #include "M_LevelInstance.h"
 
+// All key and file path macros are here since the main controller needs them
+
+/** Static object types file path */
+#define STATIC_OBJECTS "constants/static_objects.shadc"
+/** The key for the exposure bar texture in the asset manager */
+#define EXPOSURE_BAR	"ebar"
+/** The key for the exposure bar frame texture in the asset manager */
+#define EXPOSURE_FRAME	"eframe"
+/** The key for the pedestrian object texture in the asset manager */
+#define PEDESTRIAN_TEXTURE "pimage"
+/** The key for the pedestrian shadow texture in the asset manager */
+#define PEDESTRIAN_SHADOW_TEXTURE "psimage"
+/** The key for the car object texture in the asset manager */
+#define CAR_TEXTURE "cimage"
+/** The key for the car shadow texture in the asset manager */
+#define CAR_SHADOW_TEXTURE "csimage"
+/** The key for the win door texture in the asset manager */
+#define GOAL_TEXTURE "goal"
+/* The tag for the object in an object-shadow pair, used for loading */
+#define OBJECT_TAG "_o"
+/* The tag for the shadow in an object-shadow pair, used for loading */
+#define SHADOW_TAG "_s"
+/** The font for victory/failure messages */
+#define MESSAGE_FONT    "retro"
+/** The key the basic game music */
+#define GAME_MUSIC      "game"
+/** The key the victory game music */
+#define WIN_MUSIC       "win"
+/** The key the failure game music */
+#define LOSE_MUSIC      "lose"
+
 // We need a lot of forward references to the classes used by this controller
 // These forward declarations are in cocos2d namespace
 namespace cocos2d {
@@ -63,7 +94,7 @@ using namespace std;
  * game root (which has scaled the scene graph to fix the device with the
  * desired aspect ratio).
  */
-class GameController {
+class GameController : public Ref {
 private:
 
 	//vector<OurMovingObject<Car>*> carMovers;
@@ -74,25 +105,7 @@ private:
 		draw->setOpacity(DEBUG_OPACITY);
 		return draw;
 	}
-
-	/**
-	* Add a horizontal building and shadow to the world.
-	* pos is the position of the upper left corner of the building and shadow.
-	* The size of the building and shadow will be the size of their source
-	* images scaled by scale.
-	*/
-	void addBuilding(const char* bname,
-		const char* sname,
-		const Vec2& pos,
-		float scale
-	);
-
-	void addMover(const char* mname,
-		const char* sname,
-		const Vec2& pos,
-		float scale
-	);
-
+	
 	/** The collision filters for the character */
 	static b2Filter characterFilter;
 	/** The collision filters for the character sensors */
@@ -143,9 +156,9 @@ protected:
 	/** Reference to the exposure bar frame */
 	Sprite* _exposureframe;
 	// Level key string
-	string _levelKey;
+	const char * _levelKey;
 	/** Path to the level file */
-	string _levelPath;
+	const char * _levelPath;
 
     // Physics objects for the game
     /** Reference to the goalDoor (for collision detection) */
@@ -186,6 +199,24 @@ protected:
      * @retain a reference to the obstacle
      */
     void addObstacle(Obstacle* obj, int zOrder);
+
+#pragma mark -
+#pragma mark Constructor and Destructor
+	/**
+	* Creates a new game world with the default values.
+	*
+	* This constructor does not allocate any objects or start the controller.
+	* This allows us to use a controller without a heap pointer.
+	*/
+	GameController();
+
+	/**
+	* Disposes of all (non-static) resources allocated to this mode.
+	*
+	* This method is different from dispose() in that it ALSO shuts off any
+	* static resources, like the input controller.
+	*/
+	~GameController();
     
     
 public:
@@ -293,21 +324,10 @@ public:
     
 #pragma mark -
 #pragma mark Allocation
-    /**
-     * Creates a new game world with the default values.
-     *
-     * This constructor does not allocate any objects or start the controller.
-     * This allows us to use a controller without a heap pointer.
-     */
-    GameController(string& levelkey, string& levelpath);
-    
-    /**
-     * Disposes of all (non-static) resources allocated to this mode.
-     *
-     * This method is different from dispose() in that it ALSO shuts off any
-     * static resources, like the input controller.
-     */
-    ~GameController();
+
+	static GameController* create(const char * levelkey, const char * levelpath);
+
+	bool init(const char * levelkey, const char * levelpath);
     
     /**
      * Disposes of all (non-static) resources allocated to this mode.

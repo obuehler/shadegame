@@ -112,28 +112,6 @@ float BRIDGE_POS[] = {9.0f, 3.8f};
 #pragma mark -
 #pragma mark Asset Constants
 
-/* ***********************************************************
-******************** CODE ADDED FOR SHADE ********************
-************************************************************ */
-
-const string buildingTextures[] = {
-	"b1",	"B1.png",	"s1",	"S1.png" ,
-	"b2",	"B2.png",	"s2",	"S2.png" ,
-	"b3",	"B3.png",	"s3",	"S3.png" ,
-	"b4",	"B4.png",	"s4",	"S4.png" ,
-	"b5",	"B5.png",	"s5",	"S5.png" ,
-	"b6",	"B6.png",	"s6",	"S6.png" ,
-	"b7",	"B7.png",	"s7",	"S7.png" ,
-	"b8",	"B8.png",	"s8",	"S8.png" ,
-	"b9",	"B9.png",	"s9",	"S9.png" ,
-	"b10",	"B10.png",	"s10",	"S10.png" ,
-	"b11",	"B11.png",	"s11",	"S11.png" 
-};
-
-/* ***********************************************************
-***************** END OF CODE ADDED FOR SHADE ****************
-************************************************************ */
-
 /** Seconds before death due to exposure */
 #define EXPOSURE_LIMIT 5.0f
 /** Ratio of exposure cooldown speed to exposure increase speed */
@@ -141,27 +119,14 @@ const string buildingTextures[] = {
 
 /** The key for the (temporary) background image */
 #define BACKGROUND_IMAGE "bimage"
-/** The key for the pedestrian object texture in the asset manager */
-#define PEDESTRIAN_TEXTURE "pimage"
-/** The key for the pedestrian shadow texture in the asset manager */
-#define PEDESTRIAN_SHADOW_TEXTURE "psimage"
-/** The key for the car object texture in the asset manager */
-#define CAR_TEXTURE "cimage"
-/** The key for the car shadow texture in the asset manager */
-#define CAR_SHADOW_TEXTURE "csimage"
 
 #define PLANT1_TEXTURE "plt1image"
 #define PLANT1S_TEXTURE "plt1simage"
 #define PLANT2_TEXTURE "plt2image"
 #define PLANT2S_TEXTURE "plt2simage"
-/** The key for the exposure bar texture in the asset manager */
-#define EXPOSURE_BAR	"ebar"
-/** The key for the exposure bar frame texture in the asset manager */
-#define EXPOSURE_FRAME	"eframe"
+
 /** The key for the earth texture in the asset manager */
 #define EARTH_TEXTURE   "earth"
-/** The key for the win door texture in the asset manager */
-#define GOAL_TEXTURE    "goal"
 /** The key for the win door texture in the asset manager */
 #define BULLET_TEXTURE  "bullet"
 /** The name of a bullet (for object identification) */
@@ -174,12 +139,6 @@ const string buildingTextures[] = {
 #define SHADOW_NAME "shadow"
 /** The name of a building (for object identification) */
 #define BUILDING_NAME "building"
-/* The tag for the object in an object-shadow pair, used for loading */
-#define OBJECT_TAG "_o"
-/* The tag for the shadow in an object-shadow pair, used for loading */
-#define SHADOW_TAG "_s"
-/** The font for victory/failure messages */
-#define MESSAGE_FONT    "retro"
 /** The message for winning the game */
 #define WIN_MESSAGE     "VICTORY!"
 /** The color of the win message */
@@ -188,12 +147,6 @@ const string buildingTextures[] = {
 #define LOSE_MESSAGE    "FAILURE!"
 /** The color of the lose message */
 #define LOSE_COLOR      Color3B::RED
-/** The key the basic game music */
-#define GAME_MUSIC      "game"
-/** The key the victory game music */
-#define WIN_MUSIC       "win"
-/** The key the failure game music */
-#define LOSE_MUSIC      "lose"
 /** The sound effect for firing a bullet */
 #define PEW_EFFECT      "pew"
 /** The sound effect for a bullet collision */
@@ -210,9 +163,6 @@ const string buildingTextures[] = {
 /** Opacity of the physics outlines */
 #define DEBUG_OPACITY   192
 
-/** Static object types file path */
-#define STATIC_OBJECTS "constants/static_objects.shadc"
-
 b2Filter GameController::characterFilter = b2Filter(CHARACTER_BIT, OBJECT_BIT, 0);
 b2Filter GameController::objectFilter = b2Filter(OBJECT_BIT, CHARACTER_BIT | CASTER_BIT, 1);
 b2Filter GameController::casterFilter = b2Filter(CASTER_BIT, CHARACTER_SENSOR_BIT | OBJECT_BIT, 1);
@@ -223,22 +173,32 @@ b2Filter GameController::characterSensorFilter = b2Filter(CHARACTER_SENSOR_BIT, 
 #pragma mark -
 #pragma mark Initialization
 
-/**
- * Creates a new game world with the default values.
- *
- * This constructor does not allocate any objects or start the controller.
- * This allows us to use a controller without a heap pointer.
- */
-GameController::GameController(string& levelkey, string& levelpath) :
-_rootnode(nullptr),
-_worldnode(nullptr),
-_backgroundnode(nullptr),
-_debugnode(nullptr),
-_active(false),
-_debug(false),
-_levelKey(levelkey),
-_levelPath(levelpath)
+GameController::GameController() :
+	_rootnode(nullptr),
+	_worldnode(nullptr),
+	_backgroundnode(nullptr),
+	_debugnode(nullptr),
+	_active(false),
+	_debug(false),
+	_levelKey(nullptr),
+	_levelPath(nullptr)
+{}
+
+GameController* GameController::create(const char * levelkey, const char * levelpath)
 {
+	GameController* q = new (std::nothrow) GameController();
+	if (q && q->init(levelkey, levelpath)) {
+		q->autorelease();
+		return q;
+	}
+	CC_SAFE_DELETE(q);
+	return nullptr;
+}
+
+bool GameController::init(const char * levelkey, const char * levelpath) {
+	_levelKey = levelkey;
+	_levelPath = levelpath;
+	return true;
 }
 
 /**
@@ -597,141 +557,6 @@ void GameController::populate() {
 }
 
 /**
- * Add a rectangular building and shadow to the world.
- * bname and sname are the names used when the building and shadow textures
- * were loaded by the asset loader.
- * pos is the position of the upper left corner of the building and shadow.
- * The size of the building and shadow will be the size of their source
- * images scaled by scale.
- */
-/*void GameController::addBuilding(const char* bname,
-	                             const char* sname,
-	                             const Vec2& pos,
-	                             float scale) {
-	auto* image = _assets->get<Texture2D>(bname);
-	auto* sprite = PolygonNode::createWithTexture(image);
-	sprite->setScale(scale);
-	Size bs(image->getContentSize().width*scale / _scale.x,
-		image->getContentSize().height*scale / _scale.y);
-	Vec2 bpos(pos.x + bs.width / 2, pos.y - bs.height / 2);
-	auto* box = BoxObstacle::create(bpos, bs, &LevelInstance::objectFilter);
-	box->setDrawScale(_scale.x, _scale.y);
-	box->setName(std::string(BUILDING_NAME));
-	box->setBodyType(b2_staticBody);
-	box->setDensity(BASIC_DENSITY);
-	box->setFriction(BASIC_FRICTION);
-	box->setRestitution(BASIC_RESTITUTION);
-	box->setSceneNode(sprite);
-	auto* draw = WireNode::create();
-	draw->setColor(DEBUG_COLOR);
-	draw->setOpacity(DEBUG_OPACITY);
-	box->setDebugNode(draw);
-	addObstacle(box, 2);
-
-	image = _assets->get<Texture2D>(sname);
-	sprite = PolygonNode::createWithTexture(image);
-	sprite->setScale(scale);
-	Size ss(image->getContentSize().width*scale / _scale.x,
-		image->getContentSize().height*scale / _scale.y);
-	Vec2 spos(pos.x + ss.width / 2, pos.y - ss.height / 2);
-	box = BoxObstacle::create(spos, ss, &LevelInstance::shadowFilter);
-	box->setDrawScale(_scale.x, _scale.y);
-	box->setName(std::string(SHADOW_NAME));
-	box->setBodyType(b2_staticBody);
-	box->setDensity(0);
-	box->setFriction(0);
-	box->setRestitution(0);
-	box->setSensor(true);
-	box->setSceneNode(sprite);
-	draw = WireNode::create();
-	draw->setColor(DEBUG_COLOR);
-	draw->setOpacity(DEBUG_OPACITY);
-	box->setDebugNode(draw);
-	addObstacle(box, 1);
-}
-
-void GameController::addMover(
-	const char * mname,
-	const char * sname,
-	const Vec2& movPos,
-	float scale
-	) {
-	float cscale = Director::getInstance()->getContentScaleFactor();
-	// Create mover shadow boxobstacle
-	auto * image = _assets->get<Texture2D>(sname);
-	auto * sprite = PolygonNode::createWithTexture(image);
-	sprite->setScale(scale);
-	Size ss(image->getContentSize().width*scale / _scale.x,
-		image->getContentSize().height*scale / _scale.y);
-	Vec2 spos(movPos.x, movPos.y);
-	auto* box = BoxObstacle::create(spos, ss, &LevelInstance::shadowFilter);
-	box->setDrawScale(_scale.x, _scale.y);
-	box->setName(std::string(SHADOW_NAME));
-	box->setBodyType(b2_dynamicBody);
-	box->setDensity(0);
-	box->setFriction(0);
-	box->setRestitution(0);
-	box->setSensor(true);
-	box->setSceneNode(sprite);
-	auto * draw = WireNode::create();
-	draw->setColor(DEBUG_COLOR);
-	draw->setOpacity(DEBUG_OPACITY);
-	box->setDebugNode(draw);
-	addObstacle(box, 1);
-
-	// Create mover boxobstacle
-	image = _assets->get<Texture2D>(mname);
-	sprite = PolygonNode::createWithTexture(image);
-	sprite->setScale(scale);
-	auto* mbox = BoxObstacle::create(spos, ss, &LevelInstance::objectFilter);
-	mbox->setDrawScale(_scale.x, _scale.y);
-	mbox->setName(std::string(SHADOW_NAME));
-	mbox->setBodyType(b2_dynamicBody);
-	mbox->setDensity(0);
-	mbox->setFriction(0);
-	mbox->setRestitution(0);
-	mbox->setSensor(true);
-	mbox->setSceneNode(sprite);
-	draw = WireNode::create();
-	draw->setColor(DEBUG_COLOR);
-	draw->setOpacity(DEBUG_OPACITY);
-	mbox->setDebugNode(draw);
-	addObstacle(mbox, 4);
-
-	// Create mover
-	OurMovingObject<Car>* _mover = OurMovingObject<Car>::create(movPos, mbox, box);
-
-	//_mover->setHorizontalMovement(1.0f);
-	//_mover->setVerticalMovement(0.0f);
-	//_mover->applyForce();
-	_mover->_actionQueue->push(Car::ActionType::GO,100);
-	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
-	_mover->_actionQueue->push(Car::ActionType::GO, 100);
-	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
-	_mover->_actionQueue->push(Car::ActionType::GO, 100);
-	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
-	_mover->_actionQueue->push(Car::ActionType::GO, 100);
-	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
-	_mover->_actionQueue->push(Car::ActionType::GO, 100);
-	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
-	_mover->_actionQueue->push(Car::ActionType::GO, 100);
-	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
-	_mover->_actionQueue->push(Car::ActionType::GO, 100);
-	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
-	_mover->_actionQueue->push(Car::ActionType::GO, 100);
-	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
-	_mover->_actionQueue->push(Car::ActionType::GO, 100);
-	_mover->_actionQueue->push(Car::ActionType::TURN_LEFT, 10);
-	_mover->_actionQueue->push(Car::ActionType::GO, 100);
-	_mover->_actionQueue->push(Car::ActionType::STOP, 100);
-
-
-	carMovers.push_back(_mover);
-	_mover->retain();
-} */
-
-
-/**
  * Immediately adds the object to the physics world
  *
  * Objects have a z-order.  This is the order they are drawn in the scene
@@ -950,83 +775,18 @@ void GameController::applyPowerup(const Powerup& powerup) {
  * Preloads the assets needed for the game.
  */
 void GameController::preload() {
-    // Load the textures (Autorelease objects)
-    Texture2D::TexParams params;
-    params.wrapS = GL_REPEAT;
-    params.wrapT = GL_REPEAT;
-    params.magFilter = GL_LINEAR;
-    params.minFilter = GL_NEAREST;
-
-    _assets = AssetManager::getInstance()->getCurrent();
-    TextureLoader* tloader = (TextureLoader*)_assets->access<Texture2D>();
-	//tloader->loadAsync(BACKGROUND_IMAGE, "textures/Background.png");
-
-	for (int building_index = 0; building_index < BUILDING_TYPES; building_index++) {
-		tloader->loadAsync(buildingTextures[building_index * 4],
-			"textures/buildings/" + buildingTextures[building_index * 4 + 1]);
-		tloader->loadAsync(buildingTextures[building_index * 4 + 2],
-			"textures/buildings/" + buildingTextures[building_index * 4 + 3]);
-	}
-	
-	//tloader->loadAsync("car1", "textures/Car1.png");
-	//tloader->loadAsync("car1s", "textures/Car1_S.png");
-	//tloader->loadAsync("car2", "textures/Car2.png");
-	//tloader->loadAsync("car2s", "textures/Car2_S.png");
-
-	tloader->loadAsync(EXPOSURE_BAR, "textures/exposure_bar.png");
-	tloader->loadAsync(EXPOSURE_FRAME, "textures/exposure_bar_frame.png");
-	tloader->loadAsync(EARTH_TEXTURE,   "textures/earthtile.png", params);
-    tloader->loadAsync(DUDE_TEXTURE,    "textures/ShadeDude.png");
-	tloader->loadAsync(PEDESTRIAN_TEXTURE, "textures/pedestrian_td.png");
-	tloader->loadAsync(PEDESTRIAN_SHADOW_TEXTURE, "textures/pedestrian_s_td.png");
-	tloader->loadAsync(CAR_TEXTURE, "textures/Car1.png");
-	tloader->loadAsync(CAR_SHADOW_TEXTURE, "textures/Car1_S.png");
-    tloader->loadAsync(BULLET_TEXTURE,  "textures/bullet.png");
-    tloader->loadAsync(GOAL_TEXTURE,    "textures/owner.png");
-	tloader->loadAsync(PLANT1_TEXTURE, "textures/Plant1.png");
-	tloader->loadAsync(PLANT1S_TEXTURE, "textures/Plant1_S.png");
-	tloader->loadAsync(PLANT2_TEXTURE, "textures/Plant2.png");
-	tloader->loadAsync(PLANT2S_TEXTURE, "textures/Plant2_S.png");
-    _assets->loadAsync<Sound>(GAME_MUSIC,   "sounds/DD_Main.mp3");
-    _assets->loadAsync<Sound>(WIN_MUSIC,    "sounds/DD_Victory.mp3");
-    _assets->loadAsync<Sound>(LOSE_MUSIC,   "sounds/DD_Failure.mp3");
-    _assets->loadAsync<Sound>(JUMP_EFFECT,  "sounds/jump.mp3");
-    _assets->loadAsync<Sound>(PEW_EFFECT,   "sounds/pew.mp3");
-    _assets->loadAsync<Sound>(POP_EFFECT,   "sounds/plop.mp3");
-    _assets->loadAsync<TTFont>(MESSAGE_FONT,"fonts/RetroGame.ttf");
-	_assets->loadAsync<LevelInstance>(_levelKey, _levelPath);
-
-	
-
+	_assets = AssetManager::getInstance()->getCurrent();
 	JSONReader reader;
-	reader.initWithFile(STATIC_OBJECTS);
-	if (!reader.startJSON()) {
-		CCASSERT(false, "Failed to load static objects");
-		return;
-	}
-	int count = reader.startArray("types");
-	for (int index = 0; index < count; index++) {
-		reader.startObject();
-		string name = reader.getString("name");
-		string imageFormat = reader.getString("imageFormat");
-		string shadowImageFormat = reader.getString("shadowImageFormat");
-		if (shadowImageFormat == "") {
-			shadowImageFormat = imageFormat;
-		}
-		tloader->loadAsync(name + OBJECT_TAG, "textures/static_objects/" + name + "." + imageFormat);
-		tloader->loadAsync(name + SHADOW_TAG, "textures/static_objects/" + name + "_S." + shadowImageFormat);
-		reader.endObject();
-		reader.advance();
-	}
-	reader.endArray();
-	reader.endJSON();
-
+	_assets->loadAsync<LevelInstance>(_levelKey, _levelPath);
 	reader.initWithFile(_levelPath);
 	if (!reader.startJSON()) {
 		CCASSERT(false, "Failed to load background image");
 		return;
 	}
-	tloader->loadAsync(BACKGROUND_IMAGE, "textures/backgrounds/" + reader.getString("name") + "." + reader.getString("imageFormat"));
+	((TextureLoader*)_assets->access<Texture2D>())->loadAsync(
+		BACKGROUND_IMAGE, "textures/backgrounds/" + reader.getString("name")
+		+ "." + reader.getString("imageFormat"));
+	reader.endJSON();
 }
 
 /**

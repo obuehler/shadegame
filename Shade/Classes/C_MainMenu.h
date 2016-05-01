@@ -9,6 +9,7 @@
 #include <Box2D/Dynamics/b2Body.h>
 #include <Box2D/Dynamics/b2Fixture.h>
 #include "C_Gameplay.h"
+#include <cocos2d/cocos/ui/UIButton.h>
 
 // We need a lot of forward references to the classes used by this controller
 // These forward declarations are in cocos2d namespace
@@ -22,11 +23,28 @@ namespace cocos2d {
 using namespace cocos2d;
 using namespace std;
 
+class MainMenuController;
+
+class MainMenuButton : public ui::Button {
+
+private:
+	GameController* _controller;
+	MainMenuButton() : ui::Button(), _controller(nullptr) {}
+	bool init(GameController* gc);
+
+public:
+	static MainMenuButton* create(GameController* gc);
+	void dispose();
+	GameController* const getController() { return _controller; }
+};
+
 #pragma mark -
 #pragma mark MainMenuController
 
 class MainMenuController {
 private:
+	/** Helper to load gameplay controllers in preload */
+	void loadGameController(const char * levelkey, const char * levelpath);
 
 protected:
 	/** The scene manager for this game demo */
@@ -37,8 +55,8 @@ protected:
 	// Background node
 	PolygonNode* _backgroundnode;
 	
-	// Vector of gamecontrollers
-	vector<GameController*> gameControllers;
+	// Vector of gamecontroller trigger buttons
+	vector<MainMenuButton*> mainMenuButtons;
 	// Active Gamecomtroller
 	GameController * _activeController;
 
@@ -47,7 +65,7 @@ protected:
 
 public:
 	bool init(RootLayer* root);
-	bool init(RootLayer* root, const Rect& rect);
+
 #pragma mark -
 #pragma mark Allocation
 	/**
