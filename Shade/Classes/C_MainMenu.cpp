@@ -67,15 +67,18 @@ bool MainMenuController::init(RootLayer* root) {
 	int os = 170;
 	int xbutt = 3;
 	int ybutt = 3;
+	float buttscale = .5;
 
 	int ypos = 0;
 	for (int i = 0; i < ybutt; i++) {
 		int xpos = 0;
 		for (int j = 0; j < xbutt; j++) {
-			if (i * xbutt + j < mainMenuButtons.size()) {
-				MainMenuButton* button = mainMenuButtons[i*xbutt + j];
+			int num = i*xbutt + j;
+			if (num < mainMenuButtons.size()) {
+				MainMenuButton* button = mainMenuButtons[num];
 				Vec2 pos = { start.x + xpos, start.y - ypos };
-				button->loadTextures("textures/Owen.png", "textures/Owen.png");
+				button->loadTextures("textures/menu/" + std::to_string(num) + "-01.png", "textures/menu/" + std::to_string(num) + "-01.png");
+				button->setScale(buttscale);
 				button->setPosition(pos);
 				button->setTouchEnabled(true);
 				//Add event listener
@@ -164,7 +167,7 @@ void MainMenuController::preload() {
 	reader.endJSON();
 
 	// Background
-	tloader->loadAsync("background", "textures/LevelChoice.png");
+	tloader->loadAsync("background", "textures/menu/Level Background-01.png");
 	// Button
 	tloader->loadAsync("button", "textures/Owen.png");
 
