@@ -8,8 +8,11 @@
 
 #define DEFAULT_ACTION_LENGTH 1
 #define DEFAULT_BEARING 0.0f
+#define DEFAULT_TARGET_X -1.0f
+#define DEFAULT_TARGET_Y -1.0f
 
 using namespace std;
+using namespace cocos2d;
 
 /** Linked list of ActionNodes. Manipulated by the AI Controller. */
 
@@ -32,42 +35,6 @@ public:
 
 	friend class OurMovingObject<T>;
 	friend class GameController;
-
-/*
-	void printContents() {
-		cout << "head is ";
-		if (_head == nullptr) {
-			cout << "nullptr " << endl;
-		}
-		else {
-			cout << _head->_type << endl;
-		}
-		cout << "tail is ";
-		if (_tail == nullptr) {
-			cout << "nullptr " << endl;
-		}
-		else {
-			cout << _tail->_type << endl;
-		}
-		cout << "initialHead is ";
-		if (_initialHead == nullptr) {
-			cout << "nullptr " << endl;
-		}
-		else {
-			cout << _initialHead->_type << endl;
-		}
-		shared_ptr<ActionNode> action(_head);
-		while (action != _tail) {
-			cout << action->_type << "  ";
-			action = action->_next;
-		}
-		if (action != nullptr) {
-			assert(action->_next == nullptr || action->_next == _initialHead);
-			cout << action->_type << endl;
-		}
-		cout << "-------------------------------" << endl;
-	}
-*/
 	
 	ActionQueue<T>() : _head(nullptr), _tail(nullptr), _initialHead(nullptr) {}
 
@@ -131,6 +98,7 @@ public:
 			return _head;
 		}
 		else {
+			// To make sure we retain _head during the shift
 			shared_ptr<ActionNode> action(_head);
 
 			// make the head of the default cycle the tail
@@ -169,25 +137,25 @@ public:
 	/** Constructs a new ActionNode with the given arguments and pushes it
 	* onto the queue. */
 	void push(ActionType type, int length) {
-		pushNode(make_shared<ActionNode>(ActionNode(type, length)));
+		pushNode(make_shared<ActionNode>(type, length));
 	}
 
 	/** Constructs a new ActionNode with the given arguments and pushes it
 	* onto the queue. */
-	void push(ActionType type) {
-		pushNode(make_shared<ActionNode>(ActionNode(type)));
+	void push(ActionType type, Vec2 target) {
+		pushNode(make_shared<ActionNode>(type, target));
 	}
 
 	/** Constructs a new ActionNode with the given arguments and pushes it
 	* onto the queue. */
 	void push(ActionType type, int length, int counter) {
-		pushNode(make_shared<ActionNode>(ActionNode(type, length, counter)));
+		pushNode(make_shared<ActionNode>(type, length, counter));
 	}
 
 	/** Constructs a new ActionNode with the given arguments and pushes it
 	* onto the queue. */
 	void push(ActionType type, int length, int counter, float heading) {
-		pushNode(make_shared<ActionNode>(ActionNode(type, length, counter, heading)));
+		pushNode(make_shared<ActionNode>(type, length, counter, heading));
 	}
 
 	/** Pushes the given node onto the queue. */
@@ -426,43 +394,69 @@ private:
 
 		friend void ActionQueue<T>::setTailNext(shared_ptr<ActionNode> next);
 
+		/** The type of the action */
 		ActionType _type;
+
+		/** The length of the action, in number of game frames */
 		int _length;
+
+		/** The number of frames remaining for the action to be completed */
 		int _counter;
+
+		/** The bearing the character should have when the action starts, in radians */
 		float _bearing;
+
+		/** The target position of the action, in Box2D coordinates. Applicable
+		 * to actions that involve moving the character's physics body. For
+		 * most of those actions, having a nonnegative target should override
+		 * the length, counter, and sometimes bearing attributes and the action
+		 * should end once the character reaches the target. */
+		Vec2 _target;
 
 		// CONSTRUCTORS
 
-		ActionNode(ActionType type) : _length(DEFAULT_ACTION_LENGTH), _counter(
+		ActionNode(ActionType type, Vec2 target) : _length(DEFAULT_ACTION_LENGTH), _counter(
 			DEFAULT_ACTION_LENGTH), _type(type), _next(nullptr
-				), _bearing(0.0f) {}
+				), _bearing(0.0f), _target(target) {}
 
 		ActionNode(ActionType type, int length, int counter) : _type(type
 			), _length(length), _counter(counter), _next(nullptr), _bearing(
-				DEFAULT_BEARING) {}
+				DEFAULT_BEARING) {
+			_target.x = DEFAULT_TARGET_X;
+			_target.y = DEFAULT_TARGET_Y;
+		}
 
 		ActionNode(ActionType type, int length) : _counter(length), _type(
-			type), _length(length), _next(nullptr), _bearing(DEFAULT_BEARING) {}
+			type), _length(length), _next(nullptr), _bearing(DEFAULT_BEARING) {
+			_target.x = DEFAULT_TARGET_X;
+			_target.y = DEFAULT_TARGET_Y;
+		}
 
 		ActionNode(ActionType type, int length, float bearing) : _counter(length
-			), _type(type), _length(length), _next(nullptr), _bearing(bearing) {}
+			), _type(type), _length(length), _next(nullptr), _bearing(bearing) {
+			_target.x = DEFAULT_TARGET_X;
+			_target.y = DEFAULT_TARGET_Y;
+		}
 
 		ActionNode(ActionType type, int length, int counter, float bearing
 			) : _counter(counter), _type(type), _length(length), _next(nullptr
-				), _bearing(bearing) {}
+				), _bearing(bearing) {
+			_target.x = DEFAULT_TARGET_X;
+			_target.y = DEFAULT_TARGET_Y;
+		}
 
 		ActionNode(const ActionNode& action) : _counter(action._counter
 			), _type(action._type), _length(action._length), _next(nullptr
-				), _bearing(action._bearing) {}
+				), _bearing(action._bearing), _target(action._target) {}
 
 
-		/** Empties all fields and returns the pointer to this node for
-		* chaining. Use when deleting the node. */
 		~ActionNode() {
 			//_type = NULL;
 			_length = NULL;
 			_counter = NULL;
 			_bearing = NULL;
+			_target.x = NULL;
+			_target.y = NULL;
 			// Do not delete _next, set it to nullptr instead.
 			// This is what shared_ptrs are for - the object pointed to will be
 			// destroyed automatically if there is nothing pointing to it.
