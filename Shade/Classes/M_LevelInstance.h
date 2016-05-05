@@ -28,6 +28,72 @@
 /** Default scale from Box2D to intended pixel coordinates */
 #define BOX2D_SCALE 50.0f
 
+/**
+* If, in the JSON file, the moving object does not have a "cyclic" field,
+* the actual moving object's action queue will cycle if this is true and will
+* not if it is false.
+*/
+#define DEFAULT_CYCLING_VALUE false
+
+/** The name of the level index field */
+#define LEVEL_INDEX_FIELD "index"
+/** The name of the level background path field */
+#define BACKGROUND_PATH_FIELD "background"
+/** The name of the level size field */
+#define SIZE_FIELD "pixelSize"
+/** The name of the target pixel's x field */
+#define TARGET_X_FIELD "targetPixelX"
+/** The name of the target pixel's y field */
+#define TARGET_Y_FIELD "targetPixelY"
+/**
+* The name of the x-coordinate field in all coordinate-based JSON objects in
+* the level files
+*/
+#define X_FIELD "x"
+/**
+* The name of the y-coordinate field in all coordinate-based JSON objects in
+* the level files
+*/
+#define Y_FIELD "y"
+
+#define WIDTH_FIELD "width"
+#define HEIGHT_FIELD "height"
+/**
+* The name of the heading coordinate field in all JSON objects in the level
+* files that have a heading
+*/
+#define HEADING_FIELD "bearing"
+/** The name of the player site field */
+#define SHADOW_POSITION_FIELD "playerSite"
+/** The name of the caster site field */
+#define CASTER_POSITION_FIELD "casterSite"
+/** The name of the static object list field */
+#define STATIC_OBJECTS_FIELD "staticObjects"
+/** The name of the pedestrian list field */
+#define PEDESTRIANS_FIELD "pedestrians"
+/** The name of the car list field */
+#define CARS_FIELD "cars"
+/**
+* The name of the type field in all JSON objects in the level files that have
+* a type, such as ActionType or a static object type
+*/
+#define TYPE_FIELD "type"
+/**
+* The name of the action list field for the JSON representations of the moving
+* objects in the level files
+*/
+#define ACTIONS_FIELD "actionQueue"
+/** The name of the length field under each element of the JSON action lists */
+#define LENGTH_FIELD "length"
+/** The name of the counter field under each element of the JSON action lists*/
+#define COUNTER_FIELD "counter"
+/**
+* The name of the field in the JSON representations of the moving objects in
+* the level files that indicates whether that moving object's action queue
+* will be cyclic or not
+*/
+#define CYCLIC_FIELD "cycleStart"
+
 using namespace std;
 using namespace cocos2d;
 
@@ -143,7 +209,199 @@ public:
 		failToLoad(errorMessage.c_str());
 	}
 
+	inline void printWarning(const string& warningMessage) {
+		CCLOG(warningMessage.c_str());
+	}
+
 	void failToLoad(const char* errorMessage);
+
+	template <class T>
+	void pushAction(bool noTarget, bool noLength, bool noCounter, bool noHeading, ActionQueue<T>* actions, float heading, typename T::ActionType type, int length, int counter, Vec2 target) {
+		if (noTarget) {
+			if (noHeading) {
+				if (noCounter) {
+					actions->push(type, length);
+				}
+				else {
+					actions->push(type, length, counter);
+				}
+			}
+			else {
+				if (noCounter) {
+					actions->push(heading, type, length);
+				}
+				else {
+					actions->push(heading, type, length, counter);
+				}
+			}
+		}
+		else {
+			if (noLength) {
+				if (noHeading) {
+					actions->push(type, target);
+				}
+				else {
+					actions->push(heading, type, target);
+				}
+			}
+			else {
+				if (noHeading) {
+					if (noCounter) {
+						actions->push(type, length, target);
+					}
+					else {
+						actions->push(type, length, counter, target);
+					}
+				}
+				else {
+					if (noCounter) {
+						actions->push(heading, type, length, target);
+					}
+					else {
+						actions->push(heading, type, length, counter, target);
+					}
+				}
+			}
+		}
+	}
+
+	template <class T>
+	bool deserializeAction(JSONReader& reader, int pedestrianIndex, int actionIndex, ActionQueue<T>* actions) {
+		T::ActionType type;
+		try {
+			type = T::actionMap.at(reader.getString(TYPE_FIELD));
+		}
+		catch (out_of_range) {
+			failToLoad("Failed to assign " + T::name + " " + std::to_string(pedestrianIndex + 1) + " action " + std::to_string(actionIndex + 1) + " type");
+			return false;
+		}
+		Vec2 target(reader.getNumber(TARGET_X_FIELD, -1.0f) / BOX2D_SCALE,
+			reader.getNumber(TARGET_Y_FIELD, -1.0f) / BOX2D_SCALE);
+		bool noTarget = target.x == -1.0f / BOX2D_SCALE || target.y == -1.0f / BOX2D_SCALE;
+		if (noTarget) printWarning("Attention: invalid target for " + T::name + " " + std::to_string(pedestrianIndex + 1) + " action " + std::to_string(actionIndex + 1));
+		int length = (int)reader.getNumber(LENGTH_FIELD, -1.0f);
+		bool noLength = length <= 0;
+		if (noLength) {
+			if (noTarget) {
+				failToLoad("Failed to assign " + T::name + " " + std::to_string(pedestrianIndex + 1) + " action " + std::to_string(actionIndex + 1) + " length");
+				return false;
+			}
+			else {
+				printWarning("Attention: invalid length for " + T::name + " " + std::to_string(pedestrianIndex + 1) + " action " + std::to_string(actionIndex + 1));
+			}
+		}
+		// If there is no heading, the act method will recognize the negative heading value and not change heading
+		float heading = CC_DEGREES_TO_RADIANS(reader.getNumber(HEADING_FIELD, -90.0f));
+		bool noHeading = heading < -1.0f;
+		if (noHeading) printWarning("Attention: invalid heading for " + T::name + " " + std::to_string(pedestrianIndex + 1) + " action " + std::to_string(actionIndex + 1));
+		// If there is no counter, it is equal to length
+		int counter = (int)reader.getNumber(COUNTER_FIELD, -1.0f);
+		bool noCounter = counter <= 0 || counter > length;
+		if (noCounter) printWarning("Attention: invalid counter for " + T::name + " " + std::to_string(pedestrianIndex + 1) + " action " + std::to_string(actionIndex + 1));
+		pushAction<T>(noTarget, noLength, noCounter, noHeading, actions, heading, type, length, counter, target);
+		return true;
+	}
+
+	template <class T>
+	bool loadMovingObject(JSONReader& reader, int pedestrianCount, vector<MovingObjectMetadata<T>>& vec) {
+		for (int pedestrianIndex = 0; pedestrianIndex < pedestrianCount; pedestrianIndex++) {
+			if (reader.startObject()) {
+				MovingObjectMetadata<T> data;
+				data.position.x = reader.getNumber(X_FIELD, -1.0f);
+				if (data.position.x < 0.0f
+					|| data.position.x > _size.width) {
+					failToLoad("Failed to assign " + T::name + " " + std::to_string(pedestrianIndex + 1) + " position.x");
+					return false;
+				}
+				data.position.y = reader.getNumber(Y_FIELD, -1.0f);
+				if (data.position.y < 0.0f
+					|| data.position.x > _size.height) {
+					failToLoad("Failed to assign " + T::name + " " + std::to_string(pedestrianIndex + 1) + " position.y");
+					return false;
+				}
+				data.heading = CC_DEGREES_TO_RADIANS(reader.getNumber(HEADING_FIELD, -90.0f));
+				if (data.heading < -1.0f) {
+					failToLoad("Failed to assign " + T::name + " " + std::to_string(pedestrianIndex + 1) + " heading");
+					return false;
+				}
+				int actionStartIndex = 0;
+				bool queueIsCyclic = false;
+				// Initialize actions with empty action queue
+				data.actions = ActionQueue<T>::create();
+				data.actions->retain();
+				if (reader.isArray(ACTIONS_FIELD)) {
+					int actionCoun = reader.startArray(ACTIONS_FIELD);
+					for (int actionInde = 0; actionInde < actionCoun; actionInde++) {
+						if (reader.startObject()) {
+							if (reader.getBool(CYCLIC_FIELD, false)) {
+								actionStartIndex = actionInde;
+								queueIsCyclic = true;
+							}
+							reader.endObject();
+							reader.advance();
+						}
+						else {
+							reader.endObject();
+							reader.endArray();
+							failToLoad("Failed to assign " + T::name + " " + std::to_string(pedestrianIndex + 1) + " action " + std::to_string(actionInde + 1));
+							return false;
+						}
+					}
+					reader.endArray();
+				}
+				else {
+					failToLoad("Failed to assign " + T::name + " " + std::to_string(pedestrianIndex + 1) + " actions");
+					return false;
+				}
+				if (reader.isArray(ACTIONS_FIELD)) {
+					int actionCount = reader.startArray(ACTIONS_FIELD);
+					if (queueIsCyclic) {
+						for (int count = 0; count < actionStartIndex; count++) {
+							reader.advance();
+						}
+					}
+
+					for (int actionIndex = actionStartIndex; actionIndex < actionCount; actionIndex++) {
+						if (reader.startObject()) {
+							if (!deserializeAction(reader, pedestrianIndex, actionIndex, data.actions)) return false;
+							reader.endObject();
+							reader.advance();
+						}
+						else {
+							reader.endObject();
+							reader.endArray();
+							failToLoad("Failed to assign " + T::name + " " + std::to_string(pedestrianIndex + 1) + " action " + std::to_string(actionIndex + 1));
+							return false;
+						}
+					}
+					reader.endArray();
+					data.actions->setCycling(queueIsCyclic);
+					if (queueIsCyclic) {
+						ActionQueue<T> additionalQueue;
+						reader.startArray(ACTIONS_FIELD);
+						for (int count = 0; count < actionStartIndex; count++) {
+							reader.startObject();
+							if (!deserializeAction(reader, pedestrianIndex, count, data.actions)) return false;
+							reader.endObject();
+							reader.advance();
+						}
+						reader.endArray();
+						data.actions->force(additionalQueue, true);
+					}
+				}
+				vec.push_back(data);
+				reader.endObject();
+				reader.advance();
+			}
+			else {
+				reader.endObject();
+				reader.endArray();
+				failToLoad("Failed to get " + T::name + " " + std::to_string(pedestrianIndex + 1));
+				return false;
+			}
+		}
+		return true;
+	}
 
 public:
 

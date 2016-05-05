@@ -66,6 +66,8 @@ protected:
     WireNode* _debug;
     /** A tag for debugging purposes */
     std::string _tag;
+	/** Used to set the frame number in animations */
+	float _animationCounter;
     
 private:
     /// Track garbage collection status
@@ -859,6 +861,12 @@ public:
      * @release the previous debug scene graph node used by this object
      */
     void setDebugNode(WireNode* node);
+
+	/** Returns the animation counter */
+	float getAnimationCounter() const { return _animationCounter; }
+
+	/** Sets the animation counter to the given float */
+	void setAnimation(float a) { _animationCounter = a; }
 
     
 #pragma mark -

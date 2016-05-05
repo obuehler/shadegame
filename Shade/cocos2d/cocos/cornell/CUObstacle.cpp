@@ -57,6 +57,8 @@ Obstacle::~Obstacle() {
  */
 bool Obstacle::init(const Vec2& vec) {
 	_drawScale.set(1.0f,1.0f);
+
+	_animationCounter = 0.0f;
     
     // Object has yet to be deactivated
     _remove = false;

@@ -21,10 +21,17 @@ import javax.swing.JTextField;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.NumberUtils;
 
+import groop.shade.editor.ObjectSelector.SetTargetPositionButton;
+
 @SuppressWarnings("serial")
-public class TreeIcon extends StageIcon {
+public class TreeIcon extends StageObjectIcon {
 	
 	ObstacleType movingObjectType;
+	
+	/** These text fields store and display the pixel x and y values of
+	 * the next action's target position, if added onto the list of actions. */
+	JTextField targetFieldX;
+	JTextField targetFieldY;
 	
 	public static final int INITIAL_INTEGER_VALUE = 0;
 	public static final float INITIAL_FLOAT_VALUE = 0.0f;
@@ -113,6 +120,36 @@ public class TreeIcon extends StageIcon {
 		counterPanel.add(counterField);
 		menu.add(counterPanel);
 		
+		JPanel targetPanel = new JPanel();
+		targetPanel.setLayout(new BoxLayout(targetPanel, BoxLayout.LINE_AXIS));
+		targetPanel.add(new JLabel("Target position: "));
+		targetFieldX = new JTextField();
+		targetFieldX.setEditable(false);
+		targetFieldX.setText("");
+		targetFieldX.setColumns(4);
+		targetFieldY = new JTextField();
+		targetFieldY.setEditable(false);
+		targetFieldY.setText("");
+		targetFieldY.setColumns(4);
+		targetPanel.add(targetFieldX);
+		targetPanel.add(new JLabel(", "));
+		targetPanel.add(targetFieldY);
+		menu.add(targetPanel);
+		menu.add(new SetTargetPositionButton(editor).button);
+		
+		JButton removeTargetButton = new JButton("Remove Target");
+		removeTargetButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				targetFieldX.setText("");
+				targetFieldY.setText("");
+				editor.targetIcon.setVisible(false);
+			}
+			
+		});
+		menu.add(removeTargetButton);
+		
 		final CyclicButtonGroup cyclicButtons = new CyclicButtonGroup();
 		
 		JRadioButton nonCyclicButton = new JRadioButton("Set to non-cyclic");
@@ -142,21 +179,47 @@ public class TreeIcon extends StageIcon {
 			public void actionPerformed(ActionEvent arg0) {
 				if (actionButtonGroup.getSelection() == null) {
 					JOptionPane.showMessageDialog(null, "Please select an action type");
+					return;
+				}
+				Float headingValue = null;
+				Integer lengthValue = null;
+				Integer counterValue = null;
+				Integer targetValueX = null;
+				Integer targetValueY = null;
+				boolean noTarget = false;
+				try {
+					targetValueX = Integer.parseInt(targetFieldX.getText());
+					targetValueY = Integer.parseInt(targetFieldY.getText());
+				} catch (NumberFormatException nfe) {
+					noTarget = true;
 				}
 				if (headingField.getText() == null || !isValidHeading(headingField.getText())) {
-					JOptionPane.showMessageDialog(null, "Please enter a heading value greater than or equal to 0 and less than 360");
-					return;
+					if (noTarget) {
+						JOptionPane.showMessageDialog(null, "Please enter a heading value greater than or equal to 0 and less than 360");
+						return;
+					}
+				} else {
+					headingValue = Float.parseFloat(headingField.getText());
 				}
 				if (lengthField.getText() == null || !isValidLength(lengthField.getText())) {
-					JOptionPane.showMessageDialog(null, "Please enter an integer length value greater than 0");
-					return;
+					if (noTarget) {
+						JOptionPane.showMessageDialog(null, "Please enter an integer length value greater than 0");
+						return;
+					}
+				} else {
+					lengthValue = Integer.parseInt(lengthField.getText());
 				}
 				if (counterField.getText() == null || !isValidCounter(counterField.getText(), Integer.parseInt(lengthField.getText()))) {
-					JOptionPane.showMessageDialog(null, "Please enter an integer counter value greater than 0 and less than the length value");
-					return;
-				}
+					if (noTarget) {
+						JOptionPane.showMessageDialog(null, "Please enter an integer counter value greater than 0 and less than the length value");
+						return;
+					}
+				} else {
+					counterValue = Integer.parseInt(counterField.getText());
+				}	
 				
-				ActionMetadata data = new ActionMetadata(actionButtonGroup.getSelection().getActionCommand(), Float.parseFloat(headingField.getText()), Integer.parseInt(lengthField.getText()), Integer.parseInt(counterField.getText()), false);
+				ActionMetadata data = new ActionMetadata(actionButtonGroup.getSelection().getActionCommand(),
+						headingValue, lengthValue, counterValue, false, targetValueX, targetValueY);
 				((TreeSite) object).actionQueue.add(data);
 				createActionPanel(cyclicButtons, data);
 			}

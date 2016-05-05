@@ -267,13 +267,6 @@ public:
      * @param delta Number of seconds since last animation frame
      */
     void update(float dt) override;
-    
-    /**
-     * Applies the force to the body of this dude
-     *
-     * This method should be called after the force attribute is set.
-     */
-    void applyForce();
 
 	/** Stops the character by setting the body velocity to zero. */
 	void stopMovement();
@@ -284,6 +277,9 @@ public:
 
 	/** Delete everything allocated with new. */
 	void deleteEverything();
+
+	/** Updates the character's animation frame according to its movement. */
+	void updateAnimation();
 
     
 CC_CONSTRUCTOR_ACCESS:

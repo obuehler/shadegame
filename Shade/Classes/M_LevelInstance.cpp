@@ -1,66 +1,7 @@
 #include "M_LevelInstance.h"
 
-/**
-* If, in the JSON file, the moving object does not have a "cyclic" field,
-* the actual moving object's action queue will cycle if this is true and will
-* not if it is false.
-*/
-#define DEFAULT_CYCLING_VALUE false
-
-/** The name of the level index field */
-#define LEVEL_INDEX_FIELD "index"
-/** The name of the level background path field */
-#define BACKGROUND_PATH_FIELD "background"
-/** The name of the level size field */
-#define SIZE_FIELD "pixelSize"
-/**
-* The name of the x-coordinate field in all coordinate-based JSON objects in
-* the level files
-*/
-#define X_FIELD "x"
-/**
-* The name of the y-coordinate field in all coordinate-based JSON objects in
-* the level files
-*/
-#define Y_FIELD "y"
-
-#define WIDTH_FIELD "width"
-#define HEIGHT_FIELD "height"
-/**
-* The name of the heading coordinate field in all JSON objects in the level
-* files that have a heading
-*/
-#define HEADING_FIELD "bearing"
-/** The name of the player site field */
-#define SHADOW_POSITION_FIELD "playerSite"
-/** The name of the caster site field */
-#define CASTER_POSITION_FIELD "casterSite"
-/** The name of the static object list field */
-#define STATIC_OBJECTS_FIELD "staticObjects"
-/** The name of the pedestrian list field */
-#define PEDESTRIANS_FIELD "pedestrians"
-/** The name of the car list field */
-#define CARS_FIELD "cars"
-/**
-* The name of the type field in all JSON objects in the level files that have
-* a type, such as ActionType or a static object type
-*/
-#define TYPE_FIELD "type"
-/**
-* The name of the action list field for the JSON representations of the moving
-* objects in the level files
-*/
-#define ACTIONS_FIELD "actionQueue"
-/** The name of the length field under each element of the JSON action lists */
-#define LENGTH_FIELD "length"
-/** The name of the counter field under each element of the JSON action lists*/
-#define COUNTER_FIELD "counter"
-/**
-* The name of the field in the JSON representations of the moving objects in
-* the level files that indicates whether that moving object's action queue
-* will be cyclic or not
-*/
-#define CYCLIC_FIELD "cycleStart"
+#define BUILDING_FRICTION 20.0f
+#define BUILDING_RESTITUTION 0.0f
 
 LevelInstance::LevelInstance(void) : Asset() {}
 
@@ -257,153 +198,7 @@ bool LevelInstance::initializeMetadata() {
 	// Set the metadata for pedestrians, including initial actions
 	if (reader.isArray(PEDESTRIANS_FIELD)) {
 		int pedestrianCount = reader.startArray(PEDESTRIANS_FIELD);
-		for (int pedestrianIndex = 0; pedestrianIndex < pedestrianCount; pedestrianIndex++) {
-			if (reader.startObject()) {
-				PedestrianMetadata data;
-				data.position.x = reader.getNumber(X_FIELD, -1.0f);
-				if (data.position.x < 0.0f
-					|| data.position.x > _size.width) {
-					failToLoad("Failed to assign pedestrian " + std::to_string(pedestrianIndex + 1) + " position.x");
-					return false;
-				}
-				data.position.y = reader.getNumber(Y_FIELD, -1.0f);
-				if (data.position.y < 0.0f
-					|| data.position.x > _size.height) {
-					failToLoad("Failed to assign pedestrian " + std::to_string(pedestrianIndex + 1) + " position.y");
-					return false;
-				}
-				data.heading = CC_DEGREES_TO_RADIANS(reader.getNumber(HEADING_FIELD, -90.0f));
-				if (data.heading < -1.0f) {
-					failToLoad("Failed to assign pedestrian " + std::to_string(pedestrianIndex + 1) + " heading");
-					return false;
-				}
-				int actionStartIndex = 0;
-				bool queueIsCyclic = false;
-				// Initialize actions with empty action queue
-				data.actions = ActionQueue<Pedestrian>::create();
-				data.actions->retain();
-				if (reader.isArray(ACTIONS_FIELD)) {
-					int actionCoun = reader.startArray(ACTIONS_FIELD);
-					for (int actionInde = 0; actionInde < actionCoun; actionInde++) {
-						if (reader.startObject()) {
-							bool cyclic = reader.getBool(CYCLIC_FIELD, true);
-							bool cyclic2 = reader.getBool(CYCLIC_FIELD, false);
-							if (cyclic != cyclic2) {
-								failToLoad("Failed to fetch cyclic value for pedestrian " + std::to_string(pedestrianIndex + 1));
-								return false;
-							}
-							if (cyclic2) {
-								actionStartIndex = actionInde;
-								queueIsCyclic = true;
-							}
-							reader.endObject();
-							reader.advance();
-						}
-						else {
-							reader.endObject();
-							reader.endArray();
-							failToLoad("Failed to assign pedestrian " + std::to_string(pedestrianIndex + 1) + " action " + std::to_string(actionInde + 1));
-						}
-					}
-					reader.endArray();
-				}
-				else {
-					failToLoad("Failed to assign pedestrian " + std::to_string(pedestrianIndex + 1) + " actions");
-					return false;
-				}
-				if (reader.isArray(ACTIONS_FIELD)) {
-					int actionCount = reader.startArray(ACTIONS_FIELD);
-					if (queueIsCyclic) {
-						for (int count = 0; count < actionStartIndex; count++) {
-							reader.advance();
-						}
-					}
-
-					for (int actionIndex = actionStartIndex; actionIndex < actionCount; actionIndex++) {
-						if (reader.startObject()) {
-							Pedestrian::ActionType type;
-							try {
-								type = Pedestrian::actionMap.at(reader.getString(TYPE_FIELD));
-							}
-							catch (out_of_range) {
-								failToLoad("Failed to assign pedestrian " + std::to_string(pedestrianIndex + 1) + " action " + std::to_string(actionIndex + 1) + " type");
-								return false;
-							}
-							int length = (int)reader.getNumber(LENGTH_FIELD, -1.0f);
-							if (length <= 0) {
-								failToLoad("Failed to assign pedestrian " + std::to_string(pedestrianIndex + 1) + " action " + std::to_string(actionIndex + 1) + " length");
-								return false;
-							}
-							float heading = CC_DEGREES_TO_RADIANS(reader.getNumber(HEADING_FIELD, -90.0f));
-							if (heading < -1.0f) {
-								failToLoad("Failed to assign pedestrian " + std::to_string(pedestrianIndex + 1) + " action " + std::to_string(actionIndex + 1) + " heading");
-								return false;
-							}
-							// If there is no counter, it is equal to length
-							int counter = (int)reader.getNumber(COUNTER_FIELD, (float)length);
-							if (counter <= 0 || counter > length) {
-								failToLoad("Invalid counter value for pedestrian " + std::to_string(pedestrianIndex + 1) + " action " + std::to_string(actionIndex + 1) + " counter");
-								return false;
-							}
-							data.actions->push(type, length, counter, heading);
-							reader.endObject();
-							reader.advance();
-						}
-						else {
-							reader.endObject();
-							reader.endArray();
-							failToLoad("Failed to assign pedestrian " + std::to_string(pedestrianIndex + 1) + " action " + std::to_string(actionIndex + 1));
-						}
-					}
-					reader.endArray();
-					data.actions->setCycling(queueIsCyclic);
-					if (queueIsCyclic) {
-						ActionQueue<Pedestrian> additionalQueue;
-						reader.startArray(ACTIONS_FIELD);
-						for (int count = 0; count < actionStartIndex; count++) {
-							reader.startObject();
-							Pedestrian::ActionType type;
-							try {
-								type = Pedestrian::actionMap.at(reader.getString(TYPE_FIELD));
-							}
-							catch (out_of_range) {
-								failToLoad("Failed to assign pedestrian " + std::to_string(pedestrianIndex + 1) + " action " + std::to_string(count + 1) + " type");
-								return false;
-							}
-							int length = (int)reader.getNumber(LENGTH_FIELD, -1.0f);
-							if (length <= 0) {
-								failToLoad("Failed to assign pedestrian " + std::to_string(pedestrianIndex + 1) + " action " + std::to_string(count + 1) + " length");
-								return false;
-							}
-							float heading = CC_DEGREES_TO_RADIANS(reader.getNumber(HEADING_FIELD, -90.0f));
-							if (heading < -1.0f) {
-								failToLoad("Failed to assign pedestrian " + std::to_string(pedestrianIndex + 1) + " action " + std::to_string(count + 1) + " heading");
-								return false;
-							}
-							// If there is no counter, it is equal to length
-							int counter = (int)reader.getNumber(COUNTER_FIELD, (float)length);
-							if (counter <= 0 || counter > length) {
-								failToLoad("Invalid counter value for pedestrian " + std::to_string(pedestrianIndex + 1) + " action " + std::to_string(count + 1) + " counter");
-								return false;
-							}
-							additionalQueue.push(type, length, counter, heading);
-							reader.endObject();
-							reader.advance();
-						}
-						reader.endArray();
-						data.actions->force(additionalQueue, true);
-					}
-				}
-				_pedestrians.push_back(data);
-				reader.endObject();
-				reader.advance();
-			}
-			else {
-				reader.endObject();
-				reader.endArray();
-				failToLoad("Failed to get pedestrian " + std::to_string(pedestrianIndex + 1));
-			}
-		}
+		if (!loadMovingObject<Pedestrian>(reader, pedestrianCount, _pedestrians)) return false;
 		reader.endArray();
 	}
 	else {
@@ -414,154 +209,7 @@ bool LevelInstance::initializeMetadata() {
 	// Set the metadata for cars, including initial actions
 	if (reader.isArray(CARS_FIELD)) {
 		int carCount = reader.startArray(CARS_FIELD);
-		for (int carIndex = 0; carIndex < carCount; carIndex++) {
-			if (reader.startObject()) {
-				CarMetadata data;
-				data.position.x = reader.getNumber(X_FIELD, -1.0f);
-				if (data.position.x < 0.0f
-					|| data.position.x > _size.width) {
-					failToLoad("Failed to assign car " + std::to_string(carIndex + 1) + " position.x");
-					return false;
-				}
-				data.position.y = reader.getNumber(Y_FIELD, -1.0f);
-				if (data.position.y < 0.0f
-					|| data.position.x > _size.height) {
-					failToLoad("Failed to assign car " + std::to_string(carIndex + 1) + " position.y");
-					return false;
-				}
-				data.heading = CC_DEGREES_TO_RADIANS(reader.getNumber(HEADING_FIELD, -90.0f));
-				if (data.heading < -1.0f) {
-					failToLoad("Failed to assign car " + std::to_string(carIndex + 1) + " heading");
-					return false;
-				}
-				int actionStartIndex = 0;
-				bool queueIsCyclic = false;
-				// Initialize actions with empty action queue
-				data.actions = ActionQueue<Car>::create();
-				data.actions->retain();
-				if (reader.isArray(ACTIONS_FIELD)) {
-					int actionCoun = reader.startArray(ACTIONS_FIELD);
-					for (int actionInde = 0; actionInde < actionCoun; actionInde++) {
-						if (reader.startObject()) {
-							bool cyclic = reader.getBool(CYCLIC_FIELD, true);
-							bool cyclic2 = reader.getBool(CYCLIC_FIELD, false);
-							if (cyclic != cyclic2) {
-								failToLoad("Failed to fetch cyclic value for car " + std::to_string(carIndex + 1));
-								return false;
-							}
-							if (cyclic2) {
-								actionStartIndex = actionInde;
-								queueIsCyclic = true;
-							}
-							reader.endObject();
-							reader.advance();
-						}
-						else {
-							reader.endObject();
-							reader.endArray();
-							failToLoad("Failed to assign car " + std::to_string(carIndex + 1) + " action " + std::to_string(actionInde + 1));
-						}
-					}
-					reader.endArray();
-				}
-				else {
-					failToLoad("Failed to assign car " + std::to_string(carIndex + 1) + " actions");
-					return false;
-				}
-				if (reader.isArray(ACTIONS_FIELD)) {
-					int actionCount = reader.startArray(ACTIONS_FIELD);
-					if (queueIsCyclic) {
-						for (int count = 0; count < actionStartIndex; count++) {
-							reader.advance();
-						}
-					}
-
-					for (int actionIndex = actionStartIndex; actionIndex < actionCount; actionIndex++) {
-						if (reader.startObject()) {
-							Car::ActionType type;
-							try {
-								type = Car::actionMap.at(reader.getString(TYPE_FIELD));
-							}
-							catch (out_of_range) {
-								failToLoad("Failed to assign car " + std::to_string(carIndex + 1) + " action " + std::to_string(actionIndex + 1) + " type");
-								return false;
-							}
-							int length = (int)reader.getNumber(LENGTH_FIELD, -1.0f);
-							if (length <= 0) {
-								failToLoad("Failed to assign car " + std::to_string(carIndex + 1) + " action " + std::to_string(actionIndex + 1) + " length");
-								return false;
-							}
-							float heading = CC_DEGREES_TO_RADIANS(reader.getNumber(HEADING_FIELD, -90.0f));
-							if (heading < -1.0f) {
-								failToLoad("Failed to assign car " + std::to_string(carIndex + 1) + " action " + std::to_string(actionIndex + 1) + " heading");
-								return false;
-							}
-							// If there is no counter, it is equal to length
-							int counter = (int)reader.getNumber(COUNTER_FIELD, (float)length);
-							if (counter <= 0 || counter > length) {
-								failToLoad("Invalid counter value for car " + std::to_string(carIndex + 1) + " action " + std::to_string(actionIndex + 1) + " counter");
-								return false;
-							}
-							data.actions->push(type, length, counter, heading);
-							reader.endObject();
-							reader.advance();
-						}
-						else {
-							reader.endObject();
-							reader.endArray();
-							failToLoad("Failed to assign car " + std::to_string(carIndex + 1) + " action " + std::to_string(actionIndex + 1));
-						}
-					}
-					reader.endArray();
-					data.actions->setCycling(queueIsCyclic);
-					if (queueIsCyclic) {
-						ActionQueue<Car> additionalQueue;
-						reader.startArray(ACTIONS_FIELD);
-						for (int count = 0; count < actionStartIndex; count++) {
-							reader.startObject();
-							Car::ActionType type;
-							try {
-								type = Car::actionMap.at(reader.getString(TYPE_FIELD));
-							}
-							catch (out_of_range) {
-								failToLoad("Failed to assign car " + std::to_string(carIndex + 1) + " action " + std::to_string(count + 1) + " type");
-								return false;
-							}
-							int length = (int)reader.getNumber(LENGTH_FIELD, -1.0f);
-							if (length <= 0) {
-								failToLoad("Failed to assign car " + std::to_string(carIndex + 1) + " action " + std::to_string(count + 1) + " length");
-								return false;
-							}
-							float heading = CC_DEGREES_TO_RADIANS(reader.getNumber(HEADING_FIELD, -90.0f));
-							if (heading < -1.0f) {
-								failToLoad("Failed to assign car " + std::to_string(carIndex + 1) + " action " + std::to_string(count + 1) + " heading");
-								return false;
-							}
-							// If there is no counter, it is equal to length
-							int counter = (int)reader.getNumber(COUNTER_FIELD, (float)length);
-							if (counter <= 0 || counter > length) {
-								failToLoad("Invalid counter value for car " + std::to_string(carIndex + 1) + " action " + std::to_string(count + 1) + " counter");
-								return false;
-							}
-							additionalQueue.push(type, length, counter, heading);
-							reader.endObject();
-							reader.advance();
-						}
-						reader.endArray();
-						data.actions->force(additionalQueue, true);
-					}
-				}
-				data.actions->retain();
-				_cars.push_back(data);
-				reader.endObject();
-				reader.advance();
-			}
-			else {
-				reader.endObject();
-				reader.endArray();
-				failToLoad("Failed to get car " + std::to_string(carIndex + 1));
-			}
-		}
+		if (!loadMovingObject<Car>(reader, carCount, _cars)) return false;
 		reader.endArray();
 	}
 	else {
@@ -625,10 +273,10 @@ void LevelInstance::populateLevel(bool reset) {
 	auto* casterObject = BoxObstacle::create();
 	//auto* casterObject = BoxObstacle::create(_casterPos.position, Size::ZERO, &casterFilter);
 	casterObject->setBodyType(b2_dynamicBody);
-	casterObject->setDensity(BASIC_DENSITY);
-	casterObject->setFriction(BASIC_FRICTION);
-	casterObject->setRestitution(BASIC_RESTITUTION);
-	casterObject->setSensor(true);
+	casterObject->setDensity(PEDESTRIAN_DENSITY);
+	casterObject->setFriction(PEDESTRIAN_FRICTION);
+	casterObject->setRestitution(PEDESTRIAN_RESTITUTION);
+	casterObject->setFixedRotation(true);
 	casterObject->setSceneNode(sprite);
 
 	// The caster is initialized with an empty action queue, actions will be added by AIController
@@ -643,8 +291,9 @@ void LevelInstance::populateLevel(bool reset) {
 			data.object = BoxObstacle::create();
 			data.object->setBodyType(b2_staticBody);
 			data.object->setDensity(BASIC_DENSITY);
-			data.object->setFriction(BASIC_FRICTION);
-			data.object->setRestitution(BASIC_RESTITUTION);
+			data.object->setFriction(BUILDING_FRICTION);
+			data.object->setRestitution(BUILDING_RESTITUTION);
+			data.object->setFixedRotation(true);
 			sprite = PolygonNode::create();
 			sprite->setScale(cscale);
 			data.object->setSceneNode(sprite);
@@ -656,6 +305,7 @@ void LevelInstance::populateLevel(bool reset) {
 			data.shadow->setDensity(0);
 			data.shadow->setFriction(0);
 			data.shadow->setRestitution(0);
+			data.shadow->setFixedRotation(true);
 			sprite = PolygonNode::create();
 			sprite->setScale(cscale);
 			data.shadow->setSceneNode(sprite);
@@ -676,6 +326,7 @@ void LevelInstance::populateLevel(bool reset) {
 		pedestrianShadow->setDensity(0);
 		pedestrianShadow->setFriction(0);
 		pedestrianShadow->setRestitution(0);
+		pedestrianShadow->setFixedRotation(true);
 		pedestrianShadow->setSensor(true);
 		pedestrianShadow->setSceneNode(sprite);
 
@@ -684,10 +335,10 @@ void LevelInstance::populateLevel(bool reset) {
 		//auto* pedestrianObject = BoxObstacle::create(data.position, Size::ZERO, &objectFilter);
 		auto* pedestrianObject = BoxObstacle::create();
 		pedestrianObject->setBodyType(b2_dynamicBody);
-		pedestrianObject->setDensity(BASIC_DENSITY);
-		pedestrianObject->setFriction(BASIC_FRICTION);
-		pedestrianObject->setRestitution(BASIC_RESTITUTION);
-		pedestrianObject->setSensor(true);
+		pedestrianObject->setDensity(PEDESTRIAN_DENSITY);
+		pedestrianObject->setFriction(PEDESTRIAN_FRICTION);
+		pedestrianObject->setRestitution(PEDESTRIAN_RESTITUTION);
+		pedestrianObject->setFixedRotation(true);
 		pedestrianObject->setSceneNode(sprite);
 
 		// The following line implicitly retains pedestrianObject and pedestrianShadow
@@ -710,6 +361,7 @@ void LevelInstance::populateLevel(bool reset) {
 		carShadow->setDensity(0);
 		carShadow->setFriction(0);
 		carShadow->setRestitution(0);
+		carShadow->setFixedRotation(true);
 		carShadow->setSensor(true);
 		carShadow->setSceneNode(sprite);
 
@@ -718,10 +370,10 @@ void LevelInstance::populateLevel(bool reset) {
 		//auto* carObject = BoxObstacle::create(data.position, Size::ZERO, &objectFilter);
 		auto* carObject = BoxObstacle::create();
 		carObject->setBodyType(b2_dynamicBody);
-		carObject->setDensity(BASIC_DENSITY);
-		carObject->setFriction(BASIC_FRICTION);
-		carObject->setRestitution(BASIC_RESTITUTION);
-		carObject->setSensor(true);
+		carObject->setDensity(CAR_DENSITY);
+		carObject->setFriction(CAR_FRICTION);
+		carObject->setRestitution(CAR_RESTITUTION);
+		carObject->setFixedRotation(true);
 		carObject->setSceneNode(sprite);
 
 		// The following line implicitly retains carObject and carShadow

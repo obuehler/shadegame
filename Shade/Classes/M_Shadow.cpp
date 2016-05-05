@@ -22,7 +22,7 @@
 //  in turn based on the CS 3152 PhysicsDemo Lab by Don Holden, 2007
 
 #include "M_Shadow.h"
-#include <cornell/CUPolygonNode.h>
+#include <cornell/CUAnimationNode.h>
 #include <cornell/CUAssetManager.h>
 #include <cornell/CUSceneManager.h>
 #include <math.h>
@@ -44,11 +44,13 @@
 /** Distance between adjacent sensors' centers, in Box2D coordinates */
 #define SENSOR_INTERVAL 0.1f
 /** The density of the character */
-#define DUDE_DENSITY    1.0f
+#define DUDE_DENSITY    0.0000001f
 /** The impulse for the character jump */
 #define DUDE_JUMP       5.5f
 /** Debug color for the sensor */
 #define DEBUG_COLOR     Color3B::RED
+/** The scaling value for the animation frame rate */
+#define ANIMATION_DELTA 1.0f
 
 
 #pragma mark -
@@ -186,7 +188,6 @@ bool Shadow::init(const Vec2& pos, const Vec2& scale, const b2Filter* const char
         setDensity(DUDE_DENSITY);
         setFriction(0.0f);      // HE WILL STICK TO WALLS IF YOU FORGET
         setFixedRotation(true); // OTHERWISE, HE IS A WEEBLE WOBBLE
-        
         // Gameplay attributes
         _faceRight  = true;
         
@@ -307,7 +308,7 @@ void Shadow::releaseFixtures() {
 	CapsuleObstacle::releaseFixtures();
 	for (int index = 0; index < _sensorCount; index++) {
 		if (_sensorFixtures[index] != nullptr) {
-			_sensorFixtures[index]->SetUserData(nullptr);
+			//_sensorFixtures[index]->SetUserData(nullptr);
 			_body->DestroyFixture(_sensorFixtures[index]);
 			_sensorFixtures[index] = nullptr;
 			delete _unorderedSets[index];
@@ -345,40 +346,6 @@ void Shadow::stopMovement() {
 }
 
 /**
- * Applies the force to the body of this dude
- *
- * This method should be called after the force attribute is set.
- */
-void Shadow::applyForce() {
-    if (!isActive()) {
-        return;
-    }
-    
-
-    // Don't want to be moving. Damp out player motion
-    /*if (getHorizontalMovement() == 0.0f) {
-        b2Vec2 force(-getDamping()*getVX(),0);
-        _body->ApplyForce(force,_body->GetPosition(),true);
-    }
-
-	if (getVerticalMovement() == 0.0f) {
-		b2Vec2 force(0, -getDamping()*getVY());
-		_body->ApplyForce(force, _body->GetPosition(), true);
-	}
-    
-	b2Vec2 force(getHorizontalMovement(),getVerticalMovement());
-    _body->ApplyForce(force,_body->GetPosition(),true);
-
-	// Velocity too high, clamp it
-	if ((pow(pow(getVX(), 2) + pow(getVY(), 2), 0.5)) >= getMaxSpeed()) {
-		//setVX(SIGNUM(getVX())*getMaxSpeed());
-		setVX((getVX() / pow(pow(getVX(), 2) + pow(getVY(), 2), 0.5)) * getMaxSpeed());
-		setVY((getVY() / pow(pow(getVX(), 2) + pow(getVY(), 2), 0.5)) * getMaxSpeed());
-	} */
-	//_body->SetLinearVelocity(b2Vec2(getHorizontalMovement(), getVerticalMovement()).Normalize());
-}
-
-/**
  * Updates the object's physics state (NOT GAME LOGIC).
  *
  * We use this method to reset cooldowns.
@@ -388,6 +355,19 @@ void Shadow::applyForce() {
 void Shadow::update(float dt) {
 	// Add stuff here if needed
     CapsuleObstacle::update(dt);
+}
+
+void Shadow::updateAnimation() {
+	float32 speed = _body->GetLinearVelocity().LengthSquared();
+	if (speed == 0.0f) {
+		_animationCounter = 1.0f;
+		((AnimationNode*)getSceneNode())->setFrame(0);
+	}
+	else {
+		_animationCounter += speed * ANIMATION_DELTA;
+		((AnimationNode*)getSceneNode())->setFrame(
+			((int)_animationCounter) % ((AnimationNode*)getSceneNode())->getSize());
+	}
 }
 
 /** Delete everything allocated with new. */

@@ -209,22 +209,6 @@ bool GameController::init(const char * levelkey, const char * levelpath) {
  * memory allocation.  Instead, allocation happens in this method.
  *
  * The game world is scaled so that the screen coordinates do not agree
- * with the Box2d coordinates.  This initializer uses the default scale *
- * @retain a reference to the root layer
- * @return  true if the controller is initialized properly, false otherwise.
- */
-/*bool GameController::init(RootLayer* root) {
-    return init(root,Rect(0,0,DEFAULT_WIDTH,DEFAULT_HEIGHT));
-}*/
-
-/**
- * Initializes the controller contents, and starts the game
- *
- * The constructor does not allocate any objects or memory.  This allows
- * us to have a non-pointer reference to this controller, reducing our
- * memory allocation.  Instead, allocation happens in this method.
- *
- * The game world is scaled so that the screen coordinates do not agree
  * with the Box2d coordinates.  The bounds are in terms of the Box2d
  * world, not the screen.
  *
@@ -394,32 +378,6 @@ void GameController::populate() {
     
 #pragma mark : Goal door
     Texture2D* image = _assets->get<Texture2D>(GOAL_TEXTURE);
-    
-    // Create obstacle
-   /* Vec2 goalPos = GOAL_POS;
-    Size goalSize(image->getContentSize().width*cscale/_scale.x,
-                  image->getContentSize().height*cscale/_scale.y);
-    _goalDoor = BoxObstacle::create(goalPos, goalSize, &_casterFilter);
-    _goalDoor->setDrawScale(_scale.x, _scale.y);
-    
-    // Set the physics attributes
-    _goalDoor->setBodyType(b2_staticBody);
-    _goalDoor->setDensity(0.0f);
-    _goalDoor->setFriction(0.0f);
-    _goalDoor->setRestitution(0.0f);
-    _goalDoor->setSensor(true);
-    
-
-    // Add the scene graph nodes to this object
-    sprite = PolygonNode::createWithTexture(image);
-    sprite->setScale(cscale);
-    _goalDoor->setSceneNode(sprite);
-    
-    draw = WireNode::create();
-    draw->setColor(DEBUG_COLOR);
-    draw->setOpacity(DEBUG_OPACITY);
-    _goalDoor->setDebugNode(draw); */
-
 
 	((PolygonNode*)(_level->_casterPos.object->getObject()->getSceneNode()))->initWithTexture(image);
 	((PolygonNode*)(_level->_casterPos.object->getObject()->getSceneNode()))->setScale(cscale / CASTER_SCALE_DOWN);
@@ -435,20 +393,6 @@ void GameController::populate() {
 
 
 #pragma mark : Dude
-    /*Vec2 dudePos = DUDE_POS;
-    image  = _assets->get<Texture2D>(DUDE_TEXTURE);
-    _avatar = Shadow::create(dudePos,_scale*DUDE_SCALE, &_characterFilter, &_characterSensorFilter);
-    _avatar->setDrawScale(_scale);
-    
-    // Add the scene graph nodes to this object
-    sprite = PolygonNode::createWithTexture(image);
-    sprite->setScale(cscale/DUDE_SCALE);
-    _avatar->setSceneNode(sprite);
-    
-    draw = WireNode::create();
-    draw->setColor(DEBUG_COLOR);
-    draw->setOpacity(DEBUG_OPACITY);
-    _avatar->setDebugNode(draw); */
 	image = _assets->get<Texture2D>(DUDE_TEXTURE);
 	((PolygonNode*)(_level->_playerPos.object->getSceneNode()))->initWithTexture(image);
 	((PolygonNode*)(_level->_playerPos.object->getSceneNode()))->setScale(cscale / DUDE_SCALE);
@@ -488,16 +432,7 @@ void GameController::populate() {
 		
 	}
 
-	//addBuilding("b1", "s1", Vec2(10, 10), 0.7f);
-	//addBuilding("b5", "s5", Vec2(8, 15), 0.5f);
-
 #pragma mark : Movers
-	//int carnum = 0;
-	/*Vec2 movPos = { 5.5f, 4.0f };
-	float scale = 0.3f;
-	const char * mname = "car1";
-	const char * sname = "car1s";
-	addMover(mname, sname, movPos, scale); */
 
 	// Play the background music on a loop.
 	/*Sound* source = _assets->get<Sound>(GAME_MUSIC);
@@ -742,11 +677,13 @@ void GameController::update(float dt) {
 		}
 	}
 
+	//_level->_playerPos.object->updateAnimation(); TODO uncomment this
     
     // Reset the game if we win or lose.
     if (_countdown > 0) {
         _countdown--;
-    } else if (_countdown == 0) {
+	}
+	else if (_countdown == 0) {
         reset();
     }
 }

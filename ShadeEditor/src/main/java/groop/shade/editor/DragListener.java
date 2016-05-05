@@ -57,7 +57,7 @@ public class DragListener implements DragGestureListener, DragSourceListener, Dr
 		try {
 			Object source = dtde.getTransferable().getTransferData(dataflavor[0]);
 			Object target = dtde.getSource();
-			StageIcon component = (StageIcon) ((DragSourceContext) source).getComponent();
+			StageObjectIcon component = (StageObjectIcon) ((DragSourceContext) source).getComponent();
 			BackgroundPanel oldContainer = (BackgroundPanel) component.getParent();
 			BackgroundPanel newContainer = (BackgroundPanel) ((DropTarget) target).getComponent();
 			if (oldContainer == newContainer) {
@@ -84,7 +84,7 @@ public class DragListener implements DragGestureListener, DragSourceListener, Dr
 		}
 	}
 
-	private boolean inBounds(StageIcon icon, int x, int y) {
+	private boolean inBounds(StageObjectIcon icon, int x, int y) {
 		return x <= icon.getParent().getWidth() + icon.getIcon().getIconWidth() / 2
 				&& x >= -(icon.getIcon().getIconWidth() / 2)
 				&& y <= icon.getParent().getHeight() + icon.getIcon().getIconHeight() / 2

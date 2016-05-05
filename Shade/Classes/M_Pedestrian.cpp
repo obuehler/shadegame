@@ -48,9 +48,11 @@ void Pedestrian::act(Pedestrian::ActionType action, int actionLength, int action
 	}
 }
 
-const map<string, Pedestrian::ActionType> Pedestrian::actionMap = {
+const map<std::string, Pedestrian::ActionType> Pedestrian::actionMap = {
 	{ "stand", ActionType::STAND },
 	{ "walk_slow", ActionType::WALK_SLOW },
 	{ "look_around", ActionType::LOOK_AROUND},
 	{ "walk_fast", ActionType::WALK_FAST },
 };
+
+const std::string Pedestrian::name = "pedestrian";

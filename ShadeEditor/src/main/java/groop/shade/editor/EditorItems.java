@@ -5,7 +5,7 @@ public enum EditorItems implements EditorItem {
 	SELECTOR {
 
 		@Override
-		public void clickAction(int x, int y, StageEditor editor, StageIcon icon) {
+		public void clickAction(int x, int y, StageEditor editor, StageObjectIcon icon) {
 			editor.deselect();
 			if (icon != null) {
 				icon.select();
@@ -20,7 +20,7 @@ public enum EditorItems implements EditorItem {
 	ERASER {
 
 		@Override
-		public void clickAction(int x, int y, StageEditor editor, StageIcon icon) {
+		public void clickAction(int x, int y, StageEditor editor, StageObjectIcon icon) {
 			icon.delete();
 		}
 
@@ -34,7 +34,7 @@ public enum EditorItems implements EditorItem {
 	PLAYERSITE {
 
 		@Override
-		public void clickAction(int x, int y, StageEditor editor, StageIcon icon) {
+		public void clickAction(int x, int y, StageEditor editor, StageObjectIcon icon) {
 			if (icon == null) {
 				PlayerSiteIcon sicon = editor.playerSiteIcon;
 				if (sicon == null) {
@@ -56,7 +56,7 @@ public enum EditorItems implements EditorItem {
 	CASTERSITE {
 
 		@Override
-		public void clickAction(int x, int y, StageEditor editor, StageIcon icon) {
+		public void clickAction(int x, int y, StageEditor editor, StageObjectIcon icon) {
 			if (icon == null) {
 				CasterSiteIcon sicon = editor.casterSiteIcon;
 				if (sicon == null) {
@@ -78,7 +78,7 @@ public enum EditorItems implements EditorItem {
 	PEDESTRIAN {
 
 		@Override
-		public void clickAction(int x, int y, StageEditor editor, StageIcon icon) {
+		public void clickAction(int x, int y, StageEditor editor, StageObjectIcon icon) {
 			if (icon == null) {
 				editor.backgroundPanel.add(new TreeIcon(x, y, editor, ObstacleType.PEDESTRIAN));
 			}
@@ -93,7 +93,7 @@ public enum EditorItems implements EditorItem {
 	CAR {
 
 		@Override
-		public void clickAction(int x, int y, StageEditor editor, StageIcon icon) {
+		public void clickAction(int x, int y, StageEditor editor, StageObjectIcon icon) {
 			if (icon == null) {
 				editor.backgroundPanel.add(new TreeIcon(x, y, editor, ObstacleType.CAR));
 			}
@@ -104,6 +104,25 @@ public enum EditorItems implements EditorItem {
 			return ObstacleType.CAR.getName();
 		}
 
-	};
+	},
+	TARGETER {
+
+		@Override
+		public void clickAction(int x, int y, StageEditor editor, StageObjectIcon icon) {
+			if (editor.selectedIcon != null) {
+				editor.targetIcon.setLocation(x, y);
+				editor.targetIcon.setVisible(true);
+				((TreeIcon)(editor.selectedIcon)).targetFieldX.setText(Integer.toString(x));
+				((TreeIcon)(editor.selectedIcon)).targetFieldY.setText(Integer.toString(y));
+				editor.repaint();
+			}
+		}
+
+		@Override
+		public String getName() {
+			return "Target Position";
+		}
+		
+	}
 
 }

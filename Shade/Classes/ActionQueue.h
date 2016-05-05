@@ -7,7 +7,7 @@
 #include "cocos2d.h"
 
 #define DEFAULT_ACTION_LENGTH 1
-#define DEFAULT_BEARING 0.0f
+#define DEFAULT_BEARING -1.0f
 #define DEFAULT_TARGET_X -1.0f
 #define DEFAULT_TARGET_Y -1.0f
 
@@ -136,14 +136,26 @@ public:
 
 	/** Constructs a new ActionNode with the given arguments and pushes it
 	* onto the queue. */
-	void push(ActionType type, int length) {
-		pushNode(make_shared<ActionNode>(type, length));
+	void push(ActionType type, Vec2 target) {
+		pushNode(make_shared<ActionNode>(type, target));
 	}
 
 	/** Constructs a new ActionNode with the given arguments and pushes it
 	* onto the queue. */
-	void push(ActionType type, Vec2 target) {
-		pushNode(make_shared<ActionNode>(type, target));
+	void push(float bearing, ActionType type, Vec2 target) {
+		pushNode(make_shared<ActionNode>(bearing, type, target));
+	}
+
+	/** Constructs a new ActionNode with the given arguments and pushes it
+	* onto the queue. */
+	void push(ActionType type, int length, int counter, Vec2 target) {
+		pushNode(make_shared<ActionNode>(type, length, counter, target));
+	}
+
+	/** Constructs a new ActionNode with the given arguments and pushes it
+	* onto the queue. */
+	void push(ActionType type, int length, Vec2 target) {
+		pushNode(make_shared<ActionNode>(type, length, target));
 	}
 
 	/** Constructs a new ActionNode with the given arguments and pushes it
@@ -154,8 +166,32 @@ public:
 
 	/** Constructs a new ActionNode with the given arguments and pushes it
 	* onto the queue. */
-	void push(ActionType type, int length, int counter, float heading) {
-		pushNode(make_shared<ActionNode>(type, length, counter, heading));
+	void push(float bearing, ActionType type, int length, int counter, Vec2 target) {
+		pushNode(make_shared<ActionNode>(bearing, type, length, counter, target));
+	}
+
+	/** Constructs a new ActionNode with the given arguments and pushes it
+	* onto the queue. */
+	void push(float bearing, ActionType type, int length, Vec2 target) {
+		pushNode(make_shared<ActionNode>(bearing, type, length, target));
+	}
+
+	/** Constructs a new ActionNode with the given arguments and pushes it
+	* onto the queue. */
+	void push(ActionType type, int length) {
+		pushNode(make_shared<ActionNode>(type, length));
+	}
+
+	/** Constructs a new ActionNode with the given arguments and pushes it
+	* onto the queue. */
+	void push(float bearing, ActionType type, int length) {
+		pushNode(make_shared<ActionNode>(bearing, type, length));
+	}
+
+	/** Constructs a new ActionNode with the given arguments and pushes it
+	* onto the queue. */
+	void push(float bearing, ActionType type, int length, int counter) {
+		pushNode(make_shared<ActionNode>(bearing, type, length, counter));
 	}
 
 	/** Pushes the given node onto the queue. */
@@ -417,7 +453,19 @@ private:
 
 		ActionNode(ActionType type, Vec2 target) : _length(DEFAULT_ACTION_LENGTH), _counter(
 			DEFAULT_ACTION_LENGTH), _type(type), _next(nullptr
-				), _bearing(0.0f), _target(target) {}
+				), _bearing(DEFAULT_BEARING), _target(target) {}
+
+		ActionNode(float bearing, ActionType type, Vec2 target) : _length(DEFAULT_ACTION_LENGTH), _counter(
+			DEFAULT_ACTION_LENGTH), _type(type), _next(nullptr
+				), _bearing(bearing), _target(target) {}
+
+		ActionNode(ActionType type, int length, int counter, Vec2 target) : _type(type
+			), _length(length), _counter(counter), _next(nullptr), _bearing(
+				DEFAULT_BEARING), _target(target) {}
+
+		ActionNode(ActionType type, int length, Vec2 target) : _type(type
+			), _length(length), _counter(length), _next(nullptr), _bearing(
+				DEFAULT_BEARING), _target(target) {}
 
 		ActionNode(ActionType type, int length, int counter) : _type(type
 			), _length(length), _counter(counter), _next(nullptr), _bearing(
@@ -426,24 +474,32 @@ private:
 			_target.y = DEFAULT_TARGET_Y;
 		}
 
+		ActionNode(float bearing, ActionType type, int length, Vec2 target) : _counter(length
+			), _type(type), _length(length), _next(nullptr), _bearing(bearing),
+			_target(target) {}
+
 		ActionNode(ActionType type, int length) : _counter(length), _type(
 			type), _length(length), _next(nullptr), _bearing(DEFAULT_BEARING) {
 			_target.x = DEFAULT_TARGET_X;
 			_target.y = DEFAULT_TARGET_Y;
 		}
 
-		ActionNode(ActionType type, int length, float bearing) : _counter(length
+		ActionNode(float bearing, ActionType type, int length) : _counter(length
 			), _type(type), _length(length), _next(nullptr), _bearing(bearing) {
 			_target.x = DEFAULT_TARGET_X;
 			_target.y = DEFAULT_TARGET_Y;
 		}
 
-		ActionNode(ActionType type, int length, int counter, float bearing
-			) : _counter(counter), _type(type), _length(length), _next(nullptr
+		ActionNode(float bearing, ActionType type, int length, int counter) :
+			_counter(counter), _type(type), _length(length), _next(nullptr
 				), _bearing(bearing) {
 			_target.x = DEFAULT_TARGET_X;
 			_target.y = DEFAULT_TARGET_Y;
 		}
+
+		ActionNode(float bearing, ActionType type, int length, int counter, Vec2 target) :
+			_counter(counter), _type(type), _length(length), _next(nullptr
+				), _bearing(bearing), _target(target) {}
 
 		ActionNode(const ActionNode& action) : _counter(action._counter
 			), _type(action._type), _length(action._length), _next(nullptr

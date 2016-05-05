@@ -10,7 +10,7 @@ public class StaticObjectEditorItem implements EditorItem {
 	StaticObjectType type;
 	
 	@Override
-	public void clickAction(int x, int y, StageEditor editor, StageIcon icon) {
+	public void clickAction(int x, int y, StageEditor editor, StageObjectIcon icon) {
 		if (icon == null) {
 			editor.backgroundPanel.add(new StaticObjectIcon(x, y, editor, type));
 		}

@@ -50,14 +50,52 @@ public class ActionMetadataPanel extends JPanel {
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.PAGE_AXIS));
 		
 		infoPanel.add(new JLabel(data.type));
-		infoPanel.add(new JLabel("length: " + Integer.toString(data.length)));
-		infoPanel.add(new JLabel("counter: " + Integer.toString(data.counter)));
-		infoPanel.add(new JLabel("bearing: " + Float.toString(data.bearing)));
+		
+		String lengthText;
+		try {
+			lengthText = Integer.toString(data.length);
+		} catch (NullPointerException npe) {
+			lengthText = "";
+		}
+		infoPanel.add(new JLabel("length: " + lengthText));
+		
+		String counterText;
+		try {
+			counterText = Integer.toString(data.counter);
+		} catch (NullPointerException npe) {
+			counterText = "";
+		}
+		infoPanel.add(new JLabel("counter: " + counterText));
+		
+		String bearingText;
+		try {
+			bearingText = Float.toString(data.bearing);
+		} catch (NullPointerException npe) {
+			bearingText = "";
+		}
+		infoPanel.add(new JLabel("bearing: " + bearingText));
+		
+		String targetXText, targetYText;
+		try {
+			targetXText = Integer.toString(data.targetPixelX);
+		} catch (NullPointerException npe) {
+			targetXText = "";
+		}
+		try {
+			targetYText = ", " + Integer.toString(data.targetPixelY);
+		} catch (NullPointerException npe) {
+			if (targetXText != "") {
+				targetYText = ", ";
+			} else {
+				targetYText = "";
+			}
+		}
+		infoPanel.add(new JLabel("target: " + targetXText + targetYText));
 		
 		final CyclicRadioButton cyclicButton = new CyclicRadioButton(data);
 		cyclicButton.setText("Beginning of cycle");
 		cyclicButton.addActionListener(CycleResetListener.getInstance(cyclicButtons));
-		
+		cyclicButton.setSelected(data.cycleStart);
 		cyclicButtons.add(cyclicButton);
 		buttonPanel.add(cyclicButton);
 		

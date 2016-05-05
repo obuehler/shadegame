@@ -3,7 +3,7 @@ package groop.shade.editor;
 import com.badlogic.gdx.math.Vector2;
 
 @SuppressWarnings("serial")
-public class PlayerSiteIcon extends StageIcon {
+public class PlayerSiteIcon extends StageObjectIcon {
 
 	public PlayerSiteIcon(int x, int y, StageEditor s) {
 		super(x, y, s);

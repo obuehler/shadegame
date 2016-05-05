@@ -48,9 +48,11 @@ void Car::act(Car::ActionType action, int actionLength, int actionCounter, BoxOb
 	}
 }
 
-const map<string, Car::ActionType> Car::actionMap = {
+const map<std::string, Car::ActionType> Car::actionMap = {
 	{ "stop", ActionType::STOP },
 	{ "go", ActionType::GO },
 	{ "left", ActionType::TURN_LEFT },
 	{ "right", ActionType::TURN_RIGHT },
 };
+
+const std::string Car::name = "car";

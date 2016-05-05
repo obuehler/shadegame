@@ -1,6 +1,7 @@
 package groop.shade.editor;
 
 import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.awt.Toolkit;
 import java.io.File;
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ public class Constants {
 
 	static {
 		BORDER_LAYOUT = new BorderLayout();
+		FLOW_LAYOUT = new FlowLayout();
 		FILE_SEPARATOR = File.separator;
 		CONSTANTS_FOLDER_NAME = "constants";
 		TEXTURES_FOLDER_NAME = "textures";
@@ -70,6 +72,7 @@ public class Constants {
 	public static final float DEFAULT_SCALE;
 
 	public static final BorderLayout BORDER_LAYOUT;
+	public static final FlowLayout FLOW_LAYOUT;
 	public static final String FILE_SEPARATOR;
 	public static final String TEXTURES_FOLDER_NAME;
 	public static final String STAGES_FOLDER_NAME;

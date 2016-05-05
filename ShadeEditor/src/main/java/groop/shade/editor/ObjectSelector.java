@@ -96,4 +96,14 @@ public abstract class ObjectSelector {
 			setSelectAction(s);
 		}
 	}
+	
+	static final class SetTargetPositionButton extends ObjectSelector {
+		
+		public SetTargetPositionButton(StageEditor s) {
+			value = EditorItems.TARGETER;
+			button = new JButton("Set Target Position");
+			setSelectAction(s);
+		}
+		
+	}
 }

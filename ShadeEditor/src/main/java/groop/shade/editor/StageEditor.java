@@ -117,13 +117,13 @@ public class StageEditor extends JFrame {
 			return component;
 		}
 
-		public void add(StageIcon icon) {
+		public void add(StageObjectIcon icon) {
 			add((JLabel) icon);
 			getThis().menuPanel.add(icon.menu).setVisible(false);
 		}
 
 		/** For drag & drop between frames */
-		public void transfer(StageIcon icon) {
+		public void transfer(StageObjectIcon icon) {
 			try {
 				icon.removeMouseListener(icon.getMouseListeners()[0]);
 			} catch (Exception e) {
@@ -160,11 +160,17 @@ public class StageEditor extends JFrame {
 
 		@Override
 		public void mouseReleased(MouseEvent arg0) {
+			Component comp = (Component)(arg0.getSource());
 			int x = arg0.getX();
 			int y = arg0.getY();
+			while (comp != backgroundPanel) {
+				x += comp.getX();
+				y += comp.getY();
+				comp = comp.getParent();
+			}
 			try {
 				try {
-					selectedOption.clickAction(x, y, getThis(), (StageIcon) arg0.getComponent());
+					selectedOption.clickAction(x, y, getThis(), (StageObjectIcon) arg0.getComponent());
 				} catch (ClassCastException e) {
 					e.printStackTrace();
 					selectedOption.clickAction(x, y, getThis(), null);
@@ -185,6 +191,10 @@ public class StageEditor extends JFrame {
 
 	/** The icon representing the current caster site */
 	CasterSiteIcon casterSiteIcon;
+	
+	/** The icon representing the current target location for the next action,
+	 * if the action is added onto the currently displayed list of actions */
+	NewStageIcon targetIcon;
 
 	/** The background panel */
 	BackgroundPanel backgroundPanel;
@@ -212,7 +222,7 @@ public class StageEditor extends JFrame {
 
 	private BufferedImage bufferedImage;
 
-	public StageIcon selectedIcon;
+	public StageObjectIcon selectedIcon;
 
 	/**
 	 * Called when a new editor is created by choosing "New" from the "File"
@@ -334,7 +344,7 @@ public class StageEditor extends JFrame {
 		getContentPane().add(menuPanel);
 		backgroundPanel = new BackgroundPanel();
 		viewportPanel = new JPanel();
-		viewportPanel.setLayout(new FlowLayout());
+		viewportPanel.setLayout(Constants.FLOW_LAYOUT);
 		viewportPanel.add(backgroundPanel);
 		scrollPane = new JScrollPane();
 		getContentPane().add(scrollPane);
@@ -343,6 +353,8 @@ public class StageEditor extends JFrame {
 		scrollPane.setVisible(true);
 		playerSiteIcon = null;
 		casterSiteIcon = null;
+		targetIcon = new NewStageIcon(this, Constants.ASSETS_PATH() + "textures/editor/target.png");
+		backgroundPanel.add(targetIcon);
 		EditorMenuBar menuBar = new EditorMenuBar();
 		selectedIcon = null;
 		selectedOption = EditorItems.SELECTOR;
@@ -385,6 +397,7 @@ public class StageEditor extends JFrame {
 		});
 		setMinimumSize(MINIMUM_WINDOW_SIZE);
 		setVisible(true);
+		targetIcon.setVisible(false);
 	}
 
 	private void quitEditor() {
