@@ -156,6 +156,7 @@ void MainMenuController::preload() {
 	tloader->loadAsync(DUDE_TEXTURE, "textures/player_animation.png");
 	tloader->loadAsync(PEDESTRIAN_TEXTURE, "textures/pedestrian_td.png");
 	tloader->loadAsync(PEDESTRIAN_SHADOW_TEXTURE, "textures/pedestrian_s_td.png");
+	tloader->loadAsync(INDICATOR, "textures/indicator.png");
 	tloader->loadAsync(CAR_TEXTURE, "textures/Car1.png");
 	tloader->loadAsync(CAR_SHADOW_TEXTURE, "textures/Car1_S.png");
 	tloader->loadAsync(GOAL_TEXTURE, "textures/caster_animation.png");

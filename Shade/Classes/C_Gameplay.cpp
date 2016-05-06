@@ -33,51 +33,7 @@ using namespace std;
 #pragma mark -
 #pragma mark Level Geography
 
-// Since these appear only once, we do not care about the magic numbers.
-// In an actual game, this information would go in a data file.
-// IMPORTANT: Note that Box2D units do not equal drawing units
-/** The wall vertices */
-#define WALL_VERTS 12
-#define WALL_COUNT  2
-
-float WALL[WALL_COUNT][WALL_VERTS] = {
-    {16.0f, 18.0f, 16.0f, 17.0f,  1.0f, 17.0f,
-      1.0f,  0.0f,  0.0f,  0.0f,  0.0f, 18.0f},
-    {32.0f, 18.0f, 32.0f,  0.0f, 31.0f,  0.0f,
-     31.0f, 17.0f, 16.0f, 17.0f, 16.0f, 18.0f}
-};
-
-/** The number of platforms */
-#define PLATFORM_VERTS  8
-#define PLATFORM_COUNT  10
-
-/** The number of buildings */
-#define BUILDING_COUNT 5   // TODO Update this with the actual number
-/** The number of types of buildings */
-#define BUILDING_TYPES 11
-
-/** The outlines of all of the platforms */
-float PLATFORMS[PLATFORM_COUNT][PLATFORM_VERTS] = {
-    { 1.0f, 3.0f, 6.0f, 3.0f, 6.0f, 2.5f, 1.0f, 2.5f},
-    { 6.0f, 4.0f, 9.0f, 4.0f, 9.0f, 2.5f, 6.0f, 2.5f},
-    {23.0f, 4.0f,31.0f, 4.0f,31.0f, 2.5f,23.0f, 2.5f},
-    {26.0f, 5.5f,28.0f, 5.5f,28.0f, 5.0f,26.0f, 5.0f},
-    {29.0f, 7.0f,31.0f, 7.0f,31.0f, 6.5f,29.0f, 6.5f},
-    {24.0f, 8.5f,27.0f, 8.5f,27.0f, 8.0f,24.0f, 8.0f},
-    {29.0f,10.0f,31.0f,10.0f,31.0f, 9.5f,29.0f, 9.5f},
-    {23.0f,11.5f,27.0f,11.5f,27.0f,11.0f,23.0f,11.0f},
-    {19.0f,12.5f,23.0f,12.5f,23.0f,12.0f,19.0f,12.0f},
-    { 1.0f,12.5f, 7.0f,12.5f, 7.0f,12.0f, 1.0f,12.0f}
-};
-
-/** The goal door position */
-float GOAL_POS[] = { 4.0f,14.0f};
-/** The position of the spinning barrier */
-float SPIN_POS[] = {13.0f,12.5f};
-/** The initial position of the dude */
-float DUDE_POS[] = { 2.5f, 7.5f};
-/** The position of the rope bridge */
-float BRIDGE_POS[] = {9.0f, 3.8f};
+#define WALL_THICKNESS 0.08f
 
 #pragma mark -
 #pragma mark Physics Constants
@@ -167,10 +123,11 @@ float BRIDGE_POS[] = {9.0f, 3.8f};
 
 /** Z-levels for nodes */
 #define DEBUG_Z 12
-#define EXPOSURE_BAR_Z 13
-#define EXPOSURE_FRAME_Z 14
-#define BACK_BUTTON_Z 15
-#define RESUME_BUTTON_Z 16
+#define INDICATOR_Z 13
+#define EXPOSURE_BAR_Z 14
+#define EXPOSURE_FRAME_Z 15
+#define BACK_BUTTON_Z 16
+#define RESUME_BUTTON_Z 17
 #define CASTER_Z 11
 #define PLAYER_Z 7
 #define BUILDING_OBJECT_Z 9
@@ -200,6 +157,7 @@ GameController::GameController() :
 	_timernode(nullptr),
 	_exposurenode(nullptr),
 	_exposurebar(nullptr),
+	_indicator(nullptr),
 	_exposureframe(nullptr),
 	_active(false),
 	_debug(false),
@@ -300,6 +258,11 @@ void GameController::initialize(RootLayer* root) {
 	_timernode->setColor(WIN_COLOR);
 	_timernode->setVisible(true); */
 
+	_indicator = PolygonNode::createWithTexture(_assets->get<Texture2D>(INDICATOR));
+	_indicator->setPosition(center.x, dimen.height * 0.9f);
+	_indicator->setScale(0.08f, 0.15f);
+	_indicator->setVisible(true);
+
 	_exposurebar = PolygonNode::createWithTexture(_assets->get<Texture2D>(EXPOSURE_BAR));
 	_exposurebar->setAnchorPoint(Vec2(0, 0));
 	_exposurebar->setPosition(root->getContentSize().width - EXPOSURE_X_OFFSET, root->getContentSize().height - EXPOSURE_Y_OFFSET);
@@ -324,7 +287,7 @@ void GameController::initialize(RootLayer* root) {
 	_resumeButton = ui::Button::create();
 	_resumeButton->setTouchEnabled(true);
 	_resumeButton->loadTextures("textures/menu/resume_button.png", "textures/menu/resume_button.png", "");
-	_resumeButton->setPosition(Point(center.x, dimen.height * 0.6));
+	_resumeButton->setPosition(Point(center.x, dimen.height * 0.6f));
 	_resumeButton->addTouchEventListener([&](Ref* sender, cocos2d::ui::Widget::TouchEventType type) {
 		switch (type)
 		{
@@ -340,7 +303,7 @@ void GameController::initialize(RootLayer* root) {
 	_backButton = ui::Button::create();
 	_backButton->setTouchEnabled(true);
 	_backButton->loadTextures("textures/menu/back_to_menu_button.png", "textures/menu/back_to_menu_button.png", "");
-	_backButton->setPosition(Point(center.x, dimen.height * 0.4));
+	_backButton->setPosition(Point(center.x, dimen.height * 0.4f));
 	_backButton->addTouchEventListener([&](Ref* sender, cocos2d::ui::Widget::TouchEventType type) {
 		switch (type)
 		{
@@ -365,9 +328,48 @@ void GameController::initialize(RootLayer* root) {
 	_gameroot->addChild(_exposureframe, EXPOSURE_FRAME_Z);
 	_gameroot->addChild(_backButton, BACK_BUTTON_Z);
 	_gameroot->addChild(_resumeButton, RESUME_BUTTON_Z);
+	_gameroot->addChild(_indicator, INDICATOR_Z);
     _rootnode = root;
 	_rootnode->addChild(_gameroot, 0);
     _rootnode->retain();
+
+	BoxObstacle* wallobj = BoxObstacle::create(Vec2(WALL_THICKNESS * 0.5f, _level->_size.height * 0.5f), Size(WALL_THICKNESS, _level->_size.height), &objectFilter);
+	wallobj->setBodyType(b2_staticBody);
+	wallobj->setDensity(BASIC_DENSITY);
+	wallobj->setFriction(BASIC_FRICTION);
+	wallobj->setRestitution(BASIC_RESTITUTION);
+	wallobj->setDrawScale(BOX2D_SCALE, BOX2D_SCALE);
+	wallobj->setSceneNode(Node::create());
+	wallobj->setDebugNode(newDebugNode());
+	addObstacle(wallobj, 1);
+	wallobj = BoxObstacle::create(Vec2(_level->_size.width - WALL_THICKNESS * 0.5f, _level->_size.height * 0.5f), Size(WALL_THICKNESS, _level->_size.height), &objectFilter);
+	wallobj->setBodyType(b2_staticBody);
+	wallobj->setDensity(BASIC_DENSITY);
+	wallobj->setFriction(BASIC_FRICTION);
+	wallobj->setRestitution(BASIC_RESTITUTION);
+	wallobj->setDrawScale(BOX2D_SCALE, BOX2D_SCALE);
+	wallobj->setSceneNode(Node::create());
+	wallobj->setDebugNode(newDebugNode());
+	addObstacle(wallobj, 1);
+	wallobj = BoxObstacle::create(Vec2(_level->_size.width * 0.5f, WALL_THICKNESS * 0.5f), Size(_level->_size.width - WALL_THICKNESS * 2, WALL_THICKNESS), &objectFilter);
+	wallobj->setBodyType(b2_staticBody);
+	wallobj->setDensity(BASIC_DENSITY);
+	wallobj->setFriction(BASIC_FRICTION);
+	wallobj->setRestitution(BASIC_RESTITUTION);
+	wallobj->setDrawScale(BOX2D_SCALE, BOX2D_SCALE);
+	wallobj->setSceneNode(Node::create());
+	wallobj->setDebugNode(newDebugNode());
+	addObstacle(wallobj, 1);
+	wallobj = BoxObstacle::create(Vec2(_level->_size.width * 0.5f, _level->_size.height - WALL_THICKNESS * 0.5f), Size(_level->_size.width - WALL_THICKNESS * 2, WALL_THICKNESS), &objectFilter);
+	wallobj->setBodyType(b2_staticBody);
+	wallobj->setDensity(BASIC_DENSITY);
+	wallobj->setFriction(BASIC_FRICTION);
+	wallobj->setRestitution(BASIC_RESTITUTION);
+	wallobj->setDrawScale(BOX2D_SCALE, BOX2D_SCALE);
+	wallobj->setSceneNode(Node::create());
+	wallobj->setDebugNode(newDebugNode());
+	addObstacle(wallobj, 1);
+
 
     // Now populate the physics objects
     populate();
@@ -414,6 +416,7 @@ void GameController::deinitialize() {
 	_winnode = nullptr;
 	_timernode = nullptr;
 	_exposurenode = nullptr;
+	_indicator = nullptr;
 	_exposurebar = nullptr;
 	_exposureframe = nullptr;
 	_rootnode->removeChild(_gameroot);
@@ -713,6 +716,12 @@ void GameController::update(float dt) {
 				ped.object->act();
 			
 			_physics.update(dt);
+			
+			// Update the indicator direction
+			// Subtract the found angle from 90 since getAngle returns angle with x-axis instead of y
+			_indicator->setRotation(90.0f - CC_RADIANS_TO_DEGREES(
+				(_level->_casterPos.object->getObject()->getPosition() - 
+					_level->_playerPos.object->getPosition()).getAngle()));
 		}
 
 		/* if (_avatar->isJumping()) {
@@ -729,7 +738,6 @@ void GameController::update(float dt) {
 			if (!_complete && _physics._reachedCaster) setComplete(true);
 			if (!_complete) {
 				// Check for exposure or cover
-				//CCLOG("%1.4f", _avatar->getCoverRatio());
 				_exposure += dt * (1.0f - ((1.0f + EXPOSURE_COOLDOWN_RATIO) * _level->_playerPos.object->getCoverRatio()));
 				if (_exposure < 0.0f) _exposure = 0.0f;
 				if (_exposure >= EXPOSURE_LIMIT) {

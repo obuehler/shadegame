@@ -53,6 +53,8 @@
 #define CAR_SHADOW_TEXTURE "csimage"
 /** The key for the win door texture in the asset manager */
 #define GOAL_TEXTURE "goal"
+/** The key for the indicator image in the asset manager */
+#define INDICATOR "ind"
 /* The tag for the object in an object-shadow pair, used for loading */
 #define OBJECT_TAG "_o"
 /* The tag for the shadow in an object-shadow pair, used for loading */
@@ -154,6 +156,8 @@ protected:
 	Label* _exposurenode;
 	/** Reference to the variable exposure bar */
 	PolygonNode* _exposurebar;
+	/** Reference to the indicator arrow */
+	PolygonNode* _indicator;
 	/** Base Poly2 to use when updating the exposure bar view polygon */
 	Poly2 _exposurepoly;
 	/** Reference to the exposure bar frame */
