@@ -291,7 +291,7 @@ void GameController::initialize(RootLayer* root) {
 	_resumeButton->addTouchEventListener([&](Ref* sender, cocos2d::ui::Widget::TouchEventType type) {
 		switch (type)
 		{
-		case ui::Widget::TouchEventType::BEGAN:
+		case ui::Widget::TouchEventType::ENDED:
 			togglePause();
 			break;
 		default:
@@ -307,7 +307,7 @@ void GameController::initialize(RootLayer* root) {
 	_backButton->addTouchEventListener([&](Ref* sender, cocos2d::ui::Widget::TouchEventType type) {
 		switch (type)
 		{
-		case ui::Widget::TouchEventType::BEGAN:
+		case ui::Widget::TouchEventType::ENDED:
 			deinitialize(); // sets _active to false
 			break;
 		default:
