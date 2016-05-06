@@ -170,6 +170,8 @@ protected:
 	ui::Button* _resumeButton;
 	/** The back to menu button */
 	ui::Button* _backButton;
+	/** The try again button */
+	ui::Button* _tryAgainButton;
 
     // Physics objects for the game
     /** Reference to the goalDoor (for collision detection) */
@@ -362,7 +364,7 @@ public:
      *
      * This method disposes of the world and creates a new one.
      */
-    void reset(float dt) ;
+    void reset();
 
     /**
      * Executes the core gameplay loop of this world.

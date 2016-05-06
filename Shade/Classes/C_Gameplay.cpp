@@ -316,6 +316,22 @@ void GameController::initialize(RootLayer* root) {
 	});
 	_backButton->setVisible(false);
 
+	_tryAgainButton = ui::Button::create();
+	_tryAgainButton->setTouchEnabled(true);
+	_tryAgainButton->loadTextures("textures/menu/try_again_button.png", "textures/menu/try_again_button.png", "");
+	_tryAgainButton->setPosition(Point(center.x, dimen.height * 0.6f));
+	_tryAgainButton->addTouchEventListener([&](Ref* sender, cocos2d::ui::Widget::TouchEventType type) {
+		switch (type)
+		{
+		case ui::Widget::TouchEventType::ENDED:
+			reset();
+			break;
+		default:
+			break;
+		}
+	});
+	_tryAgainButton->setVisible(false);
+
     // Add everything to the root and retain
 	_gameroot->addChild(_backgroundnode, 1);
 	_gameroot->addChild(_worldnode,2);
@@ -327,6 +343,7 @@ void GameController::initialize(RootLayer* root) {
 	_gameroot->addChild(_exposurebar, EXPOSURE_BAR_Z);
 	_gameroot->addChild(_exposureframe, EXPOSURE_FRAME_Z);
 	_gameroot->addChild(_backButton, BACK_BUTTON_Z);
+	_gameroot->addChild(_tryAgainButton, RESUME_BUTTON_Z);
 	_gameroot->addChild(_resumeButton, RESUME_BUTTON_Z);
 	_gameroot->addChild(_indicator, INDICATOR_Z);
     _rootnode = root;
@@ -600,7 +617,7 @@ void GameController::addObstacle(Obstacle* obj, int zOrder) {
  *
  * This method disposes of the world and creates a new one.
  */
-void GameController::reset(float dt) {
+void GameController::reset() {
 	/*_level->_playerPos.object->getBody()->SetTransform(b2Vec2(_level->_size.width * 2.0f, _level->_size.height * 2.0f), 0.0f);
 	_physics.update(dt);
 	_physics.update(dt);
@@ -633,6 +650,10 @@ void GameController::reset(float dt) {
 
 	_worldnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO uncomment when lazy camera implemented
 	_debugnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO uncomment when lazy camera implemented
+
+	_tryAgainButton->setVisible(false);
+	_backButton->setVisible(false);
+	_resumeButton->setVisible(false);
 }
 
 /**
@@ -691,7 +712,7 @@ void GameController::update(float dt) {
 
 	// Process the toggled key commands
 	if (_input.didReset()) { 
-		reset(dt);
+		reset();
 	}
 	if (_input.didExit()) {
 		_rootnode->shutdown();
@@ -760,7 +781,12 @@ void GameController::update(float dt) {
 			_countdown--;
 		}
 		else if (_countdown == 0) {
-			reset(dt);
+			if (_failed || _complete) {
+				_backButton->setVisible(true);
+				if (_failed) {
+					_tryAgainButton->setVisible(true);
+				}
+			}
 		}
 	}
 }
