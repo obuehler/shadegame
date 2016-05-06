@@ -231,6 +231,8 @@ void GameController::initialize(RootLayer* root) {
     _winnode->setString(WIN_MESSAGE);
 	_winnode->setPosition(center.x, center.y);
     _winnode->setColor(WIN_COLOR);
+	
+	
 	_winnode->setVisible(false);
 
     _losenode = Label::create();
