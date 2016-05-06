@@ -447,6 +447,7 @@ void GameController::populate() {
 	float cscale = Director::getInstance()->getContentScaleFactor();
 	AnimationNode* animNodePtr;
 	PolygonNode* polyNodePtr;
+	PolygonNode* polyNodePtr1;
 
 #pragma mark : Goal door
 	animNodePtr = (AnimationNode*)(_level->_casterPos.object->getObject()->getSceneNode());
@@ -476,17 +477,18 @@ void GameController::populate() {
 
 
 #pragma mark : Buildings
-
 	for (LevelInstance::StaticObjectMetadata d : _level->_staticObjects) {
-		polyNodePtr = (PolygonNode*)(d.object->getSceneNode());
-		polyNodePtr->initWithTexture(_assets->get<Texture2D>(d.type + OBJECT_TAG));
-		polyNodePtr->setScale(cscale);
-		d.object->init(d.position, Size(polyNodePtr->getContentSize().width * cscale / scale.x, polyNodePtr->getContentSize().height * cscale / scale.y), &objectFilter);
+		polyNodePtr1 = (PolygonNode*)(d.object->getSceneNode());
+		polyNodePtr1->initWithTexture(_assets->get<Texture2D>(d.type + OBJECT_TAG));
+		polyNodePtr1->setScale(cscale);
 
 		polyNodePtr = (PolygonNode*)(d.shadow->getSceneNode());
 		polyNodePtr->initWithTexture(_assets->get<Texture2D>(d.type + SHADOW_TAG));
 		polyNodePtr->setScale(cscale);
-		d.shadow->init(d.position, Size(polyNodePtr->getContentSize().width * cscale / scale.x, polyNodePtr->getContentSize().height * cscale / scale.y), &shadowFilter);
+		
+		Vec2 offset = { polyNodePtr1->getContentSize().width * cscale / (scale.x * -5.0f), polyNodePtr1->getContentSize().height * cscale / (scale.y * 4.0f) };
+		d.object->init(d.position + offset, Size(polyNodePtr1->getContentSize().width * cscale / scale.x, polyNodePtr1->getContentSize().height * cscale / scale.y), &objectFilter); // Body
+		d.shadow->init(d.position, Size(polyNodePtr->getContentSize().width * cscale / scale.x, polyNodePtr->getContentSize().height * cscale / scale.y), &shadowFilter); // Shadoe
 
 		d.object->setDrawScale(scale);
 		d.object->positionSceneNode();
