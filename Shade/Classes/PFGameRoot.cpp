@@ -68,7 +68,7 @@ void PlatformRoot::stop() {
 
     SoundEngine::getInstance()->stopAll();
     AssetManager::getInstance()->stopScene(scene);
-	_gameplay.stop();
+	_gameplay.dispose();
 }
 
 /**
@@ -86,7 +86,7 @@ void PlatformRoot::update(float deltaTime) {
 
     complete = complete && AssetManager::getInstance()->getCurrent()->isComplete();
     if (_preloaded && !_gameplay.isActive() && complete) {
-        // Transfer control to the gameplay subcontroller
+        // Transfer control to the main menu subcontroller
         removeAllChildren();
         _gameplay.init(this);
     } else if (_gameplay.isActive()) {

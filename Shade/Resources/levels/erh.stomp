@@ -1,1 +1,0 @@
-{"scalex":1,"scaley":1,"name":"erh","pixelSize":{"width":600,"height":3000},"pedestrians":[{"x":6.22,"y":52.379997,"type":{"class":"groop.shade.editor.ObstacleType","value":"PEDESTRIAN"},"scale":1,"actionQueue":[],"actions":["walk fast","walk slow","look around","stand"]}],"cars":[]}

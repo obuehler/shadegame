@@ -82,6 +82,9 @@
     <ClInclude Include="..\Classes\C_MainMenu.h">
       <Filter>controller</Filter>
     </ClInclude>
+    <ClInclude Include="..\Classes\ShadowCount.h">
+      <Filter>abstractions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="game.rc" />
@@ -93,11 +96,11 @@
     <Filter Include="controller">
       <UniqueIdentifier>{17032a28-fd9d-4daf-b8f1-27917abe39c6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="view">
-      <UniqueIdentifier>{1ff38849-e4ac-4111-be1e-d3ea60365942}</UniqueIdentifier>
-    </Filter>
     <Filter Include="abstractions">
       <UniqueIdentifier>{9398fa0d-e788-44bf-9caf-ca17d0c1cb95}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="view">
+      <UniqueIdentifier>{1ff38849-e4ac-4111-be1e-d3ea60365942}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

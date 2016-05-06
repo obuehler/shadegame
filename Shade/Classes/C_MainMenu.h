@@ -116,11 +116,6 @@ public:
 	*/
 	void reset();
 
-	/**
-	* Clear all memory when exiting.
-	*/
-	void stop();
-
 };
 
 #endif /* defined(__C_MAINMENU_H__) */

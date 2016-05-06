@@ -117,6 +117,8 @@ float BRIDGE_POS[] = {9.0f, 3.8f};
 /** Ratio of exposure cooldown speed to exposure increase speed */
 #define EXPOSURE_COOLDOWN_RATIO 0.5f
 
+/** The relative background images folder path */
+#define BACKGROUNDS_FOLDER "textures/backgrounds/"
 /** The key for the (temporary) background image */
 #define BACKGROUND_IMAGE "bimage"
 
@@ -163,12 +165,26 @@ float BRIDGE_POS[] = {9.0f, 3.8f};
 /** Opacity of the physics outlines */
 #define DEBUG_OPACITY   192
 
+/** Z-levels for nodes */
+#define DEBUG_Z 12
+#define EXPOSURE_BAR_Z 13
+#define EXPOSURE_FRAME_Z 14
+#define BACK_BUTTON_Z 15
+#define RESUME_BUTTON_Z 16
+#define CASTER_Z 11
+#define PLAYER_Z 7
+#define BUILDING_OBJECT_Z 9
+#define BUILDING_SHADOW_Z 5
+#define PEDESTRIAN_OBJECT_Z 8
+#define PEDESTRIAN_SHADOW_Z 4 
+#define CAR_OBJECT_Z 10
+#define CAR_SHADOW_Z 6
+
 b2Filter GameController::characterFilter = b2Filter(CHARACTER_BIT, OBJECT_BIT, 0);
 b2Filter GameController::objectFilter = b2Filter(OBJECT_BIT, CHARACTER_BIT | CASTER_BIT, 1);
 b2Filter GameController::casterFilter = b2Filter(CASTER_BIT, CHARACTER_SENSOR_BIT | OBJECT_BIT, 1);
 b2Filter GameController::shadowFilter = b2Filter(SHADOW_BIT, CHARACTER_SENSOR_BIT, -1);
 b2Filter GameController::characterSensorFilter = b2Filter(CHARACTER_SENSOR_BIT, SHADOW_BIT | CASTER_BIT, -2);
-
 
 #pragma mark -
 #pragma mark Initialization
@@ -176,10 +192,21 @@ b2Filter GameController::characterSensorFilter = b2Filter(CHARACTER_SENSOR_BIT, 
 GameController::GameController() :
 	_rootnode(nullptr),
 	_worldnode(nullptr),
+	_level(nullptr),
+	_gameroot(nullptr),
 	_backgroundnode(nullptr),
 	_debugnode(nullptr),
+	_winnode(nullptr),
+	_timernode(nullptr),
+	_exposurenode(nullptr),
+	_exposurebar(nullptr),
+	_exposureframe(nullptr),
 	_active(false),
 	_debug(false),
+	_paused(false),
+	_complete(false),
+	_failed(false),
+	_countdown(-1),
 	_levelKey(nullptr),
 	_levelPath(nullptr)
 {}
@@ -217,12 +244,12 @@ bool GameController::init(const char * levelkey, const char * levelpath) {
  * @retain a reference to the root layer
  * @return  true if the controller is initialized properly, false otherwise.
  */
-bool GameController::init(RootLayer* root) {
+void GameController::initialize(RootLayer* root) {
 
 	_level = _assets->get<LevelInstance>(_levelKey);
 
 	if (_level == nullptr || root == nullptr) {
-		return false;
+		return;
 	}
 
 	_level->retain();
@@ -230,15 +257,8 @@ bool GameController::init(RootLayer* root) {
     // Determine the center of the screen
     Size dimen  = root->getContentSize();
     Vec2 center(dimen.width/2.0f,dimen.height/2.0f);
-   
-	/* Rect screen = Rect(Vec2(0,0), _level->_size);
-   
-    screen.origin.x *= root->getContentSize().width / screen.size.width;
-	screen.origin.y *= root->getContentSize().height / screen.size.height;
-    screen.size.width *= root->getContentSize().width / screen.size.width;
-	screen.size.height *= root->getContentSize().height / screen.size.height; */
 
-    _input.init(Rect(0.0f, 0.0f, root->getContentSize().width, root->getContentSize().height));
+    _input.init(Rect(0.0f, 0.0f, dimen.width, dimen.height));
     _input.start();
 
 	_physics.init(_level->_size);
@@ -246,46 +266,39 @@ bool GameController::init(RootLayer* root) {
     // Create the scene graph
     _worldnode = Node::create();
     _debugnode = Node::create();
-    _winnode = Label::create();
+	_gameroot = Node::create();
     
+	_winnode = Label::create();
     _winnode->setTTFConfig(_assets->get<TTFont>(MESSAGE_FONT)->getTTF());
     _winnode->setString(WIN_MESSAGE);
-    
-    _winnode->setPosition(root->getContentSize().width/2.0f,
-                          root->getContentSize().height/2.0f);
+	_winnode->setPosition(center.x, center.y);
     _winnode->setColor(WIN_COLOR);
-    setComplete(false);
+	_winnode->setVisible(false);
 
     _losenode = Label::create();
-    
     _losenode->setTTFConfig(_assets->get<TTFont>(MESSAGE_FONT)->getTTF());
     _losenode->setString(LOSE_MESSAGE);
-    
-    _losenode->setPosition(root->getContentSize().width/2.0f,
-                           root->getContentSize().height/2.0f);
+	_losenode->setPosition(center.x, center.y);
     _losenode->setColor(LOSE_COLOR);
-    setFailure(false);
+	_losenode->setVisible(false);
 
 	_backgroundnode = PolygonNode::createWithTexture(
 		_assets->get<Texture2D>(BACKGROUND_IMAGE + _level->_name));
 	_backgroundnode->setAnchorPoint(Vec2(0, 0));
 	_backgroundnode->setPosition(0, 0);
-	{
-		float cascale = Director::getInstance()->getContentScaleFactor();
-		_backgroundnode->setScale((_level->_size.width * BOX2D_SCALE) / _backgroundnode->getContentSize().width,
+	_backgroundnode->setScale((_level->_size.width * BOX2D_SCALE) / _backgroundnode->getContentSize().width,
 			(_level->_size.height * BOX2D_SCALE) / _backgroundnode->getContentSize().height);
-	}
 	_backgroundnode->setVisible(true);
 
 	// Starting exposure is 0
 	_exposure = 0.0f;
 
-	_timernode = Label::create();
+	/* _timernode = Label::create();
 	_timernode->setTTFConfig(_assets->get<TTFont>(MESSAGE_FONT)->getTTF());
 	_timernode->setString("");
 	_timernode->setPosition(60, root->getContentSize().height - 30);
 	_timernode->setColor(WIN_COLOR);
-	_timernode->setVisible(true);
+	_timernode->setVisible(true); */
 
 	_exposurebar = PolygonNode::createWithTexture(_assets->get<Texture2D>(EXPOSURE_BAR));
 	_exposurebar->setAnchorPoint(Vec2(0, 0));
@@ -297,28 +310,63 @@ bool GameController::init(RootLayer* root) {
 
 	_exposureframe = Sprite::createWithTexture(_assets->get<Texture2D>(EXPOSURE_FRAME));
 	_exposureframe->setAnchorPoint(Vec2(0, 0));
-	_exposureframe->setPosition(root->getContentSize().width - EXPOSURE_X_OFFSET - 3, root->getContentSize().height - EXPOSURE_Y_OFFSET - 3);
+	_exposureframe->setPosition(dimen.width - EXPOSURE_X_OFFSET - 3, dimen.height - EXPOSURE_Y_OFFSET - 3);
 	_exposureframe->setScale(Director::getInstance()->getContentScaleFactor());
 	_exposureframe->setVisible(true);
 
-	_exposurenode = Label::create();
+	/*_exposurenode = Label::create();
 	_exposurenode->setTTFConfig(_assets->get<TTFont>(MESSAGE_FONT)->getTTF());
 	_exposurenode->setString("");
-	_exposurenode->setPosition(root->getContentSize().width - EXPOSURE_X_OFFSET, root->getContentSize().height - EXPOSURE_Y_OFFSET);
+	_exposurenode->setPosition(dimen.width - EXPOSURE_X_OFFSET, dimen.height - EXPOSURE_Y_OFFSET);
 	_exposurenode->setColor(WIN_COLOR);
-	//_exposurenode->setVisible(true);
+	//_exposurenode->setVisible(true); */
+
+	_resumeButton = ui::Button::create();
+	_resumeButton->setTouchEnabled(true);
+	_resumeButton->loadTextures("textures/menu/resume_button.png", "textures/menu/resume_button.png", "");
+	_resumeButton->setPosition(Point(center.x, dimen.height * 0.6));
+	_resumeButton->addTouchEventListener([&](Ref* sender, cocos2d::ui::Widget::TouchEventType type) {
+		switch (type)
+		{
+		case ui::Widget::TouchEventType::BEGAN:
+			togglePause();
+			break;
+		default:
+			break;
+		}
+	});
+	_resumeButton->setVisible(false);
+
+	_backButton = ui::Button::create();
+	_backButton->setTouchEnabled(true);
+	_backButton->loadTextures("textures/menu/back_to_menu_button.png", "textures/menu/back_to_menu_button.png", "");
+	_backButton->setPosition(Point(center.x, dimen.height * 0.4));
+	_backButton->addTouchEventListener([&](Ref* sender, cocos2d::ui::Widget::TouchEventType type) {
+		switch (type)
+		{
+		case ui::Widget::TouchEventType::BEGAN:
+			deinitialize(); // sets _active to false
+			break;
+		default:
+			break;
+		}
+	});
+	_backButton->setVisible(false);
 
     // Add everything to the root and retain
-	root->addChild(_backgroundnode, 0);
-	root->addChild(_worldnode,1);
-    root->addChild(_debugnode,2);
-    root->addChild(_winnode,3);
-    root->addChild(_losenode,4);
+	_gameroot->addChild(_backgroundnode, 1);
+	_gameroot->addChild(_worldnode,2);
+    _gameroot->addChild(_debugnode,DEBUG_Z);
+    _gameroot->addChild(_winnode,3);
+    _gameroot->addChild(_losenode,3);
 	//root->addChild(_timernode, 5);
-	root->addChild(_exposurenode, 6);
-	root->addChild(_exposurebar, 6);
-	root->addChild(_exposureframe, 7);
+	//root->addChild(_exposurenode, 6);
+	_gameroot->addChild(_exposurebar, EXPOSURE_BAR_Z);
+	_gameroot->addChild(_exposureframe, EXPOSURE_FRAME_Z);
+	_gameroot->addChild(_backButton, BACK_BUTTON_Z);
+	_gameroot->addChild(_resumeButton, RESUME_BUTTON_Z);
     _rootnode = root;
+	_rootnode->addChild(_gameroot, 0);
     _rootnode->retain();
 
     // Now populate the physics objects
@@ -326,9 +374,14 @@ bool GameController::init(RootLayer* root) {
 	_worldnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO change when lazy camera implemented
 	_debugnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO change when lazy camera implemented
 	_backgroundnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode()));
-    _active = true;
-    setDebug(false);
-    return true;
+    
+	setDebug(false);
+	setComplete(false);
+	setFailure(false);
+	setPaused(false);
+	_input.setZero();
+
+	_active = true;
 }
 
 /**
@@ -345,17 +398,33 @@ GameController::~GameController() {
  * Disposes of all (non-static) resources allocated to this mode.
  */
 void GameController::dispose() {
+	if (_active) deinitialize();
+	_levelKey = nullptr;
+	_levelPath = nullptr;
+}
+
+void GameController::deinitialize() {
+	_input.setZero();
+	_input.stop();
 	_physics.dispose();
-    _worldnode = nullptr;
-    _debugnode = nullptr;
-    _winnode = nullptr;
+	_level->release();
+	_level = nullptr;
+	_worldnode = nullptr;
+	_debugnode = nullptr;
+	_winnode = nullptr;
 	_timernode = nullptr;
 	_exposurenode = nullptr;
 	_exposurebar = nullptr;
 	_exposureframe = nullptr;
-    _rootnode->removeAllChildren();
-    _rootnode->release();
-    _rootnode = nullptr;
+	_rootnode->removeChild(_gameroot);
+	_gameroot = nullptr;
+	_rootnode->release();
+	_rootnode = nullptr;
+	_debug = false;
+	_paused = false;
+	_complete = false;
+	_failed = false;
+	_active = false;
 }
 
 
@@ -391,7 +460,7 @@ void GameController::populate() {
 	_level->_casterPos.object->getObject()->positionSceneNode();
 	_level->_casterPos.object->getObject()->resetSceneNode();
 	_level->_casterPos.object->getObject()->setDebugNode(newDebugNode());
-    addObstacle(_level->_casterPos.object->getObject(), 5);
+    addObstacle(_level->_casterPos.object->getObject(), CASTER_Z);
 
 
 #pragma mark : Dude
@@ -403,7 +472,7 @@ void GameController::populate() {
 	_level->_playerPos.object->positionSceneNode();
 	_level->_playerPos.object->resetSceneNode();
 	_level->_playerPos.object->setDebugNode(newDebugNode());
-    addObstacle(_level->_playerPos.object, 4); // Put this at the very front
+    addObstacle(_level->_playerPos.object, PLAYER_Z); // Put this at the very front
 
 
 #pragma mark : Buildings
@@ -428,8 +497,8 @@ void GameController::populate() {
 		d.object->setDebugNode(newDebugNode());
 		d.shadow->setDebugNode(newDebugNode());
 		d.object->setBodyType(b2_staticBody);
-		addObstacle(d.object, 2);
-		addObstacle(d.shadow, 1);
+		addObstacle(d.object, BUILDING_OBJECT_Z);
+		addObstacle(d.shadow, BUILDING_SHADOW_Z);
 		
 	}
 
@@ -463,8 +532,8 @@ void GameController::populate() {
 		pd.object->getShadow()->resetSceneNode();
 		pd.object->getObject()->setDebugNode(newDebugNode());
 		pd.object->getShadow()->setDebugNode(newDebugNode());
-		addObstacle(pd.object->getObject(), 3);
-		addObstacle(pd.object->getShadow(), 2);
+		addObstacle(pd.object->getObject(), PEDESTRIAN_OBJECT_Z);
+		addObstacle(pd.object->getShadow(), PEDESTRIAN_SHADOW_Z);
 	}
 
 	for (LevelInstance::CarMetadata pd : _level->_cars) {
@@ -474,12 +543,12 @@ void GameController::populate() {
 		animNodePtr->setScale(cscale / CAR_SCALE_DOWN);
 		pd.object->getObject()->init(pd.position, Size((animNodePtr->getContentSize().width * cscale)
 			/ (scale.x * CAR_SCALE_DOWN), (animNodePtr->getContentSize().height * cscale)
-			/ (scale.y * CAR_SCALE_DOWN)), &objectFilter);
+			/ (scale.y * CAR_SCALE_DOWN)), &shadowFilter);
 		pd.object->getObject()->setDrawScale(scale);
 		pd.object->getObject()->positionSceneNode();
 		pd.object->getObject()->resetSceneNode();
 		pd.object->getObject()->setDebugNode(newDebugNode());
-		addObstacle(pd.object->getObject(), 3);
+		addObstacle(pd.object->getObject(), CAR_OBJECT_Z);
 
 		polyNodePtr = (PolygonNode*)(pd.object->getShadow()->getSceneNode());
 		polyNodePtr->initWithTexture(_assets->get<Texture2D>(CAR_SHADOW_TEXTURE));
@@ -491,7 +560,7 @@ void GameController::populate() {
 		pd.object->getShadow()->positionSceneNode();
 		pd.object->getShadow()->resetSceneNode();
 		pd.object->getShadow()->setDebugNode(newDebugNode());
-		addObstacle(pd.object->getShadow(), 2);
+		addObstacle(pd.object->getShadow(), CAR_SHADOW_Z);
 	}
 }
 
@@ -537,8 +606,10 @@ void GameController::reset(float dt) {
     
 	_input.setZero();
 	_exposure = 0;
+	setPaused(false);
     setFailure(false);
     setComplete(false);
+
 	//_level.populateLevel(true) TODO uncomment this after dynamic level loading is implemented
     populate();
 
@@ -572,7 +643,7 @@ void GameController::setComplete(bool value) {
         Sound* source = _assets->get<Sound>(WIN_MUSIC);
         SoundEngine::getInstance()->playMusic(source,false,MUSIC_VOLUME);
         _winnode->setVisible(true);
-        _countdown = EXIT_COUNT;
+		_countdown = EXIT_COUNT;
     } else {
         _winnode->setVisible(false);
         _countdown = -1;
@@ -592,7 +663,7 @@ void GameController::setFailure(bool value) {
         Sound* source = _assets->get<Sound>(LOSE_MUSIC);
         SoundEngine::getInstance()->playMusic(source,false,MUSIC_VOLUME);
         _losenode->setVisible(true);
-        _countdown = EXIT_COUNT;
+		_countdown = EXIT_COUNT;
     } else {
         _losenode->setVisible(false);
         _countdown = -1;
@@ -614,86 +685,74 @@ void GameController::update(float dt) {
 	_input.update(dt);
 
 	// Process the toggled key commands
-	if (_input.didDebug()) { setDebug(!isDebug()); }
 	if (_input.didReset()) { 
-
 		reset(dt);
 	}
 	if (_input.didExit()) {
 		_rootnode->shutdown();
 	}
 
-	if (!_failed && !_complete) {
-		// Process the movement
-		if (_input.getHorizontal() * _input.getHorizontal() + _input.getVertical()
-			* _input.getVertical() < DEADSPACE_SIZE * DEADSPACE_SIZE) {
-			_level->_playerPos.object->stopMovement();
-		}
-		else {
-			_level->_playerPos.object->changeVelocity(_input.getHorizontal(), _input.getVertical());
-		}
-
-		//_avatar->setJumping( _input.didJump());
-		//_level->_playerPos.object->applyForce();
-
-		/* for (int i = 0; i < carMovers.size(); i++) {
-			OurMovingObject<Car>* car = carMovers[i];
-			car->act();
-			//car->setHorizontalMovement(movvec.x);
-			//car->setVerticalMovement(movvec.y);
-			//car->applyForce();
-		} */
-		for (LevelInstance::CarMetadata car : _level->_cars) 
-			car.object->act();
-		for (LevelInstance::PedestrianMetadata ped : _level->_pedestrians) ped.object->act();
-
-	}
-	else {
-		_level->_playerPos.object->stopMovement();
-		_level->_playerPos.object->setAngularVelocity(0.0f);
+	if (_input.didPause() && !_failed && !_complete) {
+		togglePause();
 	}
 
-
-
-    /* if (_avatar->isJumping()) {
-        Sound* source = _assets->get<Sound>(JUMP_EFFECT);
-        SoundEngine::getInstance()->playEffect(JUMP_EFFECT,source,false,EFFECT_VOLUME);
-     */
-	_physics.update(dt);
-    
-	/* if (_avatar->getVX() != 0.0f || _avatar->getVY() != 0.0f) {
-		_worldnode->stopAllActionsByTag(FOLLOW_ACTION_TAG);
-		_worldnode->runAction(EaseOut::create(MoveTo::create(2, _avatar->getPosition()), 4.0f))->setTag(FOLLOW_ACTION_TAG);
-	} */ // TODO UNCOMMENT AND FIX FOR LAZY CAMERA
-
-	if (!_failed) {
-		if (!_complete && _physics._reachedCaster) setComplete(true);
-		if (!_complete) {
-			// Check for exposure or cover
-			//CCLOG("%1.4f", _avatar->getCoverRatio());
-			_exposure += dt * (1.0f - ((1.0f + EXPOSURE_COOLDOWN_RATIO) * _level->_playerPos.object->getCoverRatio()));
-			if (_exposure < 0.0f) _exposure = 0.0f;
-
-			if (_exposure >= EXPOSURE_LIMIT) {
-				_exposure = EXPOSURE_LIMIT;
-				setFailure(true);
+	if (!_paused) {
+		if (!_failed && !_complete) {
+			if (_input.didDebug()) { setDebug(!isDebug()); }
+			// Process the movement
+			if (_input.getHorizontal() * _input.getHorizontal() + _input.getVertical()
+				* _input.getVertical() < DEADSPACE_SIZE * DEADSPACE_SIZE) {
+				_level->_playerPos.object->stopMovement();
 			}
-			_exposurenode->setString(cocos2d::to_string((int)(
-				(_exposure / EXPOSURE_LIMIT) * 100)) + "%");
-			_exposurebar->setPolygon(_exposurepoly * Vec2(_exposure / EXPOSURE_LIMIT, 1.0f));
-			_exposurebar->setVisible(true);
+			else {
+				_level->_playerPos.object->changeVelocity(_input.getHorizontal(), _input.getVertical());
+			}
+			for (LevelInstance::CarMetadata car : _level->_cars)
+				car.object->act();
+			for (LevelInstance::PedestrianMetadata ped : _level->_pedestrians)
+				ped.object->act();
+			
+			_physics.update(dt);
+		}
+
+		/* if (_avatar->isJumping()) {
+			Sound* source = _assets->get<Sound>(JUMP_EFFECT);
+			SoundEngine::getInstance()->playEffect(JUMP_EFFECT,source,false,EFFECT_VOLUME);
+		 */
+
+		/* if (_avatar->getVX() != 0.0f || _avatar->getVY() != 0.0f) {
+			_worldnode->stopAllActionsByTag(FOLLOW_ACTION_TAG);
+			_worldnode->runAction(EaseOut::create(MoveTo::create(2, _avatar->getPosition()), 4.0f))->setTag(FOLLOW_ACTION_TAG);
+		} */ // TODO UNCOMMENT AND FIX FOR LAZY CAMERA
+
+		if (!_failed) {
+			if (!_complete && _physics._reachedCaster) setComplete(true);
+			if (!_complete) {
+				// Check for exposure or cover
+				//CCLOG("%1.4f", _avatar->getCoverRatio());
+				_exposure += dt * (1.0f - ((1.0f + EXPOSURE_COOLDOWN_RATIO) * _level->_playerPos.object->getCoverRatio()));
+				if (_exposure < 0.0f) _exposure = 0.0f;
+				if (_exposure >= EXPOSURE_LIMIT) {
+					_exposure = EXPOSURE_LIMIT;
+					setFailure(true);
+				}
+				/* _exposurenode->setString(cocos2d::to_string((int)(
+					(_exposure / EXPOSURE_LIMIT) * 100)) + "%"); */
+				_exposurebar->setPolygon(_exposurepoly * Vec2(_exposure / EXPOSURE_LIMIT, 1.0f));
+				_exposurebar->setVisible(true);
+			}
+		}
+
+		_level->_playerPos.object->updateAnimation();
+
+		// Reset the game if we win or lose.
+		if (_countdown > 0) {
+			_countdown--;
+		}
+		else if (_countdown == 0) {
+			reset(dt);
 		}
 	}
-
-	_level->_playerPos.object->updateAnimation();
-    
-    // Reset the game if we win or lose.
-    if (_countdown > 0) {
-        _countdown--;
-	}
-	else if (_countdown == 0) {
-        reset(dt);
-    }
 }
 
 
@@ -720,26 +779,29 @@ void GameController::applyPowerup(const Powerup& powerup) {
  * Preloads the assets needed for the game.
  */
 void GameController::preload() {
+	string levelName;
+	string backgroundPath = BACKGROUNDS_FOLDER;
 	_assets = AssetManager::getInstance()->getCurrent();
-	JSONReader reader;
-	_assets->loadAsync<LevelInstance>(_levelKey, _levelPath);
-	reader.initWithFile(_levelPath);
-	if (!reader.startJSON()) {
-		CCASSERT(false, "Failed to load background image");
-		return;
+	{
+		JSONReader reader;
+		reader.initWithFile(_levelPath);
+		if (!reader.startJSON()) {
+			CCASSERT(false, "Failed to load background image");
+			return;
+		}
+		levelName = reader.getString("name");
+		backgroundPath += levelName;
+		backgroundPath += '.';
+		backgroundPath += reader.getString("imageFormat");
+		reader.endJSON();
 	}
-	string levelName = reader.getString("name");
 	((TextureLoader*)_assets->access<Texture2D>())->loadAsync(
-		BACKGROUND_IMAGE + levelName, "textures/backgrounds/" + levelName
-		+ "." + reader.getString("imageFormat"));
-	reader.endJSON();
+		BACKGROUND_IMAGE + levelName, backgroundPath);
+	_assets->loadAsync<LevelInstance>(_levelKey, _levelPath);
 }
 
-/**
-* Clear all memory when exiting.
-*/
-void GameController::stop() {
-	_physics.stop();
-	_level->_playerPos.object->deleteEverything();
-	_level->release();
+void GameController::setPaused(bool value) {
+	_paused = value;
+	_resumeButton->setVisible(_paused);
+	_backButton->setVisible(_paused);
 }

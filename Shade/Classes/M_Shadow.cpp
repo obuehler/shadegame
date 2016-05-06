@@ -26,6 +26,7 @@
 #include <cornell/CUAssetManager.h>
 #include <cornell/CUSceneManager.h>
 #include <math.h>
+#include <ShadowCount.h>
 
 #define SIGNUM(x)  ((x > 0) - (x < 0))
 
@@ -42,7 +43,7 @@
 /** Radius of each of the shadow sensor fixtures */
 #define SENSOR_RADIUS 0.0001f
 /** Distance between adjacent sensors' centers, in Box2D coordinates */
-#define SENSOR_INTERVAL 0.1f
+#define SENSOR_INTERVAL 0.18f
 /** The density of the character */
 #define DUDE_DENSITY    0.0000001f
 /** The impulse for the character jump */
@@ -177,7 +178,6 @@ bool Shadow::init(const Vec2& pos, const Vec2& scale, const b2Filter* const char
     float cscale = Director::getInstance()->getContentScaleFactor();
     Size nsize = ((AnimationNode*)getSceneNode())->getContentSize()*cscale;
     
-    
     nsize.width  *= DUDE_HSHRINK/scale.x;
     nsize.height *= DUDE_VSHRINK/scale.y;
 
@@ -189,8 +189,18 @@ bool Shadow::init(const Vec2& pos, const Vec2& scale, const b2Filter* const char
         setFixedRotation(true); // OTHERWISE, HE IS A WEEBLE WOBBLE
         // Gameplay attributes
         _faceRight  = true;
-        
-        return true;
+		// The number of sensors across the character's body
+		_sensorsAcross = (int)((getWidth() / SENSOR_INTERVAL) - 0.5f);
+		// The number of sensors vertically across the character's body
+		_sensorsDown = (int)((getHeight() / SENSOR_INTERVAL) - 0.5f);
+		CCLOG("%i", sensorCount());
+		_sensorFixtures = new b2Fixture*[sensorCount()];
+		if (_sensorFixtures != nullptr) {
+			for (int index = 0; index < sensorCount(); index++) {
+				_sensorFixtures[index] = nullptr;
+			}
+			return true;
+		}
     }
 
 	_sensorFilter = nullptr;
@@ -228,13 +238,13 @@ void Shadow::setVerticalMovement(float value) {
 }
 
 float Shadow::getCoverRatio() const {
-	if (_sensorCount > 0) {
+	if (sensorCount() > 0) {
 		int coveredSensors = 0;
-		for (int sensorIndex = 0; sensorIndex < _sensorCount; sensorIndex++) {
-			if (!(((usp*)(_sensorFixtures[sensorIndex]->GetUserData()))->empty()))
+		for (int sensorIndex = 0; sensorIndex < sensorCount(); sensorIndex++) {
+			if (((ShadowCount*)(_sensorFixtures[sensorIndex]->GetUserData()))->count() > 0)
 				coveredSensors++;
 		}
-		return ((float)coveredSensors) / ((float)_sensorCount);
+		return ((float)coveredSensors) / ((float)sensorCount());
 	}
 	return 0.0f;
 }
@@ -251,10 +261,6 @@ void Shadow::createFixtures() {
     if (_body == nullptr) {
         return;
     }
-	// TODO edit the sensor fixtures to be correct.
-	// Perhaps have so many small sensor fixtures on the character, and keep
-	// track of how many collide with other shadows to then alter the rate of
-	// change of exposure.
 
     CapsuleObstacle::createFixtures();
     
@@ -265,31 +271,24 @@ void Shadow::createFixtures() {
 	if (_sensorFilter != nullptr) {
 		sensorDef.filter = *_sensorFilter;
 	}
+	//_unorderedSets = new usp*[_sensorCount];
 
-	// The number of sensors across the character's body
-	int sensorsAcross = (int)((getWidth() / SENSOR_INTERVAL) - 0.5f);
-	// The number of sensors vertically across the character's body
-	int sensorsDown = (int)((getHeight() / SENSOR_INTERVAL) - 0.5f);
-
-	_sensorCount = sensorsAcross * sensorsDown;
-	_sensorFixtures = new b2Fixture*[_sensorCount];
-	_unorderedSets = new usp*[_sensorCount];
-
-	for (int acrossIndex = 0; acrossIndex < sensorsAcross; acrossIndex++) {
-		for (int downIndex = 0; downIndex < sensorsDown; downIndex++) {
+	for (int acrossIndex = 0; acrossIndex < _sensorsAcross; acrossIndex++) {
+		for (int downIndex = 0; downIndex < _sensorsDown; downIndex++) {
 			b2CircleShape sensorShape;
 			sensorShape.m_radius = SENSOR_RADIUS;
 			sensorShape.m_p.Set(SENSOR_INTERVAL * (acrossIndex + 0.5f) - getWidth() * 0.5f,
 				SENSOR_INTERVAL * (downIndex + 0.5f) - getHeight() * 0.5f);
 			sensorDef.shape = &sensorShape;
-			_sensorFixtures[acrossIndex * sensorsDown + downIndex]
+			_sensorFixtures[acrossIndex * _sensorsDown + downIndex]
 				= _body->CreateFixture(&sensorDef);
 
 			// The user data will hold the set of overlapping shadows
-			register int overallindex = acrossIndex * sensorsDown + downIndex;
-			_unorderedSets[overallindex] = new usp();
+			register int overallindex = acrossIndex * _sensorsDown + downIndex;
+			/*_unorderedSets[overallindex] = new usp();
 			_sensorFixtures[overallindex]
-				->SetUserData(_unorderedSets[overallindex]);
+				->SetUserData(_unorderedSets[overallindex]); */
+			_sensorFixtures[overallindex]->SetUserData(new ShadowCount());
 		}
 	}
 }
@@ -305,13 +304,16 @@ void Shadow::releaseFixtures() {
 	}
 
 	CapsuleObstacle::releaseFixtures();
-	for (int index = 0; index < _sensorCount; index++) {
+	for (int index = 0; index < sensorCount(); index++) {
 		if (_sensorFixtures[index] != nullptr) {
-			//_sensorFixtures[index]->SetUserData(nullptr);
+			if (_sensorFixtures[index]->GetUserData() != nullptr) {
+				delete _sensorFixtures[index]->GetUserData();
+				_sensorFixtures[index]->SetUserData(nullptr);
+			}
 			_body->DestroyFixture(_sensorFixtures[index]);
 			_sensorFixtures[index] = nullptr;
-			delete _unorderedSets[index];
-			_unorderedSets[index] = nullptr;
+			/* delete _unorderedSets[index];
+			_unorderedSets[index] = nullptr; */
 		}
 	}
 }
@@ -369,17 +371,6 @@ void Shadow::updateAnimation() {
 	}
 }
 
-/** Delete everything allocated with new. */
-void Shadow::deleteEverything() {
-	for (int index = 0; index < _sensorCount; index++) {
-		_sensorFixtures[index] = nullptr;
-		delete _unorderedSets[index];
-		_unorderedSets[index] = nullptr;
-	}
-	delete[] _sensorFixtures;
-	delete[] _unorderedSets;
-}
-
 
 #pragma mark -
 #pragma mark Scene Graph Methods
@@ -402,4 +393,21 @@ void Shadow::resetDebugNode() {
     _sensorNode->setColor(DEBUG_COLOR);
     _sensorNode->setPosition(Vec2(_debug->getContentSize().width/2.0f, 0.0f));
     _debug->addChild(_sensorNode); */ // TODO uncomment if we want to display wireframes for sensor fixtures
+}
+
+Shadow::~Shadow() {
+	if (_sensorFixtures != nullptr) {
+		for (int index = 0; index < sensorCount(); index++) {
+			if (_sensorFixtures[index] != nullptr) {
+				if (_sensorFixtures[index]->GetUserData() != nullptr) {
+					delete _sensorFixtures[index]->GetUserData();
+					_sensorFixtures[index]->SetUserData(nullptr);
+				}
+				delete _sensorFixtures[index];
+				_sensorFixtures[index] = nullptr;
+			}
+		}
+		delete[] _sensorFixtures;
+		_sensorFixtures = nullptr;
+	}
 }

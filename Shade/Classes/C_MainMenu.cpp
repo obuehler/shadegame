@@ -7,6 +7,15 @@ using namespace std;
 
 #define LEVEL_ONE_KEY "level1"
 #define LEVEL_ONE_FILE "levels/level1.shadl"
+#define LEVEL_TWO_KEY "level2"
+#define LEVEL_TWO_FILE "levels/level2.shadl"
+#define LEVEL_THREE_KEY "level3"
+#define LEVEL_THREE_FILE "levels/level3.shadl"
+#define LEVEL_FOUR_KEY "level4"
+#define LEVEL_FOUR_FILE "levels/level4.shadl"
+#define LEVEL_FIVE_KEY "level5"
+#define LEVEL_FIVE_FILE "levels/level5.shadl"
+#define MENU_BACKGROUND_KEY "mbackground"
 
 MainMenuButton* MainMenuButton::create(GameController* gc) {
 	MainMenuButton* q = new (std::nothrow) MainMenuButton();
@@ -50,7 +59,7 @@ bool MainMenuController::init(RootLayer* root) {
 	Size dimen = _rootnode->getContentSize();
 	Vec2 center(dimen.width / 2.0f, dimen.height / 2.0f);
 
-	Texture2D * background = _assets->get<Texture2D>("background");
+	Texture2D * background = _assets->get<Texture2D>(MENU_BACKGROUND_KEY);
 	Size bsize = background->getContentSize();
 
 	// Create the scene graph
@@ -59,27 +68,21 @@ bool MainMenuController::init(RootLayer* root) {
 	_backgroundnode->setScale(dimen.width / bsize.width, dimen.height / bsize.height);
 	_backgroundnode->setPosition(center.x,center.y);
 	_worldnode->addChild(_backgroundnode, 0);
-
+	_worldnode->retain();
 	_rootnode->addChild(_worldnode, 0);
 
 	//Add buttons
-	Vec2 start = { 350,450 };
-	int os = 170;
 	int xbutt = 3;
 	int ybutt = 3;
-	float buttscale = .5;
 
-	int ypos = 0;
 	for (int i = 0; i < ybutt; i++) {
-		int xpos = 0;
 		for (int j = 0; j < xbutt; j++) {
 			int num = i*xbutt + j;
 			if (num < mainMenuButtons.size()) {
 				MainMenuButton* button = mainMenuButtons[num];
-				Vec2 pos = { start.x + xpos, start.y - ypos };
 				button->loadTextures("textures/menu/" + std::to_string(num) + "-01.png", "textures/menu/" + std::to_string(num) + "-01.png");
-				button->setScale(buttscale);
-				button->setPosition(pos);
+				button->setScale(_backgroundnode->getScaleX(), _backgroundnode->getScaleY());
+				button->setPosition(Vec2((dimen.width / 3.0f) + (dimen.width * j) / 6.0f, (dimen.height * 0.5f) + (dimen.width * (1 - i)) / 6.0f));
 				button->setTouchEnabled(true);
 				//Add event listener
 				button->addTouchEventListener([&](Ref* sender, ui::Widget::TouchEventType type) {
@@ -87,16 +90,14 @@ bool MainMenuController::init(RootLayer* root) {
 					case ui::Widget::TouchEventType::ENDED:
 						_activeController = ((MainMenuButton*)sender)->getController();
 						_rootnode->removeAllChildren();
-						_activeController->init(_rootnode);
+						_activeController->initialize(_rootnode);
 					}
 				});
-				_rootnode->addChild(button, 1);
+				_worldnode->addChild(button, 1);
 
 				button->retain();
 			}
-			xpos = xpos + os;
 		}
-		ypos = ypos + os;
 	}
 
 	_active = true;
@@ -104,8 +105,14 @@ bool MainMenuController::init(RootLayer* root) {
 }
 
 void MainMenuController::update(float dt) {
-	if (_activeController != nullptr)
+	if (_activeController != nullptr) {
+		if (!_activeController->isActive()) {
+			_activeController = nullptr;
+			_rootnode->addChild(_worldnode, 0);
+			return;
+		}
 		_activeController->update(dt);
+	}
 }
 
 MainMenuController::~MainMenuController() {
@@ -116,17 +123,31 @@ MainMenuController::~MainMenuController() {
 * Disposes of all (non-static) resources allocated to this mode.
 */
 void MainMenuController::dispose() {
-	_worldnode = nullptr;
-	_rootnode->release();
-	_rootnode = nullptr;
-	_activeController = nullptr;
+	if (_worldnode != nullptr) {
+		_worldnode->release();
+		_worldnode = nullptr;
+	}
+	if (_rootnode != nullptr) {
+		_rootnode->release();
+		_rootnode = nullptr;
+	}
+	if (_activeController != nullptr) {
+		_activeController = nullptr;
+	}
 	for (MainMenuButton* b : mainMenuButtons) {
 		b->dispose();
 		b->release();
 	}
+	mainMenuButtons.clear();
 }
 
 void MainMenuController::preload() {
+	loadGameController(LEVEL_ONE_KEY, LEVEL_ONE_FILE);
+	loadGameController(LEVEL_TWO_KEY, LEVEL_TWO_FILE);
+	loadGameController(LEVEL_THREE_KEY, LEVEL_THREE_FILE);
+	loadGameController(LEVEL_FOUR_KEY, LEVEL_FOUR_FILE);
+	loadGameController(LEVEL_FIVE_KEY, LEVEL_FIVE_FILE);
+
 	// Load the textures (Autorelease objects)
 	_assets = AssetManager::getInstance()->getCurrent();
 	TextureLoader* tloader = (TextureLoader*)_assets->access<Texture2D>();
@@ -167,17 +188,7 @@ void MainMenuController::preload() {
 	reader.endJSON();
 
 	// Background
-	tloader->loadAsync("background", "textures/menu/Level Background-01.png");
-	// Button
-	tloader->loadAsync("button", "textures/Owen.png");
-
-	loadGameController(LEVEL_ONE_KEY, LEVEL_ONE_FILE);
-}
-
-/**
-* Clear all memory when exiting.
-*/
-void MainMenuController::stop() {
+	tloader->loadAsync(MENU_BACKGROUND_KEY, "textures/menu/Level Background-01.png");
 }
 
 /** Helper to load gameplay controllers in preload */

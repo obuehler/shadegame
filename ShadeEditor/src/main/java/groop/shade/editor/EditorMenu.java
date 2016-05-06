@@ -98,7 +98,7 @@ public class EditorMenu extends JMenu {
 							final String objectPath = getSelectedFile().getAbsolutePath();
 							if (objectPath != null) {
 								JOptionPane.showMessageDialog(s, "Select the image for the shadow.");
-								JFileChooser chooser2 = new JFileChooser() {
+								JFileChooser chooser2 = new JFileChooser(objectPath.substring(0, objectPath.lastIndexOf(Constants.FILE_SEPARATOR) + 1)) {
 
 									@Override
 									public void approveSelection() {

@@ -53,8 +53,6 @@ using namespace cocos2d;
 #define PLAYER_ROWS 1
 #define PLAYER_COLS 10
 
-typedef std::unordered_set<b2Fixture*> usp;
-
 #pragma mark -
 #pragma mark Dude Model
 /**
@@ -76,13 +74,15 @@ protected:
 	float _verticalMovement;
 	/** Whether the character image is facing right */
 	bool _faceRight;
-	/** The number of sensor fixtures the character has */
-	int _sensorCount;
+	/** The number of sensor fixtures horizontally */
+	int _sensorsAcross;
+	/** The number of sensor fixtures vertically */
+	int _sensorsDown;
 	/** Array holding pointers to the character's sensor fixtures */
 	b2Fixture** _sensorFixtures;
 	/** Array holding pointers to the sets containing the shadow fixtures
 	 * overlapping with the sensor fixture at the respective index of _sensorFixtures */
-	usp** _unorderedSets;
+	//usp** _unorderedSets;
     /** Reference to the sensor name (since a constant cannot have a pointer) */
     std::string _sensorName;
     /** The node for debugging the sensor */
@@ -279,9 +279,6 @@ public:
 	 * values and multiplying it with the desired speed. */
 	void changeVelocity(float x, float y);
 
-	/** Delete everything allocated with new. */
-	void deleteEverything();
-
 	/** Updates the character's animation frame according to its movement. */
 	void updateAnimation();
 
@@ -294,8 +291,10 @@ CC_CONSTRUCTOR_ACCESS:
      * This constructor does not initialize any of the dude values beyond
      * the defaults.  To use a DudeModel, you must call init().
      */
-    Shadow() : CapsuleObstacle(), _sensorName(SENSOR_NAME),
-		_sensorCount(0), _sensorFixtures(nullptr), _unorderedSets(nullptr) { }
+	Shadow() : CapsuleObstacle(), _sensorName(SENSOR_NAME),
+		_sensorsAcross(0), _sensorsDown(0), _sensorFixtures(nullptr) { }
+
+	~Shadow();
 
     /**
      * Initializes a new dude with no attributes.
@@ -362,6 +361,9 @@ CC_CONSTRUCTOR_ACCESS:
 	* @return  true if the obstacle is initialized properly, false otherwise.
 	*/
 	virtual bool init(const Vec2& pos, const Vec2& scale, const b2Filter* const characterFilter, const b2Filter* const sensorFilter);
+
+	/** The number of sensor fixtures the character has */
+	inline int sensorCount() const { return _sensorsAcross * _sensorsDown; }
 };
 
 #endif /* __M_SHADOW_H__ */

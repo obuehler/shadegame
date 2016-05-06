@@ -267,7 +267,15 @@ public class StageEditor extends JFrame {
 			}
 		} else {
 			open(false);
-			openingScreen.dispose();
+			try {
+				if (this.stage == null) {
+					openingScreen.setVisible(true);
+				} else {
+					openingScreen.dispose();
+				}
+			} catch (NullPointerException e) {
+				openingScreen.setVisible(true);
+			}
 		}
 	}
 

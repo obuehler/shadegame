@@ -110,11 +110,6 @@ public:
 	*/
 	void update(float dt);
 
-	/**
-	* Clear all memory when exiting.
-	*/
-	void stop();
-
 };
 
 #endif  /* __C_PHYSICS_H__ */

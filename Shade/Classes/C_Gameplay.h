@@ -21,6 +21,7 @@
 #define __C_GAMEPLAY_H__
 
 #include "cocos2d.h"
+#include "ui/CocosGUI.h"
 #include <vector>
 #include <tuple>
 #include <Box2D/Dynamics/b2WorldCallbacks.h>
@@ -134,6 +135,8 @@ protected:
     
     /** Reference to the root node of the scene graph */
     RootLayer* _rootnode;
+	/** Node that contains everything in the gameplay */
+	Node* _gameroot;
 	/** Reference to the game world in the scene graph */
 	//PolygonNode* _worldnode;
 	Node* _worldnode;
@@ -159,6 +162,10 @@ protected:
 	const char * _levelKey;
 	/** Path to the level file */
 	const char * _levelPath;
+	/** The resume button */
+	ui::Button* _resumeButton;
+	/** The back to menu button */
+	ui::Button* _backButton;
 
     // Physics objects for the game
     /** Reference to the goalDoor (for collision detection) */
@@ -174,6 +181,8 @@ protected:
     bool _debug;
     /** Whether we have failed at this world (and need a reset) */
     bool _failed;
+	/** Whether we have paused the game */
+	bool _paused;
 	/** The current level of exposure */
 	float _exposure;
     /** Countdown active for winning or losing */
@@ -229,33 +238,14 @@ public:
      * us to have a non-pointer reference to this controller, reducing our
      * memory allocation.  Instead, allocation happens in this method.
      *
-     * The game world is scaled so that the screen coordinates do not agree
-     * with the Box2d coordinates.  This initializer uses the default scale.
+     * Gameplay elements do not get initialized with this method. They get
+	 * initialized with initialize(), which is called by the main controller
+	 * when starting up a level.
      * 
      * @retain a reference to the root layer
      * @return  true if the controller is initialized properly, false otherwise.
      */
-    bool init(RootLayer* root);
-
-    /**
-     * Initializes the controller contents, and starts the game
-     *
-     * The constructor does not allocate any objects or memory.  This allows
-     * us to have a non-pointer reference to this controller, reducing our
-     * memory allocation.  Instead, allocation happens in this method.
-     *
-     * The game world is scaled so that the screen coordinates do not agree
-     * with the Box2d coordinates.  The bounds are in terms of the Box2d
-     * world, not the screen.
-     *
-     * @param bounds The game bounds in Box2d coordinates
-     * @param scale  The difference between screen and Box2d coordinates
-     * @param gravity The gravitational force on this Box2d world
-     *
-     * @retain a reference to the root layer
-     * @return  true if the controller is initialized properly, false otherwise.
-     */
-    bool init(RootLayer* root, const Rect& rect);
+	bool init(const char * levelkey, const char * levelpath);
     
     
 #pragma mark -
@@ -266,6 +256,12 @@ public:
      * @return true if the gameplay controller is currently active
      */
     bool isActive( ) const { return _active; }
+
+	/** Switches between paused and resumed. */
+	inline void togglePause() { setPaused(!_paused); }
+
+	/** Sets whether the game is paused or not. */
+	void setPaused(bool value);
 
     /**
      * Returns true if debug mode is active.
@@ -327,7 +323,8 @@ public:
 
 	static GameController* create(const char * levelkey, const char * levelpath);
 
-	bool init(const char * levelkey, const char * levelpath);
+	/** Initializes all the game elements */
+	void initialize(RootLayer* root);
     
     /**
      * Disposes of all (non-static) resources allocated to this mode.
@@ -338,6 +335,9 @@ public:
      * Preloads all of the assets necessary for this game world
      */
     void preload();
+
+	/** Nullifies everything initialized via initialize(). */
+	void deinitialize();
 
 
 #pragma mark -
@@ -371,11 +371,6 @@ public:
      * @param  delta    Number of seconds since last animation frame
      */
     void update(float dt);
-    
-	/**
-	* Clear all memory when exiting.
-	*/
-	void stop();
 
 };
 
