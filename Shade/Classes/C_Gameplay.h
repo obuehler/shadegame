@@ -67,6 +67,8 @@
 #define WIN_MUSIC       "win"
 /** The key the failure game music */
 #define LOSE_MUSIC      "lose"
+#define WIN_Image "win"
+#define LOSE_Image "lose"
 
 // We need a lot of forward references to the classes used by this controller
 // These forward declarations are in cocos2d namespace
@@ -147,9 +149,9 @@ protected:
 	/** Reference to the node containing the background */
 	PolygonNode* _backgroundnode;
     /** Reference to the win message label */
-    Label* _winnode;
+    PolygonNode* _winnode;
     /** Reference to the lose message label */
-    Label* _losenode;
+    PolygonNode* _losenode;
 	/** Reference to the timer message label */
 	Label* _timernode;
 	/** Reference to the exposure message label */
