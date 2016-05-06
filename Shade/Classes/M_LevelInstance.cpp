@@ -80,6 +80,8 @@ bool LevelInstance::initializeMetadata() {
 		return false;
 	}
 
+	_name = reader.getString("name");
+
 	// Set the level width and height values
 	if (reader.startObject(SIZE_FIELD)) {
 		_size.width = reader.getNumber(WIDTH_FIELD) / BOX2D_SCALE;
@@ -254,22 +256,12 @@ void LevelInstance::populateLevel(bool reset) {
 	// To convert from design resolution to real, divide positions by cscale
 	float cscale = Director::getInstance()->getContentScaleFactor();
 
-	/* Local pointers to hold newly created sprites before they get assigned
-	* as the scene nodes to obstacles */
-	PolygonNode* sprite;
-
 	// Initialize the main character
 	_playerPos.object = Shadow::create(); // Initialize in GameController
-	//_playerPos.object = Shadow::create(_playerPos.position, _scale * DUDE_SCALE, &characterFilter, &characterSensorFilter);
 	_playerPos.object->retain();
-	sprite = PolygonNode::create();
-	sprite->setScale(cscale / DUDE_SCALE);
-	_playerPos.object->setSceneNode(sprite);
+	_playerPos.object->setSceneNode(AnimationNode::create());
 
 	// Initialize the caster
-
-	sprite = PolygonNode::create();
-	sprite->setScale(cscale / DUDE_SCALE);
 	auto* casterObject = BoxObstacle::create();
 	//auto* casterObject = BoxObstacle::create(_casterPos.position, Size::ZERO, &casterFilter);
 	casterObject->setBodyType(b2_dynamicBody);
@@ -277,7 +269,7 @@ void LevelInstance::populateLevel(bool reset) {
 	casterObject->setFriction(PEDESTRIAN_FRICTION);
 	casterObject->setRestitution(PEDESTRIAN_RESTITUTION);
 	casterObject->setFixedRotation(true);
-	casterObject->setSceneNode(sprite);
+	casterObject->setSceneNode(AnimationNode::create());
 
 	// The caster is initialized with an empty action queue, actions will be added by AIController
 	// The following line implicitly retains casterObject
@@ -294,9 +286,7 @@ void LevelInstance::populateLevel(bool reset) {
 			data.object->setFriction(BUILDING_FRICTION);
 			data.object->setRestitution(BUILDING_RESTITUTION);
 			data.object->setFixedRotation(true);
-			sprite = PolygonNode::create();
-			sprite->setScale(cscale);
-			data.object->setSceneNode(sprite);
+			data.object->setSceneNode(PolygonNode::create());
 			data.object->retain();
 
 			//data.shadow = BoxObstacle::create(data.position, Size::ZERO, &objectFilter);
@@ -306,21 +296,14 @@ void LevelInstance::populateLevel(bool reset) {
 			data.shadow->setFriction(0);
 			data.shadow->setRestitution(0);
 			data.shadow->setFixedRotation(true);
-			sprite = PolygonNode::create();
-			sprite->setScale(cscale);
-			data.shadow->setSceneNode(sprite);
+			data.shadow->setSceneNode(PolygonNode::create());
 			data.shadow->retain();
 
 		}
 	}
 
-
-
 	// Initialize the pedestrians
 	for (PedestrianMetadata &data : _pedestrians) {
-		sprite = PolygonNode::create();
-		sprite->setScale(cscale / DUDE_SCALE);
-		//auto* pedestrianShadow = BoxObstacle::create(data.position, Size::ZERO, &shadowFilter);
 		auto* pedestrianShadow = BoxObstacle::create();
 		pedestrianShadow->setBodyType(b2_dynamicBody);
 		pedestrianShadow->setDensity(0);
@@ -328,18 +311,15 @@ void LevelInstance::populateLevel(bool reset) {
 		pedestrianShadow->setRestitution(0);
 		pedestrianShadow->setFixedRotation(true);
 		pedestrianShadow->setSensor(true);
-		pedestrianShadow->setSceneNode(sprite);
+		pedestrianShadow->setSceneNode(AnimationNode::create());
 
-		sprite = PolygonNode::create();
-		sprite->setScale(cscale / DUDE_SCALE);
-		//auto* pedestrianObject = BoxObstacle::create(data.position, Size::ZERO, &objectFilter);
 		auto* pedestrianObject = BoxObstacle::create();
 		pedestrianObject->setBodyType(b2_dynamicBody);
 		pedestrianObject->setDensity(PEDESTRIAN_DENSITY);
 		pedestrianObject->setFriction(PEDESTRIAN_FRICTION);
 		pedestrianObject->setRestitution(PEDESTRIAN_RESTITUTION);
 		pedestrianObject->setFixedRotation(true);
-		pedestrianObject->setSceneNode(sprite);
+		pedestrianObject->setSceneNode(AnimationNode::create());
 
 		// The following line implicitly retains pedestrianObject and pedestrianShadow
 		// It also creates a copy of the initial action queue so that the initial
@@ -353,9 +333,6 @@ void LevelInstance::populateLevel(bool reset) {
 
 	// Initialize the cars
 	for (CarMetadata &data : _cars) {
-		sprite = PolygonNode::create();
-		sprite->setScale(cscale / DUDE_SCALE);
-		//auto* carShadow = BoxObstacle::create(data.position, Size::ZERO, &shadowFilter);
 		auto* carShadow = BoxObstacle::create();
 		carShadow->setBodyType(b2_dynamicBody);
 		carShadow->setDensity(0);
@@ -363,18 +340,15 @@ void LevelInstance::populateLevel(bool reset) {
 		carShadow->setRestitution(0);
 		carShadow->setFixedRotation(true);
 		carShadow->setSensor(true);
-		carShadow->setSceneNode(sprite);
+		carShadow->setSceneNode(AnimationNode::create());
 
-		sprite = PolygonNode::create();
-		sprite->setScale(cscale / DUDE_SCALE);
-		//auto* carObject = BoxObstacle::create(data.position, Size::ZERO, &objectFilter);
 		auto* carObject = BoxObstacle::create();
 		carObject->setBodyType(b2_dynamicBody);
 		carObject->setDensity(CAR_DENSITY);
 		carObject->setFriction(CAR_FRICTION);
 		carObject->setRestitution(CAR_RESTITUTION);
 		carObject->setFixedRotation(true);
-		carObject->setSceneNode(sprite);
+		carObject->setSceneNode(PolygonNode::create());
 
 		// The following line implicitly retains carObject and carShadow
 		data.object = OurMovingObject<Car>::create(
@@ -383,7 +357,6 @@ void LevelInstance::populateLevel(bool reset) {
 		data.object->retain();
 
 	}
-	sprite = nullptr;
 }
 
 bool LevelInstance::load() {

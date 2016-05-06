@@ -112,7 +112,7 @@ public:
 			// Check to see if we are left with an empty queue
 			if (!_actionQueue->isEmpty()) {
 				/* The head of the queue */
-				shared_ptr<ActionQueue<typename T>::ActionNode> action(_actionQueue->_head);
+				shared_ptr<typename ActionQueue<T>::ActionNode> action(_actionQueue->_head);
 				// TODO the act() method of action types take the current and remaining
 				// number of frames as arguments
 				if (action->_counter == action->_length) {

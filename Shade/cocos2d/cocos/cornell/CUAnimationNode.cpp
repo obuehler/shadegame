@@ -27,6 +27,21 @@ NS_CC_BEGIN
 #pragma mark Static Constructors
 
 /**
+* Creates an empty animation node with the degenerate texture.
+*
+* @return An autoreleased sprite object.
+*/
+AnimationNode* AnimationNode::create() {
+	AnimationNode *filmStrip = new (std::nothrow) AnimationNode();
+	if (filmStrip && filmStrip->init()) {
+		filmStrip->autorelease();
+		return filmStrip;
+	}
+	CC_SAFE_DELETE(filmStrip);
+	return nullptr;
+}
+
+/**
  * Creates a new filmstrip node from the given texture.
  *
  * The size of the node is equal to the size of a single frame in the filmstrip.
@@ -42,7 +57,7 @@ NS_CC_BEGIN
  */
 AnimationNode* AnimationNode::create(Texture2D* texture, int rows, int cols) {
     AnimationNode *filmStrip = new (std::nothrow) AnimationNode();
-    if (filmStrip && filmStrip->initWithFilmstrip(texture, rows, cols, rows*cols)) {
+    if (filmStrip && filmStrip->initWithFilmstrip(texture, rows, cols)) {
         filmStrip->autorelease();
         return filmStrip;
     }
@@ -94,6 +109,24 @@ _size(0),
 _frame(0),
 _bounds(Rect::ZERO) {
     _name = "AnimationNode";
+}
+
+/**
+* Initializes the film strip with the given texture.
+*
+* The size of the node is equal to the size of a single frame in the filmstrip.
+* To resize the node, scale it up or down.  Do NOT change the polygon, as that
+* will interfere with the animation.
+*
+* @param texture   The texture image to use
+* @param rows      The number of rows in the filmstrip
+* @param cols      The number of columns in the filmstrip
+*
+* @retain  a reference to this texture
+* @return True if initialization was successful; false otherwise.
+*/
+bool AnimationNode::initWithFilmstrip(Texture2D* texture, int rows, int cols) {
+	return initWithFilmstrip(texture, rows, cols, rows * cols);
 }
 
 /**

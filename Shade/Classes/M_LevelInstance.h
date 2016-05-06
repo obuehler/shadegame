@@ -166,6 +166,7 @@ public:
 	typedef MovingObjectMetadata<Car> CarMetadata;
 
 	int _levelIndex;
+	string _name;
 	Size _size;
 	ShadowMetadata _playerPos;
 	CasterMetadata _casterPos;

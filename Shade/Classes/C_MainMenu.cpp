@@ -132,12 +132,12 @@ void MainMenuController::preload() {
 	TextureLoader* tloader = (TextureLoader*)_assets->access<Texture2D>();
 	tloader->loadAsync(EXPOSURE_BAR, "textures/exposure_bar.png");
 	tloader->loadAsync(EXPOSURE_FRAME, "textures/exposure_bar_frame.png");
-	tloader->loadAsync(DUDE_TEXTURE, "textures/ShadeDude.png");
+	tloader->loadAsync(DUDE_TEXTURE, "textures/player_animation.png");
 	tloader->loadAsync(PEDESTRIAN_TEXTURE, "textures/pedestrian_td.png");
 	tloader->loadAsync(PEDESTRIAN_SHADOW_TEXTURE, "textures/pedestrian_s_td.png");
 	tloader->loadAsync(CAR_TEXTURE, "textures/Car1.png");
 	tloader->loadAsync(CAR_SHADOW_TEXTURE, "textures/Car1_S.png");
-	tloader->loadAsync(GOAL_TEXTURE, "textures/owner.png");
+	tloader->loadAsync(GOAL_TEXTURE, "textures/caster_animation.png");
 	_assets->loadAsync<Sound>(GAME_MUSIC, "sounds/DD_Main.mp3");
 	_assets->loadAsync<Sound>(WIN_MUSIC, "sounds/DD_Victory.mp3");
 	_assets->loadAsync<Sound>(LOSE_MUSIC, "sounds/DD_Failure.mp3");

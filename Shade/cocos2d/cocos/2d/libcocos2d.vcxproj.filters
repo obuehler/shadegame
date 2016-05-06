@@ -4,9 +4,6 @@
     <Filter Include="physics">
       <UniqueIdentifier>{08593631-5bf5-46aa-9436-62595c4f7bf6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="deprecated">
-      <UniqueIdentifier>{0b1152b1-c732-4560-8629-87843b0fbd7c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="2d">
       <UniqueIdentifier>{0965e868-aacd-4d73-9c78-31d3cdaaed52}</UniqueIdentifier>
     </Filter>
@@ -286,6 +283,9 @@
     <Filter Include="cornell">
       <UniqueIdentifier>{d03e9c75-a9b6-4d7b-b433-a0061cd37d2a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="cornell\deprecated">
+      <UniqueIdentifier>{0b1152b1-c732-4560-8629-87843b0fbd7c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\physics\CCPhysicsBody.cpp">
@@ -307,22 +307,22 @@
       <Filter>external\xxhash</Filter>
     </ClCompile>
     <ClCompile Include="..\deprecated\CCArray.cpp">
-      <Filter>deprecated</Filter>
+      <Filter>cornell\deprecated</Filter>
     </ClCompile>
     <ClCompile Include="..\deprecated\CCDeprecated.cpp">
-      <Filter>deprecated</Filter>
+      <Filter>cornell\deprecated</Filter>
     </ClCompile>
     <ClCompile Include="..\deprecated\CCDictionary.cpp">
-      <Filter>deprecated</Filter>
+      <Filter>cornell\deprecated</Filter>
     </ClCompile>
     <ClCompile Include="..\deprecated\CCNotificationCenter.cpp">
-      <Filter>deprecated</Filter>
+      <Filter>cornell\deprecated</Filter>
     </ClCompile>
     <ClCompile Include="..\deprecated\CCSet.cpp">
-      <Filter>deprecated</Filter>
+      <Filter>cornell\deprecated</Filter>
     </ClCompile>
     <ClCompile Include="..\deprecated\CCString.cpp">
-      <Filter>deprecated</Filter>
+      <Filter>cornell\deprecated</Filter>
     </ClCompile>
     <ClCompile Include="..\cocos2d.cpp" />
     <ClCompile Include="..\..\external\ConvertUTF\ConvertUTF.c">
@@ -2064,34 +2064,34 @@
       <Filter>external\xxhash</Filter>
     </ClInclude>
     <ClInclude Include="..\deprecated\CCArray.h">
-      <Filter>deprecated</Filter>
+      <Filter>cornell\deprecated</Filter>
     </ClInclude>
     <ClInclude Include="..\deprecated\CCBool.h">
-      <Filter>deprecated</Filter>
+      <Filter>cornell\deprecated</Filter>
     </ClInclude>
     <ClInclude Include="..\deprecated\CCDeprecated.h">
-      <Filter>deprecated</Filter>
+      <Filter>cornell\deprecated</Filter>
     </ClInclude>
     <ClInclude Include="..\deprecated\CCDictionary.h">
-      <Filter>deprecated</Filter>
+      <Filter>cornell\deprecated</Filter>
     </ClInclude>
     <ClInclude Include="..\deprecated\CCDouble.h">
-      <Filter>deprecated</Filter>
+      <Filter>cornell\deprecated</Filter>
     </ClInclude>
     <ClInclude Include="..\deprecated\CCFloat.h">
-      <Filter>deprecated</Filter>
+      <Filter>cornell\deprecated</Filter>
     </ClInclude>
     <ClInclude Include="..\deprecated\CCInteger.h">
-      <Filter>deprecated</Filter>
+      <Filter>cornell\deprecated</Filter>
     </ClInclude>
     <ClInclude Include="..\deprecated\CCNotificationCenter.h">
-      <Filter>deprecated</Filter>
+      <Filter>cornell\deprecated</Filter>
     </ClInclude>
     <ClInclude Include="..\deprecated\CCSet.h">
-      <Filter>deprecated</Filter>
+      <Filter>cornell\deprecated</Filter>
     </ClInclude>
     <ClInclude Include="..\deprecated\CCString.h">
-      <Filter>deprecated</Filter>
+      <Filter>cornell\deprecated</Filter>
     </ClInclude>
     <ClInclude Include="..\cocos2d.h" />
     <ClInclude Include="..\..\external\ConvertUTF\ConvertUTF.h">

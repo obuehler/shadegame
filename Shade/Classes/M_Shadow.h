@@ -49,6 +49,10 @@ using namespace cocos2d;
 /** The maximum character speed */
 #define DUDE_MAXSPEED   5.0f
 
+/** The player animation filmstrip attributes */
+#define PLAYER_ROWS 1
+#define PLAYER_COLS 10
+
 typedef std::unordered_set<b2Fixture*> usp;
 
 #pragma mark -

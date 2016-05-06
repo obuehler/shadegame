@@ -2,7 +2,9 @@
 #define __M_CASTER_H__
 #include "M_Shadow.h"
 
-#define CASTER_SCALE_DOWN 40.0f
+#define CASTER_SCALE_DOWN 9.0f
+#define CASTER_ROWS 1
+#define CASTER_COLS 10
 
 class Caster : public Shadow {
 public:

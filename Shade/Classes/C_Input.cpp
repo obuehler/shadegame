@@ -454,6 +454,11 @@ void InputController::touchMovedCB(Touch* t, timestamp_t current) {
      }
      } */
     // More complex checks go here
+
+	/*if (checkSwipe(_mtouch.position, t->getLocation(), current) == 1) {
+		_keyPause = true;
+	} */
+
 }
 
 /**

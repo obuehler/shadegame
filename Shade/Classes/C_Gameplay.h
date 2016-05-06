@@ -358,7 +358,7 @@ public:
      *
      * This method disposes of the world and creates a new one.
      */
-    void reset() ;
+    void reset(float dt) ;
 
     /**
      * Executes the core gameplay loop of this world.

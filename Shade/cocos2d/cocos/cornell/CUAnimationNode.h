@@ -61,6 +61,13 @@ private:
     Rect _bounds;
     
 public:
+	/**
+	* Creates an empty animation node with the degenerate texture.
+	*
+	* @return An autoreleased sprite object.
+	*/
+	static AnimationNode* create();
+
     /**
      * Creates a new filmstrip node from the given texture.
      *
@@ -138,6 +145,22 @@ CC_CONSTRUCTOR_ACCESS:
      * Disposes of a filmstrip and its contents
      */
     ~AnimationNode() { }
+
+	/**
+	* Initializes the film strip with the given texture.
+	*
+	* The size of the node is equal to the size of a single frame in the filmstrip.
+	* To resize the node, scale it up or down.  Do NOT change the polygon, as that
+	* will interfere with the animation.
+	*
+	* @param texture   The texture image to use
+	* @param rows      The number of rows in the filmstrip
+	* @param cols      The number of columns in the filmstrip
+	*
+	* @retain  a reference to this texture
+	* @return True if initialization was successful; false otherwise.
+	*/
+	bool initWithFilmstrip(Texture2D* texture, int rows, int cols);
 
     /**
      * Initializes the film strip with the given texture.

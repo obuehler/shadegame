@@ -266,7 +266,8 @@ bool GameController::init(RootLayer* root) {
     _losenode->setColor(LOSE_COLOR);
     setFailure(false);
 
-	_backgroundnode = PolygonNode::createWithTexture(_assets->get<Texture2D>(BACKGROUND_IMAGE));
+	_backgroundnode = PolygonNode::createWithTexture(
+		_assets->get<Texture2D>(BACKGROUND_IMAGE + _level->_name));
 	_backgroundnode->setAnchorPoint(Vec2(0, 0));
 	_backgroundnode->setPosition(0, 0);
 	{
@@ -375,15 +376,16 @@ void GameController::populate() {
 	// This was set as the design resolution in AppDelegate
 	// To convert from design resolution to real, divide positions by cscale
 	float cscale = Director::getInstance()->getContentScaleFactor();
-    
-#pragma mark : Goal door
-    Texture2D* image = _assets->get<Texture2D>(GOAL_TEXTURE);
+	AnimationNode* animNodePtr;
+	PolygonNode* polyNodePtr;
 
-	((PolygonNode*)(_level->_casterPos.object->getObject()->getSceneNode()))->initWithTexture(image);
-	((PolygonNode*)(_level->_casterPos.object->getObject()->getSceneNode()))->setScale(cscale / CASTER_SCALE_DOWN);
+#pragma mark : Goal door
+	animNodePtr = (AnimationNode*)(_level->_casterPos.object->getObject()->getSceneNode());
+	animNodePtr->initWithFilmstrip(_assets->get<Texture2D>(GOAL_TEXTURE), CASTER_ROWS, CASTER_COLS);
+	animNodePtr->setScale(cscale / CASTER_SCALE_DOWN);
 	_level->_casterPos.object->getObject()->init(_level->_casterPos.position,
-		Size((image->getContentSize().width * cscale) / (CASTER_SCALE_DOWN * scale.x),
-			(image->getContentSize().height * cscale) / (CASTER_SCALE_DOWN * scale.y)),
+		Size((animNodePtr->getContentSize().width * cscale) / (CASTER_SCALE_DOWN * scale.x),
+			(animNodePtr->getContentSize().height * cscale) / (CASTER_SCALE_DOWN * scale.y)),
 			&casterFilter);
 	_level->_casterPos.object->getObject()->setDrawScale(scale);
 	_level->_casterPos.object->getObject()->positionSceneNode();
@@ -393,9 +395,9 @@ void GameController::populate() {
 
 
 #pragma mark : Dude
-	image = _assets->get<Texture2D>(DUDE_TEXTURE);
-	((PolygonNode*)(_level->_playerPos.object->getSceneNode()))->initWithTexture(image);
-	((PolygonNode*)(_level->_playerPos.object->getSceneNode()))->setScale(cscale / DUDE_SCALE);
+	animNodePtr = ((AnimationNode*)(_level->_playerPos.object->getSceneNode()));
+	animNodePtr->initWithFilmstrip(_assets->get<Texture2D>(DUDE_TEXTURE), PLAYER_ROWS, PLAYER_COLS);
+	animNodePtr->setScale(cscale / DUDE_SCALE);
 	_level->_playerPos.object->init(_level->_playerPos.position, scale * DUDE_SCALE, &characterFilter, &characterSensorFilter);
 	_level->_playerPos.object->setDrawScale(scale);
 	_level->_playerPos.object->positionSceneNode();
@@ -407,16 +409,15 @@ void GameController::populate() {
 #pragma mark : Buildings
 
 	for (LevelInstance::StaticObjectMetadata d : _level->_staticObjects) {
+		polyNodePtr = (PolygonNode*)(d.object->getSceneNode());
+		polyNodePtr->initWithTexture(_assets->get<Texture2D>(d.type + OBJECT_TAG));
+		polyNodePtr->setScale(cscale);
+		d.object->init(d.position, Size(polyNodePtr->getContentSize().width * cscale / scale.x, polyNodePtr->getContentSize().height * cscale / scale.y), &objectFilter);
 
-		image = _assets->get<Texture2D>(d.type + OBJECT_TAG);
-		((PolygonNode*)(d.object->getSceneNode()))->initWithTexture(image);
-		((PolygonNode*)(d.object->getSceneNode()))->setScale(cscale);
-		d.object->init(d.position, Size(image->getContentSize().width * cscale / scale.x, image->getContentSize().height * cscale / scale.y), &objectFilter);
-
-		image = _assets->get<Texture2D>(d.type + SHADOW_TAG);
-		((PolygonNode*)(d.shadow->getSceneNode()))->initWithTexture(image);		
-		((PolygonNode*)(d.shadow->getSceneNode()))->setScale(cscale);
-		d.shadow->init(d.position, Size(image->getContentSize().width * cscale / scale.x, image->getContentSize().height * cscale / scale.y), &shadowFilter);
+		polyNodePtr = (PolygonNode*)(d.shadow->getSceneNode());
+		polyNodePtr->initWithTexture(_assets->get<Texture2D>(d.type + SHADOW_TAG));
+		polyNodePtr->setScale(cscale);
+		d.shadow->init(d.position, Size(polyNodePtr->getContentSize().width * cscale / scale.x, polyNodePtr->getContentSize().height * cscale / scale.y), &shadowFilter);
 
 		d.object->setDrawScale(scale);
 		d.object->positionSceneNode();
@@ -437,19 +438,21 @@ void GameController::populate() {
 	// Play the background music on a loop.
 	/*Sound* source = _assets->get<Sound>(GAME_MUSIC);
 	SoundEngine::getInstance()->playMusic(source, true, MUSIC_VOLUME); */
-	image = _assets->get<Texture2D>(PEDESTRIAN_TEXTURE);
-	Texture2D* shadowImage = _assets->get<Texture2D>(PEDESTRIAN_SHADOW_TEXTURE);
 	for (LevelInstance::PedestrianMetadata pd : _level->_pedestrians) {
-		((PolygonNode*)(pd.object->getObject()->getSceneNode()))->initWithTexture(image);
-		((PolygonNode*)(pd.object->getObject()->getSceneNode()))->setScale(cscale / PEDESTRIAN_SCALE_DOWN);
-		pd.object->getObject()->init(pd.position, Size((image->getContentSize().width * cscale)
-			/ (scale.x * PEDESTRIAN_SCALE_DOWN), (image->getContentSize().height * cscale)
+		animNodePtr = (AnimationNode*)(pd.object->getObject()->getSceneNode());
+		animNodePtr->initWithTexture(_assets->get<Texture2D>(PEDESTRIAN_TEXTURE));
+		//animNodePtr->initWithFilmstrip(_assets->get<Texture2D>(PEDESTRIAN_TEXTURE), PEDESTRIAN_ROWS, PEDESTRIAN_COLS);   TODO uncomment when we have pedestrian filmstrip
+		animNodePtr->setScale(cscale / PEDESTRIAN_SCALE_DOWN);
+		pd.object->getObject()->init(pd.position, Size((animNodePtr->getContentSize().width * cscale)
+			/ (scale.x * PEDESTRIAN_SCALE_DOWN), (animNodePtr->getContentSize().height * cscale)
 			/ (scale.y * PEDESTRIAN_SCALE_DOWN)), &objectFilter);
 
-		((PolygonNode*)(pd.object->getShadow()->getSceneNode()))->initWithTexture(shadowImage);
-		((PolygonNode*)(pd.object->getShadow()->getSceneNode()))->setScale(cscale / PEDESTRIAN_SCALE_DOWN);
-		pd.object->getShadow()->init(pd.position, Size((shadowImage->getContentSize().width * cscale)
-			/ (scale.x * PEDESTRIAN_SCALE_DOWN), (shadowImage->getContentSize().height * cscale)
+		animNodePtr = (AnimationNode*)(pd.object->getShadow()->getSceneNode());
+		animNodePtr->initWithTexture(_assets->get<Texture2D>(PEDESTRIAN_SHADOW_TEXTURE));
+		//animNodePtr->initWithFilmstrip(_assets->get<Texture2D>(PEDESTRIAN_SHADOW_TEXTURE), PEDESTRIAN_ROWS, PEDESTRIAN_COLS);   TODO uncomment when we have pedestrian filmstrip
+		animNodePtr->setScale(cscale / PEDESTRIAN_SCALE_DOWN);
+		pd.object->getShadow()->init(pd.position, Size((animNodePtr->getContentSize().width * cscale)
+			/ (scale.x * PEDESTRIAN_SCALE_DOWN), (animNodePtr->getContentSize().height * cscale)
 			/ (PEDESTRIAN_SCALE_DOWN * scale.y)), &shadowFilter);
 
 		pd.object->getObject()->setDrawScale(scale);
@@ -464,29 +467,30 @@ void GameController::populate() {
 		addObstacle(pd.object->getShadow(), 2);
 	}
 
-	image = _assets->get<Texture2D>(CAR_TEXTURE);
-	shadowImage = _assets->get<Texture2D>(CAR_SHADOW_TEXTURE);
 	for (LevelInstance::CarMetadata pd : _level->_cars) {
-		((PolygonNode*)(pd.object->getObject()->getSceneNode()))->initWithTexture(image);
-		((PolygonNode*)(pd.object->getShadow()->getSceneNode()))->initWithTexture(shadowImage);		
-		((PolygonNode*)(pd.object->getObject()->getSceneNode()))->setScale(cscale / CAR_SCALE_DOWN);
-		((PolygonNode*)(pd.object->getShadow()->getSceneNode()))->setScale(cscale / CAR_SCALE_DOWN);
-		pd.object->getObject()->init(pd.position, Size((image->getContentSize().width * cscale)
-			/ (scale.x * CAR_SCALE_DOWN), (image->getContentSize().height * cscale)
+		animNodePtr = (AnimationNode*)(pd.object->getObject()->getSceneNode());
+		animNodePtr->initWithTexture(_assets->get<Texture2D>(CAR_TEXTURE));
+		// animNodePtr->initWithFilmstrip(_assets->get<Texture2D>(CAR_TEXTURE), CAR_ROWS, CAR_COLS);
+		animNodePtr->setScale(cscale / CAR_SCALE_DOWN);
+		pd.object->getObject()->init(pd.position, Size((animNodePtr->getContentSize().width * cscale)
+			/ (scale.x * CAR_SCALE_DOWN), (animNodePtr->getContentSize().height * cscale)
 			/ (scale.y * CAR_SCALE_DOWN)), &objectFilter);
-		pd.object->getShadow()->init(pd.position, Size((shadowImage->getContentSize().width * cscale)
-			/ (scale.x * CAR_SCALE_DOWN), (shadowImage->getContentSize().height * cscale)
-			/ (scale.y * CAR_SCALE_DOWN)), &shadowFilter);
 		pd.object->getObject()->setDrawScale(scale);
 		pd.object->getObject()->positionSceneNode();
 		pd.object->getObject()->resetSceneNode();
+		pd.object->getObject()->setDebugNode(newDebugNode());
+		addObstacle(pd.object->getObject(), 3);
+
+		polyNodePtr = (PolygonNode*)(pd.object->getShadow()->getSceneNode());
+		polyNodePtr->initWithTexture(_assets->get<Texture2D>(CAR_SHADOW_TEXTURE));
+		polyNodePtr->setScale(cscale / CAR_SCALE_DOWN);
+		pd.object->getShadow()->init(pd.position, Size((polyNodePtr->getContentSize().width * cscale)
+			/ (scale.x * CAR_SCALE_DOWN), (polyNodePtr->getContentSize().height * cscale)
+			/ (scale.y * CAR_SCALE_DOWN)), &shadowFilter);
 		pd.object->getShadow()->setDrawScale(scale);
 		pd.object->getShadow()->positionSceneNode();
 		pd.object->getShadow()->resetSceneNode();
-		pd.object->getObject()->setDebugNode(newDebugNode());
 		pd.object->getShadow()->setDebugNode(newDebugNode());
-		addObstacle(pd.object->getObject(), 3);
-
 		addObstacle(pd.object->getShadow(), 2);
 	}
 }
@@ -522,7 +526,11 @@ void GameController::addObstacle(Obstacle* obj, int zOrder) {
  *
  * This method disposes of the world and creates a new one.
  */
-void GameController::reset() {
+void GameController::reset(float dt) {
+	/*_level->_playerPos.object->getBody()->SetTransform(b2Vec2(_level->_size.width * 2.0f, _level->_size.height * 2.0f), 0.0f);
+	_physics.update(dt);
+	_physics.update(dt);
+	_physics.update(dt);*/
 	_physics.reset();
     _worldnode->removeAllChildren();
     _debugnode->removeAllChildren();
@@ -609,7 +617,7 @@ void GameController::update(float dt) {
 	if (_input.didDebug()) { setDebug(!isDebug()); }
 	if (_input.didReset()) { 
 
-		reset(); 
+		reset(dt);
 	}
 	if (_input.didExit()) {
 		_rootnode->shutdown();
@@ -677,14 +685,14 @@ void GameController::update(float dt) {
 		}
 	}
 
-	//_level->_playerPos.object->updateAnimation(); TODO uncomment this
+	_level->_playerPos.object->updateAnimation();
     
     // Reset the game if we win or lose.
     if (_countdown > 0) {
         _countdown--;
 	}
 	else if (_countdown == 0) {
-        reset();
+        reset(dt);
     }
 }
 
@@ -720,8 +728,9 @@ void GameController::preload() {
 		CCASSERT(false, "Failed to load background image");
 		return;
 	}
+	string levelName = reader.getString("name");
 	((TextureLoader*)_assets->access<Texture2D>())->loadAsync(
-		BACKGROUND_IMAGE, "textures/backgrounds/" + reader.getString("name")
+		BACKGROUND_IMAGE + levelName, "textures/backgrounds/" + levelName
 		+ "." + reader.getString("imageFormat"));
 	reader.endJSON();
 }

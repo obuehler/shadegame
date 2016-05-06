@@ -50,7 +50,7 @@
 /** Debug color for the sensor */
 #define DEBUG_COLOR     Color3B::RED
 /** The scaling value for the animation frame rate */
-#define ANIMATION_DELTA 1.0f
+#define ANIMATION_DELTA 0.003f
 
 
 #pragma mark -
@@ -172,11 +172,10 @@ Shadow* Shadow::create(const Vec2& pos, const Vec2& scale, const b2Filter* const
  */
 bool Shadow::init(const Vec2& pos, const Vec2& scale, const b2Filter* const characterFilter, const b2Filter* const sensorFilter) {
     SceneManager* scene = AssetManager::getInstance()->getCurrent();
-    Texture2D* image = scene->get<Texture2D>(DUDE_TEXTURE);
     
     // Multiply by the scaling factor so we can be resolution independent
     float cscale = Director::getInstance()->getContentScaleFactor();
-    Size nsize = image->getContentSize()*cscale;
+    Size nsize = ((AnimationNode*)getSceneNode())->getContentSize()*cscale;
     
     
     nsize.width  *= DUDE_HSHRINK/scale.x;
