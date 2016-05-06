@@ -116,5 +116,9 @@ public class Helpers {
 		chooser.addChoosableFileFilter(new FileNameExtensionFilter(displaySuffixes, suffixes));
 		chooser.showOpenDialog(null);
 	}
+	
+	public static String relativeSavePath(String name) {
+		return Constants.STAGES_PATH() + name + Constants.DOTTED_STAGE_FILE_EXTENSION();
+	}
 
 }

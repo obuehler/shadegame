@@ -111,11 +111,12 @@ public class MetadataSetters {
 		 * If user selects "Cancel" or quits, name is null. /* This must be
 		 * handled in the function that called this.
 		 */
+		System.out.println(name);
 		if (name == null) {
 			return name;
 		} else if (name.length() == 0) {
 			return emptyName();
-		} else if (new File(name).exists()) {
+		} else if (new File(Helpers.relativeSavePath(name)).exists()) {
 			return fileAlreadyExists(name);
 		} else {
 			return name;

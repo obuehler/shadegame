@@ -41,7 +41,7 @@ public class GameStage {
 	}
 
 	public String defaultSavePath() {
-		return Paths.get(Constants.STAGES_PATH() + name + Constants.DOTTED_STAGE_FILE_EXTENSION()).toAbsolutePath()
+		return Paths.get(Helpers.relativeSavePath(name)).toAbsolutePath()
 				.toString();
 	}
 
