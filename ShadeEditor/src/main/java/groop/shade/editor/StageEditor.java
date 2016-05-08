@@ -726,7 +726,6 @@ public class StageEditor extends JFrame {
 	}
 
 	private void setNewBackgroundImage() {
-		System.out.println(backgroundPath);
 		try {
 			bufferedImage = ImageIO.read(new File(backgroundPath));
 			backgroundPanel.repaint();

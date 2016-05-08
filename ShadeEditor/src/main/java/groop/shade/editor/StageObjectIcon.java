@@ -74,7 +74,6 @@ public abstract class StageObjectIcon extends NewStageIcon {
 		try {
 			BufferedImage main = ImageIO.read(new File(path));
 			BufferedImage shadow = ImageIO.read(new File(shadowPath));
-			System.out.println(shadowPath);
 			int width = Math.max(shadow.getWidth(), main.getWidth());
 			int height = Math.max(shadow.getHeight(), main.getHeight());
 			BufferedImage combined = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);

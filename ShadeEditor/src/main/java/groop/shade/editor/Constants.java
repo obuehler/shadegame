@@ -72,16 +72,11 @@ public class Constants {
 	public static final String[] CAR_ACTIONS;
 	public static final String[] PEDESTRIAN_ACTIONS;
 	public static final EmptyBorder NO_BORDER;
-	// public static final LwjglApplicationConfiguration STANDARD_CONFIG;
 
 	public static final String BACKGROUNDS_PATH() {
 		return ASSETS_PATH() + TEXTURES_FOLDER_NAME + FILE_SEPARATOR + "backgrounds" + FILE_SEPARATOR;
 	}
 
-	// public static final String ASSETS_PATH() { return ".." + FILE_SEPARATOR +
-	// "core" + FILE_SEPARATOR + ASSETS_FOLDER_NAME + FILE_SEPARATOR; }
-	// public static final String ASSETS_PATH() {return "bin" + FILE_SEPARATOR;
-	// }
 	public static final String ASSETS_PATH() {
 		return ".." + FILE_SEPARATOR + "Shade" + FILE_SEPARATOR + "Resources" + FILE_SEPARATOR;
 	}
