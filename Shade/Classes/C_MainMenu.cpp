@@ -161,8 +161,8 @@ void MainMenuController::preload() {
 	tloader->loadAsync(CAR_TEXTURE, "textures/Car1.png");
 	tloader->loadAsync(CAR_SHADOW_TEXTURE, "textures/Car1_S.png");
 	tloader->loadAsync(GOAL_TEXTURE, "textures/caster_animation.png");
-        tloader->loadAsync(WIN_IMAGE, "textures/Win_BackgroundIcon.png");
-        tloader->loadAsync(LOSE_IMAGE, "textures/Lose_BackgroundIcon.png");
+    tloader->loadAsync(WIN_IMAGE, "textures/Win_BackgroundIcon.png");
+    tloader->loadAsync(LOSE_IMAGE, "textures/Lose_BackgroundIcon.png");
 	_assets->loadAsync<Sound>(GAME_MUSIC, "sounds/DD_Main.mp3");
 	_assets->loadAsync<Sound>(WIN_MUSIC, "sounds/DD_Victory.mp3");
 	_assets->loadAsync<Sound>(LOSE_MUSIC, "sounds/DD_Failure.mp3");
