@@ -154,8 +154,6 @@ protected:
     PolygonNode* _losenode;
 	/** Reference to the timer message label */
 	Label* _timernode;
-	/** Reference to the exposure message label */
-	Label* _exposurenode;
 	/** Reference to the variable exposure bar */
 	PolygonNode* _exposurebar;
 	/** Reference to the indicator arrow */
@@ -202,6 +200,9 @@ protected:
      * Lays out the game geography.
      */
     void populate();
+
+	/** Adds in the invisible walls at the boundaries of the world */
+	void addWalls();
     
     /**
      * Immediately adds the object to the physics world

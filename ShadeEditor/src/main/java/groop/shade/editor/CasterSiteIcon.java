@@ -24,7 +24,7 @@ public class CasterSiteIcon extends StageObjectIcon {
 	}
 
 	protected void setDisplayIcon(float scale) {
-		setDisplayIcon(CasterSite.IMAGE_PATH, scale);
+		setDisplayIcon(Constants.EDITOR_IMAGES_PATH() + "caster.png", scale);
 		editor.stage.casterSite.scale = scale;
 	}
 

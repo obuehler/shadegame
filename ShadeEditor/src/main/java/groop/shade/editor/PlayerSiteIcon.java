@@ -24,7 +24,7 @@ public class PlayerSiteIcon extends StageObjectIcon {
 	}
 
 	protected void setDisplayIcon(float scale) {
-		setDisplayIcon(PlayerSite.IMAGE_PATH, scale);
+		setDisplayIcon(Constants.EDITOR_IMAGES_PATH() + "player.png", scale);
 		editor.stage.playerSite.scale = scale;
 	}
 

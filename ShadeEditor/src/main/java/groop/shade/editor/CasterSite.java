@@ -4,8 +4,7 @@ import com.badlogic.gdx.math.Vector2;
 
 @SuppressWarnings("serial")
 public class CasterSite extends Vector2 {
-
-	public static final String IMAGE_PATH = "assets/caster.png";
+	
 	public static final float DEFAULT_SCALE = 0.5f;
 
 	public double scale;

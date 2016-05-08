@@ -5,7 +5,6 @@ import com.badlogic.gdx.math.Vector2;
 @SuppressWarnings("serial")
 public class PlayerSite extends Vector2 {
 
-	public static final String IMAGE_PATH = "assets/player.png";
 	public static final float DEFAULT_SCALE = 1.0f / 7.0f;
 
 	public double scale;

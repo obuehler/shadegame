@@ -15,12 +15,12 @@ public enum ObstacleType implements StageType {
 
 		@Override
 		public String getIconPath() {
-			return Constants.ASSETS_PATH() + "textures" + Constants.FILE_SEPARATOR + "Pedestrian.png";
+			return Constants.EDITOR_IMAGES_PATH() + "Pedestrian.png";
 		}
 
 		@Override
 		public String getIconShadowPath() {
-			return Constants.ASSETS_PATH() + "textures" + Constants.FILE_SEPARATOR + "Pedestrian_S.png";
+			return Constants.EDITOR_IMAGES_PATH() + "Pedestrian_S.png";
 		}
 
 		@Override
@@ -42,12 +42,12 @@ public enum ObstacleType implements StageType {
 
 		@Override
 		public String getIconPath() {
-			return Constants.ASSETS_PATH() + "textures" + Constants.FILE_SEPARATOR + "Car1.png";
+			return Constants.EDITOR_IMAGES_PATH() + "Car1.png";
 		}
 
 		@Override
 		public String getIconShadowPath() {
-			return Constants.ASSETS_PATH() + "textures" + Constants.FILE_SEPARATOR + "Car1_S.png";
+			return Constants.EDITOR_IMAGES_PATH() + "Car1_S.png";
 		}
 
 		@Override

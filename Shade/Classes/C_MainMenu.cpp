@@ -82,7 +82,7 @@ bool MainMenuController::init(RootLayer* root) {
 			if (num < mainMenuButtons.size()) {
 				MainMenuButton* button = mainMenuButtons[num];
 				button->loadTextures("textures/menu/" + std::to_string(num) + "-01.png", "textures/menu/" + std::to_string(num) + "-01.png");
-				button->setScale(_backgroundnode->getScaleX(), _backgroundnode->getScaleY());
+				button->setScale(_backgroundnode->getScaleX() * 0.75f, _backgroundnode->getScaleY() * 0.75f);
 				button->setPosition(Vec2((dimen.width / 3.0f) + (dimen.width * j) / 6.0f, (dimen.height * 0.5f) + (dimen.width * (1 - i)) / 6.0f));
 				button->setTouchEnabled(true);
 				//Add event listener
@@ -155,18 +155,18 @@ void MainMenuController::preload() {
 	tloader->loadAsync(EXPOSURE_BAR, "textures/exposure_bar.png");
 	tloader->loadAsync(EXPOSURE_FRAME, "textures/exposure_bar_frame.png");
 	tloader->loadAsync(DUDE_TEXTURE, "textures/player_animation.png");
-	tloader->loadAsync(PEDESTRIAN_TEXTURE, "textures/pedestrian_td.png");
-	tloader->loadAsync(PEDESTRIAN_SHADOW_TEXTURE, "textures/pedestrian_s_td.png");
+	tloader->loadAsync(PEDESTRIAN_TEXTURE, "textures/Pedestrian.png");
+	tloader->loadAsync(PEDESTRIAN_SHADOW_TEXTURE, "textures/Pedestrian_S.png");
 	tloader->loadAsync(INDICATOR, "textures/indicator.png");
 	tloader->loadAsync(CAR_TEXTURE, "textures/Car1.png");
 	tloader->loadAsync(CAR_SHADOW_TEXTURE, "textures/Car1_S.png");
 	tloader->loadAsync(GOAL_TEXTURE, "textures/caster_animation.png");
-    tloader->loadAsync(WIN_IMAGE, "textures/Win_BackgroundIcon.png");
-    tloader->loadAsync(LOSE_IMAGE, "textures/Lose_BackgroundIcon.png");
+    tloader->loadAsync(WIN_IMAGE, "textures/menu/win_icon.png");
+    tloader->loadAsync(LOSE_IMAGE, "textures/menu/lose_icon.png");
 	_assets->loadAsync<Sound>(GAME_MUSIC, "sounds/DD_Main.mp3");
 	_assets->loadAsync<Sound>(WIN_MUSIC, "sounds/DD_Victory.mp3");
 	_assets->loadAsync<Sound>(LOSE_MUSIC, "sounds/DD_Failure.mp3");
-	_assets->loadAsync<TTFont>(MESSAGE_FONT, "fonts/RetroGame.ttf");
+	//_assets->loadAsync<TTFont>(MESSAGE_FONT, "fonts/RetroGame.ttf");
 
 	JSONReader reader;
 	reader.initWithFile(STATIC_OBJECTS);

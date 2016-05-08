@@ -60,11 +60,6 @@ using namespace std;
  * character to the half of the height of the screen (or x-radius and width) */
 #define DEADSPACE_SIZE 0.2f
 
-/** Horizontal positioning of the exposure bar */
-#define EXPOSURE_X_OFFSET 350
-/** Vertical positioning of the exposure bar */
-#define EXPOSURE_Y_OFFSET 60
-
 #pragma mark -
 #pragma mark Asset Constants
 
@@ -72,8 +67,11 @@ using namespace std;
 #define EXPOSURE_LIMIT 5.0f
 /** Ratio of exposure cooldown speed to exposure increase speed */
 #define EXPOSURE_COOLDOWN_RATIO 0.5f
-/* Scale of exposure HUD */
-#define EXPOSURE_SCALE 1.5f
+/** Scale of exposure HUD */
+#define EXPOSURE_SCALE 1.0f
+/** Exposure bar positioning constants */
+#define EXPOSURE_X_POS 0.7f
+#define EXPOSURE_Y_POS 0.9f
 
 /** The relative background images folder path */
 #define BACKGROUNDS_FOLDER "textures/backgrounds/"
@@ -157,7 +155,6 @@ GameController::GameController() :
 	_debugnode(nullptr),
 	_winnode(nullptr),
 	_timernode(nullptr),
-	_exposurenode(nullptr),
 	_exposurebar(nullptr),
 	_indicator(nullptr),
 	_exposureframe(nullptr),
@@ -263,29 +260,25 @@ void GameController::initialize(RootLayer* root) {
 
 	_exposurebar = PolygonNode::createWithTexture(_assets->get<Texture2D>(EXPOSURE_BAR));
 	_exposurebar->setAnchorPoint(Vec2(0, 0));
-	_exposurebar->setPosition(root->getContentSize().width - EXPOSURE_X_OFFSET, root->getContentSize().height - EXPOSURE_Y_OFFSET);
+	_exposurebar->setPosition(dimen.width * EXPOSURE_X_POS, dimen.height * EXPOSURE_Y_POS);
 	_exposurebar->setScale(Director::getInstance()->getContentScaleFactor()*EXPOSURE_SCALE);
 	_exposurebar->setVisible(true);
 	
 	_exposurepoly = Poly2(Rect(Vec2(0.0f, 0.0f), _exposurebar->getTexture()->getContentSize()));
 
 	_exposureframe = Sprite::createWithTexture(_assets->get<Texture2D>(EXPOSURE_FRAME));
-	_exposureframe->setAnchorPoint(Vec2(0, 0));
-	_exposureframe->setPosition(dimen.width - EXPOSURE_X_OFFSET - 3, dimen.height - EXPOSURE_Y_OFFSET - 3);
+	_exposureframe->setPosition(
+		(dimen.width * EXPOSURE_X_POS) + ((_exposurebar->getContentSize().width
+			* _exposurebar->getScaleX()) / 2.0f),
+		(dimen.height * EXPOSURE_Y_POS) + ((_exposurebar->getContentSize().height
+			* _exposurebar->getScaleY()) / 2.0f));
 	_exposureframe->setScale(Director::getInstance()->getContentScaleFactor()*EXPOSURE_SCALE);
 	_exposureframe->setVisible(true);
-
-	/*_exposurenode = Label::create();
-	_exposurenode->setTTFConfig(_assets->get<TTFont>(MESSAGE_FONT)->getTTF());
-	_exposurenode->setString("");
-	_exposurenode->setPosition(dimen.width - EXPOSURE_X_OFFSET, dimen.height - EXPOSURE_Y_OFFSET);
-	_exposurenode->setColor(WIN_COLOR);
-	//_exposurenode->setVisible(true); */
 
 	_resumeButton = ui::Button::create();
 	_resumeButton->setTouchEnabled(true);
 	_resumeButton->loadTextures("textures/menu/resume_button.png", "textures/menu/resume_button.png", "");
-	_resumeButton->setPosition(Point(center.x, dimen.height * 0.45f));
+	_resumeButton->setPosition(Point(center.x, dimen.height * 0.35f));
 	_resumeButton->addTouchEventListener([&](Ref* sender, cocos2d::ui::Widget::TouchEventType type) {
 		switch (type)
 		{
@@ -301,7 +294,7 @@ void GameController::initialize(RootLayer* root) {
 	_backButton = ui::Button::create();
 	_backButton->setTouchEnabled(true);
 	_backButton->loadTextures("textures/menu/back_to_menu_button.png", "textures/menu/back_to_menu_button.png", "");
-	_backButton->setPosition(Point(center.x, dimen.height * 0.25f));
+	_backButton->setPosition(Point(center.x, dimen.height * 0.18f));
 	_backButton->addTouchEventListener([&](Ref* sender, cocos2d::ui::Widget::TouchEventType type) {
 		switch (type)
 		{
@@ -317,7 +310,7 @@ void GameController::initialize(RootLayer* root) {
 	_tryAgainButton = ui::Button::create();
 	_tryAgainButton->setTouchEnabled(true);
 	_tryAgainButton->loadTextures("textures/menu/try_again_button.png", "textures/menu/try_again_button.png", "");
-	_tryAgainButton->setPosition(Point(center.x, dimen.height * 0.45f));
+	_tryAgainButton->setPosition(Point(center.x, dimen.height * 0.35f));
 	_tryAgainButton->addTouchEventListener([&](Ref* sender, cocos2d::ui::Widget::TouchEventType type) {
 		switch (type)
 		{
@@ -337,7 +330,6 @@ void GameController::initialize(RootLayer* root) {
     _gameroot->addChild(_winnode,3);
     _gameroot->addChild(_losenode,3);
 	//root->addChild(_timernode, 5);
-	//root->addChild(_exposurenode, 6);
 	_gameroot->addChild(_exposurebar, EXPOSURE_BAR_Z);
 	_gameroot->addChild(_exposureframe, EXPOSURE_FRAME_Z);
 	_gameroot->addChild(_backButton, BACK_BUTTON_Z);
@@ -347,44 +339,6 @@ void GameController::initialize(RootLayer* root) {
     _rootnode = root;
 	_rootnode->addChild(_gameroot, 0);
     _rootnode->retain();
-
-	BoxObstacle* wallobj = BoxObstacle::create(Vec2(WALL_THICKNESS * 0.5f, _level->_size.height * 0.5f), Size(WALL_THICKNESS, _level->_size.height), &objectFilter);
-	wallobj->setBodyType(b2_staticBody);
-	wallobj->setDensity(BASIC_DENSITY);
-	wallobj->setFriction(BASIC_FRICTION);
-	wallobj->setRestitution(BASIC_RESTITUTION);
-	wallobj->setDrawScale(BOX2D_SCALE, BOX2D_SCALE);
-	wallobj->setSceneNode(Node::create());
-	wallobj->setDebugNode(newDebugNode());
-	addObstacle(wallobj, 1);
-	wallobj = BoxObstacle::create(Vec2(_level->_size.width - WALL_THICKNESS * 0.5f, _level->_size.height * 0.5f), Size(WALL_THICKNESS, _level->_size.height), &objectFilter);
-	wallobj->setBodyType(b2_staticBody);
-	wallobj->setDensity(BASIC_DENSITY);
-	wallobj->setFriction(BASIC_FRICTION);
-	wallobj->setRestitution(BASIC_RESTITUTION);
-	wallobj->setDrawScale(BOX2D_SCALE, BOX2D_SCALE);
-	wallobj->setSceneNode(Node::create());
-	wallobj->setDebugNode(newDebugNode());
-	addObstacle(wallobj, 1);
-	wallobj = BoxObstacle::create(Vec2(_level->_size.width * 0.5f, WALL_THICKNESS * 0.5f), Size(_level->_size.width - WALL_THICKNESS * 2, WALL_THICKNESS), &objectFilter);
-	wallobj->setBodyType(b2_staticBody);
-	wallobj->setDensity(BASIC_DENSITY);
-	wallobj->setFriction(BASIC_FRICTION);
-	wallobj->setRestitution(BASIC_RESTITUTION);
-	wallobj->setDrawScale(BOX2D_SCALE, BOX2D_SCALE);
-	wallobj->setSceneNode(Node::create());
-	wallobj->setDebugNode(newDebugNode());
-	addObstacle(wallobj, 1);
-	wallobj = BoxObstacle::create(Vec2(_level->_size.width * 0.5f, _level->_size.height - WALL_THICKNESS * 0.5f), Size(_level->_size.width - WALL_THICKNESS * 2, WALL_THICKNESS), &objectFilter);
-	wallobj->setBodyType(b2_staticBody);
-	wallobj->setDensity(BASIC_DENSITY);
-	wallobj->setFriction(BASIC_FRICTION);
-	wallobj->setRestitution(BASIC_RESTITUTION);
-	wallobj->setDrawScale(BOX2D_SCALE, BOX2D_SCALE);
-	wallobj->setSceneNode(Node::create());
-	wallobj->setDebugNode(newDebugNode());
-	addObstacle(wallobj, 1);
-
 
     // Now populate the physics objects
     populate();
@@ -432,7 +386,6 @@ void GameController::deinitialize() {
 	_debugnode = nullptr;
 	_winnode = nullptr;
 	_timernode = nullptr;
-	_exposurenode = nullptr;
 	_indicator = nullptr;
 	_exposurebar = nullptr;
 	_exposureframe = nullptr;
@@ -447,6 +400,44 @@ void GameController::deinitialize() {
 	_active = false;
 }
 
+void GameController::addWalls() {
+	BoxObstacle* wallobj = BoxObstacle::create(Vec2(WALL_THICKNESS * 0.5f, _level->_size.height * 0.5f), Size(WALL_THICKNESS, _level->_size.height), &objectFilter);
+	wallobj->setBodyType(b2_staticBody);
+	wallobj->setDensity(BASIC_DENSITY);
+	wallobj->setFriction(BASIC_FRICTION);
+	wallobj->setRestitution(BASIC_RESTITUTION);
+	wallobj->setDrawScale(BOX2D_SCALE, BOX2D_SCALE);
+	wallobj->setSceneNode(Node::create());
+	wallobj->setDebugNode(newDebugNode());
+	addObstacle(wallobj, 1);
+	wallobj = BoxObstacle::create(Vec2(_level->_size.width - WALL_THICKNESS * 0.5f, _level->_size.height * 0.5f), Size(WALL_THICKNESS, _level->_size.height), &objectFilter);
+	wallobj->setBodyType(b2_staticBody);
+	wallobj->setDensity(BASIC_DENSITY);
+	wallobj->setFriction(BASIC_FRICTION);
+	wallobj->setRestitution(BASIC_RESTITUTION);
+	wallobj->setDrawScale(BOX2D_SCALE, BOX2D_SCALE);
+	wallobj->setSceneNode(Node::create());
+	wallobj->setDebugNode(newDebugNode());
+	addObstacle(wallobj, 1);
+	wallobj = BoxObstacle::create(Vec2(_level->_size.width * 0.5f, WALL_THICKNESS * 0.5f), Size(_level->_size.width - WALL_THICKNESS * 2, WALL_THICKNESS), &objectFilter);
+	wallobj->setBodyType(b2_staticBody);
+	wallobj->setDensity(BASIC_DENSITY);
+	wallobj->setFriction(BASIC_FRICTION);
+	wallobj->setRestitution(BASIC_RESTITUTION);
+	wallobj->setDrawScale(BOX2D_SCALE, BOX2D_SCALE);
+	wallobj->setSceneNode(Node::create());
+	wallobj->setDebugNode(newDebugNode());
+	addObstacle(wallobj, 1);
+	wallobj = BoxObstacle::create(Vec2(_level->_size.width * 0.5f, _level->_size.height - WALL_THICKNESS * 0.5f), Size(_level->_size.width - WALL_THICKNESS * 2, WALL_THICKNESS), &objectFilter);
+	wallobj->setBodyType(b2_staticBody);
+	wallobj->setDensity(BASIC_DENSITY);
+	wallobj->setFriction(BASIC_FRICTION);
+	wallobj->setRestitution(BASIC_RESTITUTION);
+	wallobj->setDrawScale(BOX2D_SCALE, BOX2D_SCALE);
+	wallobj->setSceneNode(Node::create());
+	wallobj->setDebugNode(newDebugNode());
+	addObstacle(wallobj, 1);
+}
 
 #pragma mark -
 #pragma mark Level Creation
@@ -457,7 +448,7 @@ void GameController::deinitialize() {
  * with your serialization loader, which would process a level file.
  */
 void GameController::populate() {
-
+	addWalls();
 	Vec2 scale(BOX2D_SCALE, BOX2D_SCALE);
 
 	// We need to know the content scale for resolution independence
@@ -768,8 +759,6 @@ void GameController::update(float dt) {
 					_exposure = EXPOSURE_LIMIT;
 					setFailure(true);
 				}
-				/* _exposurenode->setString(cocos2d::to_string((int)(
-					(_exposure / EXPOSURE_LIMIT) * 100)) + "%"); */
 				_exposurebar->setPolygon(_exposurepoly * Vec2(1.0f - (_exposure / EXPOSURE_LIMIT), 1.0f));
 				_exposurebar->setVisible(true);
 			}

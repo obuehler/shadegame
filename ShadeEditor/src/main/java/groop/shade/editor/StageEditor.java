@@ -361,7 +361,7 @@ public class StageEditor extends JFrame {
 		scrollPane.setVisible(true);
 		playerSiteIcon = null;
 		casterSiteIcon = null;
-		targetIcon = new NewStageIcon(this, Constants.ASSETS_PATH() + "textures/editor/target.png");
+		targetIcon = new NewStageIcon(this, Constants.EDITOR_IMAGES_PATH() + "target.png");
 		backgroundPanel.add(targetIcon);
 		EditorMenuBar menuBar = new EditorMenuBar();
 		selectedIcon = null;
@@ -381,7 +381,7 @@ public class StageEditor extends JFrame {
 		menuBar.add(new SelectorButton(this));
 		menuBar.add(new EraserButton(this));
 		menuBar.add(selectLabel);
-		menuBar.add(testButton());
+		//menuBar.add(testButton());
 		setJMenuBar(menuBar);
 		setKeyboardShortcuts();
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);

@@ -75,10 +75,9 @@ public abstract class StageObjectIcon extends NewStageIcon {
 			BufferedImage main = ImageIO.read(new File(path));
 			BufferedImage shadow = ImageIO.read(new File(shadowPath));
 			System.out.println(shadowPath);
-			assert (main.getWidth() == shadow.getWidth());
-			assert (main.getHeight() == shadow.getHeight());
-			//BufferedImage combined = new BufferedImage(main.getHeight(), main.getWidth(), BufferedImage.TYPE_INT_ARGB);
-			BufferedImage combined = new BufferedImage(shadow.getWidth(), shadow.getHeight(), BufferedImage.TYPE_INT_ARGB);
+			int width = Math.max(shadow.getWidth(), main.getWidth());
+			int height = Math.max(shadow.getHeight(), main.getHeight());
+			BufferedImage combined = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 			combined.getGraphics().drawImage(shadow, 0, 0, null);
 			combined.getGraphics().drawImage(main, 0, 0, null);
 			setDisplayIcon(combined, scale);

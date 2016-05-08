@@ -73,7 +73,7 @@ public abstract class ObjectSelector {
 			value = EditorItems.ERASER;
 			// image from @link
 			// http://onlinehelp.smarttech.com/english/mobile/nbmac/11_0_0/Advanced/Content/Resources/Images/ButtonDelete.png
-			button = new JButton(new ImageIcon(Constants.ASSETS_PATH() + "textures/editor/delete.png"));
+			button = new JButton(new ImageIcon(Constants.EDITOR_IMAGES_PATH() + "delete.png"));
 
 			button.setBorder(new EmptyBorder(4, 3, 4, 3));
 
@@ -89,7 +89,7 @@ public abstract class ObjectSelector {
 
 			// mouse cursor from @link
 			// http://telcontar.net/Misc/screeniecursors/Cursor%20arrow%20Aero.png
-			button = new JButton(new ImageIcon(Constants.ASSETS_PATH() + "textures/editor/mouse_cursor.png"));
+			button = new JButton(new ImageIcon(Constants.EDITOR_IMAGES_PATH() + "mouse_cursor.png"));
 
 			button.setBorder(new EmptyBorder(1, 3, 0, 3));
 

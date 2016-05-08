@@ -29,19 +29,6 @@ public class Constants {
 		CAR_ACTIONS = new String[]{"stop", "go", "left", "right"};
 		PEDESTRIAN_ACTIONS = new String[]{"walk fast", "walk slow", "look around", "stand"};
 		NO_BORDER = new EmptyBorder(0, 0, 0, 0);
-		/*
-		 * LwjglApplicationConfiguration config = new
-		 * LwjglApplicationConfiguration(); // These are the configuration
-		 * attributes config.width = standardWidth(); config.height =
-		 * standardHeight(); config.resizable = false; config.title =
-		 * "Troll Stomp"; config.fullscreen = false; // RETINA MACS DO NOT
-		 * SUPPORT FULLSCREEN (LWJGL Bug) config.addIcon(ASSETS_PATH() +
-		 * "images/icon128.png" , Files.FileType.Internal);
-		 * config.addIcon(ASSETS_PATH() + "images/icon32.png",
-		 * Files.FileType.Internal); config.addIcon(ASSETS_PATH() +
-		 * "images/icon16.png", Files.FileType.Internal); STANDARD_CONFIG =
-		 * config;
-		 */
 
 		ArrayList<String> temp = new ArrayList<String>();
 		try {
@@ -101,6 +88,10 @@ public class Constants {
 
 	public static final String STAGES_PATH() {
 		return ASSETS_PATH() + STAGES_FOLDER_NAME + FILE_SEPARATOR;
+	}
+	
+	public static final String EDITOR_IMAGES_PATH() {
+		return ASSETS_PATH() + "textures" + FILE_SEPARATOR + "editor" + FILE_SEPARATOR;
 	}
 
 	public static final String DOTTED_STAGE_FILE_EXTENSION() {
