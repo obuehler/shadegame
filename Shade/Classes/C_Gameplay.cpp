@@ -228,20 +228,14 @@ void GameController::initialize(RootLayer* root) {
     _debugnode = Node::create();
 	_gameroot = Node::create();
     
-	_winnode = Label::create();
-    _winnode->setTTFConfig(_assets->get<TTFont>(MESSAGE_FONT)->getTTF());
-    _winnode->setString(WIN_MESSAGE);
-	_winnode->setPosition(center.x, center.y);
-    _winnode->setColor(WIN_COLOR);
-	
-	
+    _winnode = PolygonNode::createWithTexture(_assets->get<Texture2D>(WIN_IMAGE));
+    _winnode->setPosition(Point(center.x, dimen.height * 0.6f));
 	_winnode->setVisible(false);
-
-    _losenode = Label::create();
-    _losenode->setTTFConfig(_assets->get<TTFont>(MESSAGE_FONT)->getTTF());
-    _losenode->setString(LOSE_MESSAGE);
-	_losenode->setPosition(center.x, center.y);
-    _losenode->setColor(LOSE_COLOR);
+    
+    
+    _losenode = PolygonNode::createWithTexture(_assets->get<Texture2D>(LOSE_IMAGE));
+    _losenode->setPosition(Point(center.x, dimen.height * 0.7f));
+    _losenode->setScale(0.7f, 0.7f);
 	_losenode->setVisible(false);
 
 	_backgroundnode = PolygonNode::createWithTexture(
@@ -291,7 +285,7 @@ void GameController::initialize(RootLayer* root) {
 	_resumeButton = ui::Button::create();
 	_resumeButton->setTouchEnabled(true);
 	_resumeButton->loadTextures("textures/menu/resume_button.png", "textures/menu/resume_button.png", "");
-	_resumeButton->setPosition(Point(center.x, dimen.height * 0.6f));
+	_resumeButton->setPosition(Point(center.x, dimen.height * 0.45f));
 	_resumeButton->addTouchEventListener([&](Ref* sender, cocos2d::ui::Widget::TouchEventType type) {
 		switch (type)
 		{
@@ -307,7 +301,7 @@ void GameController::initialize(RootLayer* root) {
 	_backButton = ui::Button::create();
 	_backButton->setTouchEnabled(true);
 	_backButton->loadTextures("textures/menu/back_to_menu_button.png", "textures/menu/back_to_menu_button.png", "");
-	_backButton->setPosition(Point(center.x, dimen.height * 0.4f));
+	_backButton->setPosition(Point(center.x, dimen.height * 0.25f));
 	_backButton->addTouchEventListener([&](Ref* sender, cocos2d::ui::Widget::TouchEventType type) {
 		switch (type)
 		{
@@ -323,7 +317,7 @@ void GameController::initialize(RootLayer* root) {
 	_tryAgainButton = ui::Button::create();
 	_tryAgainButton->setTouchEnabled(true);
 	_tryAgainButton->loadTextures("textures/menu/try_again_button.png", "textures/menu/try_again_button.png", "");
-	_tryAgainButton->setPosition(Point(center.x, dimen.height * 0.6f));
+	_tryAgainButton->setPosition(Point(center.x, dimen.height * 0.45f));
 	_tryAgainButton->addTouchEventListener([&](Ref* sender, cocos2d::ui::Widget::TouchEventType type) {
 		switch (type)
 		{
