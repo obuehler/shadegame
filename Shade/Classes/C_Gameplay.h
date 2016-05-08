@@ -67,8 +67,8 @@
 #define WIN_MUSIC       "win"
 /** The key the failure game music */
 #define LOSE_MUSIC      "lose"
-#define WIN_Image "win"
-#define LOSE_Image "lose"
+#define WIN_IMAGE "win"
+#define LOSE_IMAGE "lose"
 
 // We need a lot of forward references to the classes used by this controller
 // These forward declarations are in cocos2d namespace

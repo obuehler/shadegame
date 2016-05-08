@@ -226,15 +226,15 @@ void GameController::initialize(RootLayer* root) {
     _debugnode = Node::create();
 	_gameroot = Node::create();
     
-    _winnode = PolygonNode::createWithTexture(_assets->get<Texture2D>(WIN_Image));
+    _winnode = PolygonNode::createWithTexture(_assets->get<Texture2D>(WIN_IMAGE));
     _winnode->setPosition(Point(center.x, dimen.height * 0.6f));
-    setComplete(false);
+	_winnode->setVisible(false);
     
     
-    _losenode = PolygonNode::createWithTexture(_assets->get<Texture2D>(LOSE_Image));
+    _losenode = PolygonNode::createWithTexture(_assets->get<Texture2D>(LOSE_IMAGE));
     _losenode->setPosition(Point(center.x, dimen.height * 0.7f));
     _losenode->setScale(0.7f, 0.7f);
-    setFailure(false);
+	_losenode->setVisible(false);
 
 	_backgroundnode = PolygonNode::createWithTexture(
 		_assets->get<Texture2D>(BACKGROUND_IMAGE + _level->_name));
