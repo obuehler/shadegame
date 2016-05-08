@@ -371,6 +371,10 @@ void Shadow::updateAnimation() {
 	}
 }
 
+void Shadow::setPosition(float x, float y) {
+	CapsuleObstacle::setPosition(x, y);
+}
+
 
 #pragma mark -
 #pragma mark Scene Graph Methods

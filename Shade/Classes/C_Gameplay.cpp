@@ -61,9 +61,9 @@ using namespace std;
 #define DEADSPACE_SIZE 0.2f
 
 /** Horizontal positioning of the exposure bar */
-#define EXPOSURE_X_OFFSET 220
+#define EXPOSURE_X_OFFSET 350
 /** Vertical positioning of the exposure bar */
-#define EXPOSURE_Y_OFFSET 50
+#define EXPOSURE_Y_OFFSET 60
 
 #pragma mark -
 #pragma mark Asset Constants
@@ -72,6 +72,8 @@ using namespace std;
 #define EXPOSURE_LIMIT 5.0f
 /** Ratio of exposure cooldown speed to exposure increase speed */
 #define EXPOSURE_COOLDOWN_RATIO 0.5f
+/* Scale of exposure HUD */
+#define EXPOSURE_SCALE 1.5f
 
 /** The relative background images folder path */
 #define BACKGROUNDS_FOLDER "textures/backgrounds/"
@@ -266,7 +268,7 @@ void GameController::initialize(RootLayer* root) {
 	_exposurebar = PolygonNode::createWithTexture(_assets->get<Texture2D>(EXPOSURE_BAR));
 	_exposurebar->setAnchorPoint(Vec2(0, 0));
 	_exposurebar->setPosition(root->getContentSize().width - EXPOSURE_X_OFFSET, root->getContentSize().height - EXPOSURE_Y_OFFSET);
-	_exposurebar->setScale(Director::getInstance()->getContentScaleFactor());
+	_exposurebar->setScale(Director::getInstance()->getContentScaleFactor()*EXPOSURE_SCALE);
 	_exposurebar->setVisible(true);
 	
 	_exposurepoly = Poly2(Rect(Vec2(0.0f, 0.0f), _exposurebar->getTexture()->getContentSize()));
@@ -274,7 +276,7 @@ void GameController::initialize(RootLayer* root) {
 	_exposureframe = Sprite::createWithTexture(_assets->get<Texture2D>(EXPOSURE_FRAME));
 	_exposureframe->setAnchorPoint(Vec2(0, 0));
 	_exposureframe->setPosition(dimen.width - EXPOSURE_X_OFFSET - 3, dimen.height - EXPOSURE_Y_OFFSET - 3);
-	_exposureframe->setScale(Director::getInstance()->getContentScaleFactor());
+	_exposureframe->setScale(Director::getInstance()->getContentScaleFactor()*EXPOSURE_SCALE);
 	_exposureframe->setVisible(true);
 
 	/*_exposurenode = Label::create();
@@ -400,7 +402,9 @@ GameController::~GameController() {
  * Disposes of all (non-static) resources allocated to this mode.
  */
 void GameController::dispose() {
-	if (_active) deinitialize();
+	if (_active) {
+		deinitialize();
+	}
 	_levelKey = nullptr;
 	_levelPath = nullptr;
 }
@@ -408,8 +412,8 @@ void GameController::dispose() {
 void GameController::deinitialize() {
 	_input.setZero();
 	_input.stop();
-	_physics.dispose();
 	_level->release();
+	_physics.dispose();
 	_level = nullptr;
 	_worldnode = nullptr;
 	_debugnode = nullptr;
@@ -726,6 +730,7 @@ void GameController::update(float dt) {
 					_level->_playerPos.object->getPosition()).getAngle()));
 		}
 
+
 		/* if (_avatar->isJumping()) {
 			Sound* source = _assets->get<Sound>(JUMP_EFFECT);
 			SoundEngine::getInstance()->playEffect(JUMP_EFFECT,source,false,EFFECT_VOLUME);
@@ -748,7 +753,7 @@ void GameController::update(float dt) {
 				}
 				/* _exposurenode->setString(cocos2d::to_string((int)(
 					(_exposure / EXPOSURE_LIMIT) * 100)) + "%"); */
-				_exposurebar->setPolygon(_exposurepoly * Vec2(_exposure / EXPOSURE_LIMIT, 1.0f));
+				_exposurebar->setPolygon(_exposurepoly * Vec2(1.0f - (_exposure / EXPOSURE_LIMIT), 1.0f));
 				_exposurebar->setVisible(true);
 			}
 		}

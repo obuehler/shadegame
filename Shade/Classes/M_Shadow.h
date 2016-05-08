@@ -272,6 +272,9 @@ public:
      */
     void update(float dt) override;
 
+	// Sets position of both capsuleobstacle and fixtures
+	void setPosition(float x, float y) override;
+
 	/** Stops the character by setting the body velocity to zero. */
 	void stopMovement();
 
