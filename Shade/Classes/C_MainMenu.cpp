@@ -54,6 +54,7 @@ bool MainMenuController::init(RootLayer* root) {
 
 	_rootnode = root;
 	_rootnode->retain();
+	_rootnode->setColor(Color3B::BLACK);
 
 	// Determine the center of the screen
 	Size dimen = _rootnode->getContentSize();
