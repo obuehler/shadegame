@@ -268,7 +268,7 @@ public:
 
 	template <class T>
 	bool deserializeAction(JSONReader& reader, int pedestrianIndex, int actionIndex, ActionQueue<T>* actions) {
-		T::ActionType type;
+		typename T::ActionType type;
 		try {
 			type = T::actionMap.at(reader.getString(TYPE_FIELD));
 		}

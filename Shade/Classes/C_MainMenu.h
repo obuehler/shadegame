@@ -9,7 +9,7 @@
 #include <Box2D/Dynamics/b2Body.h>
 #include <Box2D/Dynamics/b2Fixture.h>
 #include "C_Gameplay.h"
-#include <cocos2d/cocos/ui/UIButton.h>
+#include "ui/CocosGUI.h"
 
 // We need a lot of forward references to the classes used by this controller
 // These forward declarations are in cocos2d namespace
