@@ -5,11 +5,11 @@
 #include <Box2D/Collision/Shapes/b2EdgeShape.h>
 #include <Box2D/Dynamics/Joints/b2WeldJoint.h>
 
-bool AIController::init(vector<OurMovingObject<Pedestrian>*> peds, OurMovingObject<Caster>* caster, Shadow* avatar) {
+bool AIController::init(LevelInstance * level) {
 	// Create the world
-	_caster = caster;
-	_pedMovers = peds;
-	_avatar = avatar;
+	_caster = level->_casterPos.object;
+	_pedMovers = level->_pedestrians;
+	_avatar = level->_playerPos.object;
 	_active = true;
 	return true;
 }
@@ -36,10 +36,8 @@ void AIController::dispose() {
 void AIController::update() {
 	// Update pedestrians
 	if (_active) {
-		for (int i = 0; i < _pedMovers.size(); i++) {
-			OurMovingObject<Pedestrian>* ped = _pedMovers[i];
-			updatePed(ped);
-		}
+		for (LevelInstance::PedestrianMetadata ped : _pedMovers)
+			updatePed(ped.object);
 		updateCaster();
 	}
 }

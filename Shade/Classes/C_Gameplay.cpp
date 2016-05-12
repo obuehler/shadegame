@@ -346,6 +346,8 @@ void GameController::initialize(RootLayer* root) {
 	_debugnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO change when lazy camera implemented
 	_backgroundnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode()));
     
+	_ai.init(_level);
+
 	setDebug(false);
 	setComplete(false);
 	setFailure(false);
@@ -381,6 +383,7 @@ void GameController::deinitialize() {
 	_input.stop();
 	_level->release();
 	_physics.dispose();
+	_ai.dispose();
 	_level = nullptr;
 	_worldnode = nullptr;
 	_debugnode = nullptr;
@@ -614,6 +617,7 @@ void GameController::reset() {
 	_physics.update(dt);
 	_physics.update(dt);*/
 	_physics.reset();
+	_ai.reset();
     _worldnode->removeAllChildren();
     _debugnode->removeAllChildren();
     
@@ -730,6 +734,7 @@ void GameController::update(float dt) {
 				ped.object->act();
 			
 			_physics.update(dt);
+			_ai.update();
 			
 			// Update the indicator direction
 			// Subtract the found angle from 90 since getAngle returns angle with x-axis instead of y
