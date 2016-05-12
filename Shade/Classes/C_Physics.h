@@ -17,6 +17,8 @@ class PhysicsController {
 
 	/** Whether we have reached the caster */
 	bool _reachedCaster;
+	/** Whether the caster has died */
+	bool _hasDied;
 
 	/** The Box2D world */
 	WorldController* _world;

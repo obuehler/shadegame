@@ -47,7 +47,7 @@ void AIController::updatePed(OurMovingObject<Pedestrian>* ped) {
 	Vec2 avaPos = _avatar->getPosition();
 	Vec2 diff = avaPos - (ped->getPosition());
 	int speed = 2;
-	CCLOG("%f,%f", diff.x, diff.y);
+	//CCLOG("%f,%f", diff.x, diff.y);
 	if (diff.getLength() < 10) {
 		diff.normalize();
 		ped->setHorizontalMovement(diff.x*speed);

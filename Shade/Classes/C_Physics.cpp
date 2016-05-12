@@ -27,7 +27,8 @@ bool PhysicsController::init(const Size& size) {
 
 PhysicsController::PhysicsController() :
 	_world(nullptr),
-	_reachedCaster(false)
+	_reachedCaster(false),
+	_hasDied(false)
 {
 }
 
@@ -69,7 +70,7 @@ void PhysicsController::update(float dt) {
 void PhysicsController::beginContact(b2Contact* contact) {
 	b2Fixture* fix1 = contact->GetFixtureA();
 	b2Fixture* fix2 = contact->GetFixtureB();
-
+	CCLOG("%x,%x", fix1->GetFilterData().categoryBits, fix2->GetFilterData().categoryBits);
 	// If one of the fixtures is from a shadow, the other fixture is
 	// definitely our character. Mark as in shadow if so.
 	if (fix1->GetFilterData().categoryBits == SHADOW_BIT)
@@ -81,6 +82,10 @@ void PhysicsController::beginContact(b2Contact* contact) {
 	if ((fix1->GetFilterData().categoryBits == CASTER_BIT && fix2->GetFilterData().categoryBits == CHARACTER_SENSOR_BIT) ||
 		(fix2->GetFilterData().categoryBits == CASTER_BIT && fix1->GetFilterData().categoryBits == CHARACTER_SENSOR_BIT)) {
 		_reachedCaster = true;
+	}
+	if ((fix1->GetFilterData().categoryBits == PEDESTRIAN_BIT && fix2->GetFilterData().categoryBits == CHARACTER_BIT) ||
+		(fix2->GetFilterData().categoryBits == PEDESTRIAN_BIT && fix1->GetFilterData().categoryBits == CHARACTER_BIT)) {
+		_hasDied = true;
 	}
 }
 

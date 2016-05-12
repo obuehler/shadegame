@@ -141,7 +141,8 @@ b2Filter GameController::characterFilter = b2Filter(CHARACTER_BIT, OBJECT_BIT, 0
 b2Filter GameController::objectFilter = b2Filter(OBJECT_BIT, CHARACTER_BIT | CASTER_BIT, 1);
 b2Filter GameController::casterFilter = b2Filter(CASTER_BIT, CHARACTER_SENSOR_BIT | OBJECT_BIT, 1);
 b2Filter GameController::shadowFilter = b2Filter(SHADOW_BIT, CHARACTER_SENSOR_BIT, -1);
-b2Filter GameController::characterSensorFilter = b2Filter(CHARACTER_SENSOR_BIT, SHADOW_BIT | CASTER_BIT, -2);
+b2Filter GameController::characterSensorFilter = b2Filter(CHARACTER_SENSOR_BIT, SHADOW_BIT | CASTER_BIT | PEDESTRIAN_BIT, -2);
+b2Filter GameController::pedestrianFilter = b2Filter(PEDESTRIAN_BIT, CHARACTER_SENSOR_BIT | OBJECT_BIT, -2);
 
 #pragma mark -
 #pragma mark Initialization
@@ -530,7 +531,7 @@ void GameController::populate() {
 		animNodePtr->setScale(cscale / PEDESTRIAN_SCALE_DOWN);
 		pd.object->getObject()->init(pd.position, Size((animNodePtr->getContentSize().width * cscale)
 			/ (scale.x * PEDESTRIAN_SCALE_DOWN), (animNodePtr->getContentSize().height * cscale)
-			/ (scale.y * PEDESTRIAN_SCALE_DOWN)), &objectFilter);
+			/ (scale.y * PEDESTRIAN_SCALE_DOWN)), &pedestrianFilter);
 
 		animNodePtr = (AnimationNode*)(pd.object->getShadow()->getSceneNode());
 		animNodePtr->initWithTexture(_assets->get<Texture2D>(PEDESTRIAN_SHADOW_TEXTURE));
@@ -756,6 +757,7 @@ void GameController::update(float dt) {
 
 		if (!_failed) {
 			if (!_complete && _physics._reachedCaster) setComplete(true);
+			if (!_complete && _physics._hasDied) setFailure(true);
 			if (!_complete) {
 				// Check for exposure or cover
 				_exposure += dt * (1.0f - ((1.0f + EXPOSURE_COOLDOWN_RATIO) * _level->_playerPos.object->getCoverRatio()));

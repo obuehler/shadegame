@@ -121,6 +121,8 @@ private:
 	static b2Filter shadowFilter;
 	/** The collision filters for the caster */
 	static b2Filter casterFilter;
+	/** The collision filters for the pedestrian */
+	static b2Filter pedestrianFilter;
 
 
 protected:

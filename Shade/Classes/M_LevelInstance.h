@@ -25,6 +25,8 @@
 #define CHARACTER_SENSOR_BIT 0x10
 /** Category bit for the character itself */
 #define CHARACTER_BIT 0x20
+/** Category bit for the pedestrian */
+#define PEDESTRIAN_BIT 0x40
 /** Default scale from Box2D to intended pixel coordinates */
 #define BOX2D_SCALE 50.0f
 
