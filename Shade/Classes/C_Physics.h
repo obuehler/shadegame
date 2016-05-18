@@ -6,6 +6,8 @@
 #include "M_LevelInstance.h"
 #include <Box2D/Dynamics/Contacts/b2Contact.h>
 
+#define LATCH_NAME  'l'
+
 namespace cocos2d {
 	class WorldController;
 }
