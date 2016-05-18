@@ -4,8 +4,16 @@
 #include <Box2D/Collision/b2Collision.h>
 #include <Box2D/Collision/Shapes/b2EdgeShape.h>
 #include <Box2D/Dynamics/Joints/b2WeldJoint.h>
-#include "M_LevelInstance.h"
 #include <ShadowCount.h>
+
+const b2Filter PhysicsController::characterFilter = b2Filter(CHARACTER_BIT, OBJECT_BIT, 0);
+const b2Filter PhysicsController::objectFilter = b2Filter(OBJECT_BIT, CHARACTER_BIT | CASTER_BIT | PEDESTRIAN_BIT, 1);
+const b2Filter PhysicsController::casterFilter = b2Filter(CASTER_BIT, CHARACTER_SENSOR_BIT | OBJECT_BIT, 1);
+const b2Filter PhysicsController::shadowFilter = b2Filter(SHADOW_BIT, CHARACTER_SENSOR_BIT, -1);
+const b2Filter PhysicsController::characterSensorFilter = b2Filter(CHARACTER_SENSOR_BIT, SHADOW_BIT | CASTER_BIT | PEDESTRIAN_BIT, -2);
+const b2Filter PhysicsController::pedestrianFilter = b2Filter(PEDESTRIAN_BIT, CHARACTER_SENSOR_BIT | OBJECT_BIT, 1);
+const b2Filter PhysicsController::emptyFilter = b2Filter(EMPTY_BIT, 0x00, -1);
+
 
 bool PhysicsController::init(const Size& size) {
 	// Create the world
@@ -83,9 +91,27 @@ void PhysicsController::beginContact(b2Contact* contact) {
 		(fix2->GetFilterData().categoryBits == CASTER_BIT && fix1->GetFilterData().categoryBits == CHARACTER_SENSOR_BIT)) {
 		_reachedCaster = true;
 	}
-	if ((fix1->GetFilterData().categoryBits == PEDESTRIAN_BIT && fix2->GetFilterData().categoryBits == CHARACTER_BIT) ||
-		(fix2->GetFilterData().categoryBits == PEDESTRIAN_BIT && fix1->GetFilterData().categoryBits == CHARACTER_BIT)) {
+	if ((fix1->GetFilterData().categoryBits == PEDESTRIAN_BIT && fix2->GetFilterData().categoryBits == CHARACTER_SENSOR_BIT) ||
+		(fix2->GetFilterData().categoryBits == PEDESTRIAN_BIT && fix1->GetFilterData().categoryBits == CHARACTER_SENSOR_BIT)) {
 		_hasDied = true;
+	}
+	if (fix1->GetFilterData().categoryBits == PEDESTRIAN_BIT && fix2->GetFilterData().categoryBits == OBJECT_BIT) {
+		//_world->removeObstacle(((OurMovingObject<Pedestrian>*)(fix1->GetUserData()))->getObject());
+		//_world->removeObstacle(((OurMovingObject<Pedestrian>*)(fix1->GetUserData()))->getShadow());
+		
+		fix1->SetFilterData(emptyFilter);
+		((OurMovingObject<Pedestrian>*)(fix1->GetUserData()))->getShadow()->getBody()->GetFixtureList()->SetFilterData(emptyFilter);
+		((OurMovingObject<Pedestrian>*)(fix1->GetUserData()))->getObject()->getSceneNode()->setVisible(false);
+		((OurMovingObject<Pedestrian>*)(fix1->GetUserData()))->getShadow()->getSceneNode()->setVisible(false);
+	}
+	if (fix2->GetFilterData().categoryBits == PEDESTRIAN_BIT && fix1->GetFilterData().categoryBits == OBJECT_BIT) {
+		//_world->removeObstacle(((OurMovingObject<Pedestrian>*)(fix2->GetUserData()))->getObject());
+		//_world->removeObstacle(((OurMovingObject<Pedestrian>*)(fix2->GetUserData()))->getShadow());
+		
+		fix2->SetFilterData(emptyFilter);
+		((OurMovingObject<Pedestrian>*)(fix2->GetUserData()))->getShadow()->getBody()->GetFixtureList()->SetFilterData(emptyFilter);
+		((OurMovingObject<Pedestrian>*)(fix2->GetUserData()))->getObject()->getSceneNode()->setVisible(false);
+		((OurMovingObject<Pedestrian>*)(fix2->GetUserData()))->getShadow()->getSceneNode()->setVisible(false);
 	}
 }
 
@@ -111,6 +137,6 @@ void PhysicsController::endContact(b2Contact* contact) {
 }
 
 void PhysicsController::reset() {
-	_reachedCaster = false;
 	_world->clear();
+	_reachedCaster = false;
 }

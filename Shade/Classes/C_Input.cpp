@@ -133,7 +133,7 @@ bool InputController::init(const Rect& bounds) {
 			return touchBeganCB(t, time);
 		};
 		_touchListener->onTouchMoved = [=](Touch* t, timestamp_t time) {
-			return this->touchMovedCB(t, time);
+			return touchMovedCB(t, time);
 		};
 		_touchListener->onTouchEnded = [=](Touch* t, timestamp_t time) {
 			return this->touchEndedCB(t, time);
@@ -330,6 +330,7 @@ bool InputController::isCenter(const Vec2& pos) {
 * @return True if the touch was processed; false otherwise.
 */
 bool InputController::touchBeganCB(Touch* t, timestamp_t current) {
+	CCLOG("%s", "began");
 	Vec2 pos = t->getLocation();
 	_swipetime = current;
 	_keyDoubleTap = (elapsed_millis(_dbtaptime, current) <= EVENT_DOUBLE_CLICK);
@@ -350,6 +351,9 @@ bool InputController::touchBeganCB(Touch* t, timestamp_t current) {
 * @param event The associated event
 */
 void InputController::touchEndedCB(Touch* t, timestamp_t current) {
+	CCLOG("%s", "ended");
+	_vertical = 0;
+	_horizontal = 0;
 	_dbtaptime = current;
 }
 
@@ -360,8 +364,17 @@ void InputController::touchEndedCB(Touch* t, timestamp_t current) {
 * @param t     The touch information
 * @param event The associated event
 */
-void InputController::touchMovedCB(Touch* t, timestamp_t current) {
-	
+bool InputController::touchMovedCB(Touch* t, timestamp_t current) {
+	CCLOG("%s", "moved");
+	Vec2 pos = t->getLocation();
+
+	if (isCenter(pos)) {
+		_vertical = 0;
+		_horizontal = 0;
+	}
+	_vertical = (pos.y - _bounds.getMidY()) / (_bounds.size.height / 2.0f);
+	_horizontal = (pos.x - _bounds.getMidX()) / (_bounds.size.width / 2.0f);
+	return false;
 }
 
 /**

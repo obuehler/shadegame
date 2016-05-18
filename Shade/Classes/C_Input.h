@@ -356,7 +356,7 @@ public:
 	* @param t     The touch information
 	* @param event The associated event
 	*/
-	void    touchMovedCB(Touch* t, timestamp_t time);
+	bool    touchMovedCB(Touch* t, timestamp_t time);
 
 	/**
 	* Callback for the cancellation of a touch event

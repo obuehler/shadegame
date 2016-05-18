@@ -137,13 +137,6 @@ using namespace std;
 #define CAR_OBJECT_Z 10
 #define CAR_SHADOW_Z 6
 
-b2Filter GameController::characterFilter = b2Filter(CHARACTER_BIT, OBJECT_BIT, 0);
-b2Filter GameController::objectFilter = b2Filter(OBJECT_BIT, CHARACTER_BIT | CASTER_BIT, 1);
-b2Filter GameController::casterFilter = b2Filter(CASTER_BIT, CHARACTER_SENSOR_BIT | OBJECT_BIT, 1);
-b2Filter GameController::shadowFilter = b2Filter(SHADOW_BIT, CHARACTER_SENSOR_BIT, -1);
-b2Filter GameController::characterSensorFilter = b2Filter(CHARACTER_SENSOR_BIT, SHADOW_BIT | CASTER_BIT | PEDESTRIAN_BIT, -2);
-b2Filter GameController::pedestrianFilter = b2Filter(PEDESTRIAN_BIT, CHARACTER_SENSOR_BIT | OBJECT_BIT, -2);
-
 #pragma mark -
 #pragma mark Initialization
 
@@ -300,6 +293,7 @@ void GameController::initialize(RootLayer* root) {
 		switch (type)
 		{
 		case ui::Widget::TouchEventType::ENDED:
+			reset();
 			deinitialize(); // sets _active to false
 			break;
 		default:
@@ -348,7 +342,7 @@ void GameController::initialize(RootLayer* root) {
 	_backgroundnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode()));
     
 	_ai.init(_level);
-
+	
 	setDebug(false);
 	setComplete(false);
 	setFailure(false);
@@ -383,6 +377,7 @@ void GameController::deinitialize() {
 	_input.setZero();
 	_input.stop();
 	_level->release();
+	_physics.reset();
 	_physics.dispose();
 	_ai.dispose();
 	_level = nullptr;
@@ -402,10 +397,11 @@ void GameController::deinitialize() {
 	_complete = false;
 	_failed = false;
 	_active = false;
+	
 }
 
 void GameController::addWalls() {
-	BoxObstacle* wallobj = BoxObstacle::create(Vec2(WALL_THICKNESS * 0.5f, _level->_size.height * 0.5f), Size(WALL_THICKNESS, _level->_size.height), &objectFilter);
+	BoxObstacle* wallobj = BoxObstacle::create(Vec2(WALL_THICKNESS * 0.5f, _level->_size.height * 0.5f), Size(WALL_THICKNESS, _level->_size.height), &PhysicsController::objectFilter);
 	wallobj->setBodyType(b2_staticBody);
 	wallobj->setDensity(BASIC_DENSITY);
 	wallobj->setFriction(BASIC_FRICTION);
@@ -414,7 +410,7 @@ void GameController::addWalls() {
 	wallobj->setSceneNode(Node::create());
 	wallobj->setDebugNode(newDebugNode());
 	addObstacle(wallobj, 1);
-	wallobj = BoxObstacle::create(Vec2(_level->_size.width - WALL_THICKNESS * 0.5f, _level->_size.height * 0.5f), Size(WALL_THICKNESS, _level->_size.height), &objectFilter);
+	wallobj = BoxObstacle::create(Vec2(_level->_size.width - WALL_THICKNESS * 0.5f, _level->_size.height * 0.5f), Size(WALL_THICKNESS, _level->_size.height), &PhysicsController::objectFilter);
 	wallobj->setBodyType(b2_staticBody);
 	wallobj->setDensity(BASIC_DENSITY);
 	wallobj->setFriction(BASIC_FRICTION);
@@ -423,7 +419,7 @@ void GameController::addWalls() {
 	wallobj->setSceneNode(Node::create());
 	wallobj->setDebugNode(newDebugNode());
 	addObstacle(wallobj, 1);
-	wallobj = BoxObstacle::create(Vec2(_level->_size.width * 0.5f, WALL_THICKNESS * 0.5f), Size(_level->_size.width - WALL_THICKNESS * 2, WALL_THICKNESS), &objectFilter);
+	wallobj = BoxObstacle::create(Vec2(_level->_size.width * 0.5f, WALL_THICKNESS * 0.5f), Size(_level->_size.width - WALL_THICKNESS * 2, WALL_THICKNESS), &PhysicsController::objectFilter);
 	wallobj->setBodyType(b2_staticBody);
 	wallobj->setDensity(BASIC_DENSITY);
 	wallobj->setFriction(BASIC_FRICTION);
@@ -432,7 +428,7 @@ void GameController::addWalls() {
 	wallobj->setSceneNode(Node::create());
 	wallobj->setDebugNode(newDebugNode());
 	addObstacle(wallobj, 1);
-	wallobj = BoxObstacle::create(Vec2(_level->_size.width * 0.5f, _level->_size.height - WALL_THICKNESS * 0.5f), Size(_level->_size.width - WALL_THICKNESS * 2, WALL_THICKNESS), &objectFilter);
+	wallobj = BoxObstacle::create(Vec2(_level->_size.width * 0.5f, _level->_size.height - WALL_THICKNESS * 0.5f), Size(_level->_size.width - WALL_THICKNESS * 2, WALL_THICKNESS), &PhysicsController::objectFilter);
 	wallobj->setBodyType(b2_staticBody);
 	wallobj->setDensity(BASIC_DENSITY);
 	wallobj->setFriction(BASIC_FRICTION);
@@ -471,7 +467,7 @@ void GameController::populate() {
 	_level->_casterPos.object->getObject()->init(_level->_casterPos.position,
 		Size((animNodePtr->getContentSize().width * cscale) / (CASTER_SCALE_DOWN * scale.x),
 			(animNodePtr->getContentSize().height * cscale) / (CASTER_SCALE_DOWN * scale.y)),
-			&casterFilter);
+			&PhysicsController::casterFilter);
 	_level->_casterPos.object->getObject()->setDrawScale(scale);
 	_level->_casterPos.object->getObject()->positionSceneNode();
 	_level->_casterPos.object->getObject()->resetSceneNode();
@@ -483,11 +479,13 @@ void GameController::populate() {
 	animNodePtr = ((AnimationNode*)(_level->_playerPos.object->getSceneNode()));
 	animNodePtr->initWithFilmstrip(_assets->get<Texture2D>(DUDE_TEXTURE), PLAYER_ROWS, PLAYER_COLS);
 	animNodePtr->setScale(cscale / DUDE_SCALE);
-	_level->_playerPos.object->init(_level->_playerPos.position, scale * DUDE_SCALE, &characterFilter, &characterSensorFilter);
+	_level->_playerPos.object->init(_level->_playerPos.position, scale * DUDE_SCALE, &PhysicsController::characterFilter, &PhysicsController::characterSensorFilter);
 	_level->_playerPos.object->setDrawScale(scale);
 	_level->_playerPos.object->positionSceneNode();
 	_level->_playerPos.object->resetSceneNode();
 	_level->_playerPos.object->setDebugNode(newDebugNode());
+	_level->_playerPos.object->setHorizontalMovement(0.0f);
+	_level->_playerPos.object->setVerticalMovement(0.0f);
     addObstacle(_level->_playerPos.object, PLAYER_Z); // Put this at the very front
 
 
@@ -502,8 +500,8 @@ void GameController::populate() {
 		polyNodePtr->setScale(cscale);
 		
 		Vec2 offset = { polyNodePtr1->getContentSize().width * cscale / (scale.x * -5.0f), polyNodePtr1->getContentSize().height * cscale / (scale.y * 4.0f) };
-		d.object->init(d.position + offset, Size(polyNodePtr1->getContentSize().width * cscale / scale.x, polyNodePtr1->getContentSize().height * cscale / scale.y), &objectFilter); // Body
-		d.shadow->init(d.position, Size(polyNodePtr->getContentSize().width * cscale / scale.x, polyNodePtr->getContentSize().height * cscale / scale.y), &shadowFilter); // Shadoe
+		d.object->init(d.position + offset, Size(polyNodePtr1->getContentSize().width * cscale / scale.x, polyNodePtr1->getContentSize().height * cscale / scale.y), &PhysicsController::objectFilter); // Body
+		d.shadow->init(d.position, Size(polyNodePtr->getContentSize().width * cscale / scale.x, polyNodePtr->getContentSize().height * cscale / scale.y), &PhysicsController::shadowFilter); // Shadoe
 
 		d.object->setDrawScale(scale);
 		d.object->positionSceneNode();
@@ -531,7 +529,7 @@ void GameController::populate() {
 		animNodePtr->setScale(cscale / PEDESTRIAN_SCALE_DOWN);
 		pd.object->getObject()->init(pd.position, Size((animNodePtr->getContentSize().width * cscale)
 			/ (scale.x * PEDESTRIAN_SCALE_DOWN), (animNodePtr->getContentSize().height * cscale)
-			/ (scale.y * PEDESTRIAN_SCALE_DOWN)), &pedestrianFilter);
+			/ (scale.y * PEDESTRIAN_SCALE_DOWN)), &PhysicsController::pedestrianFilter);
 
 		animNodePtr = (AnimationNode*)(pd.object->getShadow()->getSceneNode());
 		animNodePtr->initWithTexture(_assets->get<Texture2D>(PEDESTRIAN_SHADOW_TEXTURE));
@@ -539,7 +537,10 @@ void GameController::populate() {
 		animNodePtr->setScale(cscale / PEDESTRIAN_SCALE_DOWN);
 		pd.object->getShadow()->init(pd.position, Size((animNodePtr->getContentSize().width * cscale)
 			/ (scale.x * PEDESTRIAN_SCALE_DOWN), (animNodePtr->getContentSize().height * cscale)
-			/ (PEDESTRIAN_SCALE_DOWN * scale.y)), &shadowFilter);
+			/ (PEDESTRIAN_SCALE_DOWN * scale.y)), &PhysicsController::shadowFilter);
+
+		pd.object->getObject()->setLinearVelocity(Vec2(0.0f, 0.0f));
+		pd.object->getShadow()->setLinearVelocity(Vec2(0.0f, 0.0f));
 
 		pd.object->getObject()->setDrawScale(scale);
 		pd.object->getObject()->positionSceneNode();
@@ -550,7 +551,9 @@ void GameController::populate() {
 		pd.object->getObject()->setDebugNode(newDebugNode());
 		pd.object->getShadow()->setDebugNode(newDebugNode());
 		addObstacle(pd.object->getObject(), PEDESTRIAN_OBJECT_Z);
+		pd.object->getObject()->getBody()->GetFixtureList()->SetUserData(pd.object);
 		addObstacle(pd.object->getShadow(), PEDESTRIAN_SHADOW_Z);
+
 	}
 
 	for (LevelInstance::CarMetadata pd : _level->_cars) {
@@ -560,7 +563,7 @@ void GameController::populate() {
 		animNodePtr->setScale(cscale / CAR_SCALE_DOWN);
 		pd.object->getObject()->init(pd.position, Size((animNodePtr->getContentSize().width * cscale)
 			/ (scale.x * CAR_SCALE_DOWN), (animNodePtr->getContentSize().height * cscale)
-			/ (scale.y * CAR_SCALE_DOWN)), &shadowFilter);
+			/ (scale.y * CAR_SCALE_DOWN)), &PhysicsController::shadowFilter);
 		pd.object->getObject()->setDrawScale(scale);
 		pd.object->getObject()->positionSceneNode();
 		pd.object->getObject()->resetSceneNode();
@@ -572,7 +575,7 @@ void GameController::populate() {
 		polyNodePtr->setScale(cscale / CAR_SCALE_DOWN);
 		pd.object->getShadow()->init(pd.position, Size((polyNodePtr->getContentSize().width * cscale)
 			/ (scale.x * CAR_SCALE_DOWN), (polyNodePtr->getContentSize().height * cscale)
-			/ (scale.y * CAR_SCALE_DOWN)), &shadowFilter);
+			/ (scale.y * CAR_SCALE_DOWN)), &PhysicsController::shadowFilter);
 		pd.object->getShadow()->setDrawScale(scale);
 		pd.object->getShadow()->positionSceneNode();
 		pd.object->getShadow()->resetSceneNode();
@@ -642,7 +645,10 @@ void GameController::reset() {
 		ped.object->_actionQueue->release();
 		ped.object->_actionQueue = ActionQueue<Pedestrian>::create(*(ped.actions));
 		ped.object->_actionQueue->retain();
+		ped.object->getObject()->getSceneNode()->setVisible(true);
+		ped.object->getShadow()->getSceneNode()->setVisible(true);
 	}
+	_ai.init(_level);
 
 	_worldnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO uncomment when lazy camera implemented
 	_debugnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO uncomment when lazy camera implemented
@@ -666,7 +672,8 @@ void GameController::setComplete(bool value) {
         SoundEngine::getInstance()->playMusic(source,false,MUSIC_VOLUME);
         _winnode->setVisible(true);
 		_countdown = EXIT_COUNT;
-    } else {
+    } 
+	if (!value && isActive()) {
         _winnode->setVisible(false);
         _countdown = -1;
     }
@@ -780,9 +787,7 @@ void GameController::update(float dt) {
 		else if (_countdown == 0) {
 			if (_failed || _complete) {
 				_backButton->setVisible(true);
-				if (_failed) {
-					_tryAgainButton->setVisible(true);
-				}
+				_tryAgainButton->setVisible(true);
 			}
 		}
 	}

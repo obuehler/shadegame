@@ -110,19 +110,6 @@ private:
 		draw->setOpacity(DEBUG_OPACITY);
 		return draw;
 	}
-	
-	/** The collision filters for the character */
-	static b2Filter characterFilter;
-	/** The collision filters for the character sensors */
-	static b2Filter characterSensorFilter;
-	/** The collision filters for regular objects */
-	static b2Filter objectFilter;
-	/** The collision filters for shadows */
-	static b2Filter shadowFilter;
-	/** The collision filters for the caster */
-	static b2Filter casterFilter;
-	/** The collision filters for the pedestrian */
-	static b2Filter pedestrianFilter;
 
 
 protected:

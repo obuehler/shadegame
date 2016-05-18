@@ -147,6 +147,8 @@ public:
 		return object->getPosition();
 	}
 
+
+
 	void releaseShadow() {
 		if (shadow != nullptr) shadow->release();
 	}
