@@ -34,6 +34,7 @@
 #include "C_AI.h"
 #include "C_Physics.h"
 #include "M_LevelInstance.h"
+#include <cornell/CUWheelObstacle.h>
 
 // All key and file path macros are here since the main controller needs them
 
@@ -110,6 +111,17 @@ private:
 		draw->setOpacity(DEBUG_OPACITY);
 		return draw;
 	}
+	
+	/** The collision filters for the character */
+	static b2Filter characterFilter;
+	/** The collision filters for the character sensors */
+	static b2Filter characterSensorFilter;
+	/** The collision filters for regular objects */
+	static b2Filter objectFilter;
+	/** The collision filters for shadows */
+	static b2Filter shadowFilter;
+	/** The collision filters for the caster */
+	static b2Filter casterFilter;
 
 
 protected:
@@ -182,6 +194,8 @@ protected:
 	float _exposure;
     /** Countdown active for winning or losing */
     int _countdown;
+    WheelObstacle* latchposition;
+    char* a;
     
     
 #pragma mark Internal Object Management
