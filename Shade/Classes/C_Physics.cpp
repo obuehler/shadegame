@@ -85,7 +85,9 @@ void PhysicsController::beginContact(b2Contact* contact) {
 		((ShadowCount*)(fix2->GetUserData()))->inc();
 	if (fix2->GetFilterData().categoryBits == SHADOW_BIT)
 		((ShadowCount*)(fix1->GetUserData()))->inc();
-
+        
+        if(*((char*)(fix1->GetBody()->GetUserData())) == (char) LATCH_NAME)
+        
 	// If we hit the caster, we are done
 	if ((fix1->GetFilterData().categoryBits == CASTER_BIT && fix2->GetFilterData().categoryBits == CHARACTER_SENSOR_BIT) ||
 		(fix2->GetFilterData().categoryBits == CASTER_BIT && fix1->GetFilterData().categoryBits == CHARACTER_SENSOR_BIT)) {
