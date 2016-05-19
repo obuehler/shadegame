@@ -57,6 +57,7 @@ private:
 	bool  _keyUp;
 	bool  _keyDown;
 	/** Whether the doubletap is down */
+	bool _keySwipe;
 	bool  _keyDoubleTap;
 
 
@@ -85,7 +86,9 @@ protected:
 	float _vertical;
 
 	/** Whether the pause action was chosen. */
-	bool _pausePressed;
+	bool _swipeStarted;
+	Vec2 startposition;
+	Vec2 pos;
 
 #pragma mark Internal Touch Management
 	// The screen is divided into four zones: Left, Bottom, Right and Main/
@@ -192,7 +195,7 @@ protected:
 	*
 	* @return a nonzero value if this is a quick left or right swipe
 	*/
-	int  checkSwipe(const Vec2& start, const Vec2& stop, timestamp_t current);
+	bool checkSwipe(const Vec2& start, const Vec2& stop, timestamp_t current);
 
 	/**
 	* Check if it touched the center of the screen
@@ -330,7 +333,7 @@ public:
 	*
 	* @returns true if it double tapped to stop.
 	*/
-	bool didPause() const { return _pausePressed; }
+	bool didPause() const { return _keySwipe; }
 
 #pragma mark -
 #pragma mark Touch Callbacks
