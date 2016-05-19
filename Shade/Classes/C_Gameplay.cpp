@@ -729,12 +729,23 @@ void GameController::update(float dt) {
 		if (!_failed && !_complete) {
 			if (_input.didDebug()) { setDebug(!isDebug()); }
 			// Process the movement
+			if (!_input._screencoords) { // Tap position is raw, need to compute screen coordinates
+				CCLOG("Last tap: %f,%f", _input._lasttap.x, _input._lasttap.y);
+				_input._lasttap = _level->_playerPos.object->getPosition() + (_input._lasttap / (BOX2D_SCALE));
+				CCLOG("On Game World: %f,%f", _input._lasttap.x, _input._lasttap.y);
+				CCLOG("%f,%f", (_level->_playerPos.object->getPosition()).x, (_level->_playerPos.object->getPosition().y));
+				_input._screencoords = true;
+			}
+			//CCLOG("%f", (_level->_playerPos.object->getPosition() - _input._lasttap).lengthSquared());
+			//CCLOG("%f,%f", (_level->_playerPos.object->getPosition()).x, (_level->_playerPos.object->getPosition()));
 			if (_input.getHorizontal() * _input.getHorizontal() + _input.getVertical()
-				* _input.getVertical() < DEADSPACE_SIZE * DEADSPACE_SIZE) {
+				* _input.getVertical() < DEADSPACE_SIZE * DEADSPACE_SIZE || 
+				(_level->_playerPos.object->getPosition() - _input._lasttap).lengthSquared() < 0.01f) {
 				_level->_playerPos.object->stopMovement();
 			}
 			else {
-				_level->_playerPos.object->changeVelocity(_input.getHorizontal(), _input.getVertical());
+				Vec2 movVec = _input._lasttap - _level->_playerPos.object->getPosition();
+				_level->_playerPos.object->changeVelocity(movVec.x, movVec.y);
 			}
 			for (LevelInstance::CarMetadata car : _level->_cars)
 				car.object->act();

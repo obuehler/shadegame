@@ -76,6 +76,10 @@ InputController::InputController() :
 
 	_horizontal = 0.0f;
 	_vertical = 0.0f;
+	
+	_lasttap = Vec2(0.0f, 0.0f);
+	_screencoords = false;
+
 	_keyFire = false;
 	_keyJump = false;
 
@@ -133,7 +137,7 @@ bool InputController::init(const Rect& bounds) {
 			return touchBeganCB(t, time);
 		};
 		_touchListener->onTouchMoved = [=](Touch* t, timestamp_t time) {
-			return touchMovedCB(t, time);
+			return this->touchMovedCB(t, time);
 		};
 		_touchListener->onTouchEnded = [=](Touch* t, timestamp_t time) {
 			return this->touchEndedCB(t, time);
@@ -341,6 +345,8 @@ bool InputController::touchBeganCB(Touch* t, timestamp_t current) {
 	}
 	_vertical = (pos.y - _bounds.getMidY()) / (_bounds.size.height / 2.0f);
 	_horizontal = (pos.x - _bounds.getMidX()) / (_bounds.size.width / 2.0f);
+	_lasttap = Vec2(pos.x - _bounds.getMidX(), pos.y - _bounds.getMidY());
+	_screencoords = false;
 	return true;
 }
 
@@ -351,9 +357,6 @@ bool InputController::touchBeganCB(Touch* t, timestamp_t current) {
 * @param event The associated event
 */
 void InputController::touchEndedCB(Touch* t, timestamp_t current) {
-	CCLOG("%s", "ended");
-	_vertical = 0;
-	_horizontal = 0;
 	_dbtaptime = current;
 }
 
@@ -364,17 +367,8 @@ void InputController::touchEndedCB(Touch* t, timestamp_t current) {
 * @param t     The touch information
 * @param event The associated event
 */
-bool InputController::touchMovedCB(Touch* t, timestamp_t current) {
-	CCLOG("%s", "moved");
-	Vec2 pos = t->getLocation();
+void InputController::touchMovedCB(Touch* t, timestamp_t current) {
 
-	if (isCenter(pos)) {
-		_vertical = 0;
-		_horizontal = 0;
-	}
-	_vertical = (pos.y - _bounds.getMidY()) / (_bounds.size.height / 2.0f);
-	_horizontal = (pos.x - _bounds.getMidX()) / (_bounds.size.width / 2.0f);
-	return false;
 }
 
 /**

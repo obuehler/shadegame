@@ -207,6 +207,8 @@ protected:
 #pragma mark -
 #pragma mark Input Control
 public:
+	Vec2 _lasttap;
+	bool _screencoords;
 	/**
 	* Creates a new input controller.
 	*
@@ -356,7 +358,7 @@ public:
 	* @param t     The touch information
 	* @param event The associated event
 	*/
-	bool    touchMovedCB(Touch* t, timestamp_t time);
+	void    touchMovedCB(Touch* t, timestamp_t time);
 
 	/**
 	* Callback for the cancellation of a touch event
