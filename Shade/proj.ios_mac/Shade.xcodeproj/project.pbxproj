@@ -13,8 +13,20 @@
 		288765A50DF7441C002DB57D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 288765A40DF7441C002DB57D /* CoreGraphics.framework */; };
 		46880B8819C43A87006E1F66 /* AppDelegate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46880B8419C43A87006E1F66 /* AppDelegate.cpp */; };
 		46880B8919C43A87006E1F66 /* AppDelegate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46880B8419C43A87006E1F66 /* AppDelegate.cpp */; };
-		46880B8A19C43A87006E1F66 /* HelloWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46880B8619C43A87006E1F66 /* HelloWorld.cpp */; };
-		46880B8B19C43A87006E1F66 /* HelloWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46880B8619C43A87006E1F66 /* HelloWorld.cpp */; };
+		4923BCD31CEBB976008FF1BE /* C_AI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4923BCC81CEBB976008FF1BE /* C_AI.cpp */; };
+		4923BCD41CEBB976008FF1BE /* C_Gameplay.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4923BCC91CEBB976008FF1BE /* C_Gameplay.cpp */; };
+		4923BCD51CEBB976008FF1BE /* C_Input.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4923BCCA1CEBB976008FF1BE /* C_Input.cpp */; };
+		4923BCD61CEBB976008FF1BE /* C_MainMenu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4923BCCB1CEBB976008FF1BE /* C_MainMenu.cpp */; };
+		4923BCD71CEBB976008FF1BE /* C_Physics.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4923BCCC1CEBB976008FF1BE /* C_Physics.cpp */; };
+		4923BCD81CEBB976008FF1BE /* M_Car.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4923BCCD1CEBB976008FF1BE /* M_Car.cpp */; };
+		4923BCD91CEBB976008FF1BE /* M_LevelInstance.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4923BCCE1CEBB976008FF1BE /* M_LevelInstance.cpp */; };
+		4923BCDA1CEBB976008FF1BE /* M_Pedestrian.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4923BCCF1CEBB976008FF1BE /* M_Pedestrian.cpp */; };
+		4923BCDB1CEBB976008FF1BE /* M_Powerup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4923BCD01CEBB976008FF1BE /* M_Powerup.cpp */; };
+		4923BCDC1CEBB976008FF1BE /* M_Shadow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4923BCD11CEBB976008FF1BE /* M_Shadow.cpp */; };
+		4923BCDD1CEBB976008FF1BE /* PFGameRoot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4923BCD21CEBB976008FF1BE /* PFGameRoot.cpp */; };
+		4923BCE11CEBB99E008FF1BE /* constants in Resources */ = {isa = PBXBuildFile; fileRef = 4923BCDE1CEBB99E008FF1BE /* constants */; };
+		4923BCE21CEBB99E008FF1BE /* levels in Resources */ = {isa = PBXBuildFile; fileRef = 4923BCDF1CEBB99E008FF1BE /* levels */; };
+		4923BCE31CEBB99E008FF1BE /* sounds in Resources */ = {isa = PBXBuildFile; fileRef = 4923BCE01CEBB99E008FF1BE /* sounds */; };
 		503AE0F817EB97AB00D1A890 /* Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 503AE0F617EB97AB00D1A890 /* Icon.icns */; };
 		503AE10017EB989F00D1A890 /* AppController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 503AE0FB17EB989F00D1A890 /* AppController.mm */; };
 		503AE10117EB989F00D1A890 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 503AE0FC17EB989F00D1A890 /* main.m */; };
@@ -108,8 +120,20 @@
 		288765A40DF7441C002DB57D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		46880B8419C43A87006E1F66 /* AppDelegate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AppDelegate.cpp; sourceTree = "<group>"; };
 		46880B8519C43A87006E1F66 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
-		46880B8619C43A87006E1F66 /* HelloWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HelloWorld.cpp; sourceTree = "<group>"; };
-		46880B8719C43A87006E1F66 /* HelloWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HelloWorld.h; sourceTree = "<group>"; };
+		4923BCC81CEBB976008FF1BE /* C_AI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = C_AI.cpp; sourceTree = "<group>"; };
+		4923BCC91CEBB976008FF1BE /* C_Gameplay.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = C_Gameplay.cpp; sourceTree = "<group>"; };
+		4923BCCA1CEBB976008FF1BE /* C_Input.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = C_Input.cpp; sourceTree = "<group>"; };
+		4923BCCB1CEBB976008FF1BE /* C_MainMenu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = C_MainMenu.cpp; sourceTree = "<group>"; };
+		4923BCCC1CEBB976008FF1BE /* C_Physics.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = C_Physics.cpp; sourceTree = "<group>"; };
+		4923BCCD1CEBB976008FF1BE /* M_Car.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = M_Car.cpp; sourceTree = "<group>"; };
+		4923BCCE1CEBB976008FF1BE /* M_LevelInstance.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = M_LevelInstance.cpp; sourceTree = "<group>"; };
+		4923BCCF1CEBB976008FF1BE /* M_Pedestrian.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = M_Pedestrian.cpp; sourceTree = "<group>"; };
+		4923BCD01CEBB976008FF1BE /* M_Powerup.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = M_Powerup.cpp; sourceTree = "<group>"; };
+		4923BCD11CEBB976008FF1BE /* M_Shadow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = M_Shadow.cpp; sourceTree = "<group>"; };
+		4923BCD21CEBB976008FF1BE /* PFGameRoot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PFGameRoot.cpp; sourceTree = "<group>"; };
+		4923BCDE1CEBB99E008FF1BE /* constants */ = {isa = PBXFileReference; lastKnownFileType = folder; path = constants; sourceTree = "<group>"; };
+		4923BCDF1CEBB99E008FF1BE /* levels */ = {isa = PBXFileReference; lastKnownFileType = folder; path = levels; sourceTree = "<group>"; };
+		4923BCE01CEBB99E008FF1BE /* sounds */ = {isa = PBXFileReference; lastKnownFileType = folder; path = sounds; sourceTree = "<group>"; };
 		503AE0F617EB97AB00D1A890 /* Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Icon.icns; sourceTree = "<group>"; };
 		503AE0F717EB97AB00D1A890 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		503AE0FA17EB989F00D1A890 /* AppController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppController.h; path = ios/AppController.h; sourceTree = SOURCE_ROOT; };
@@ -286,6 +310,9 @@
 		46880B7519C43A67006E1F66 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				4923BCDE1CEBB99E008FF1BE /* constants */,
+				4923BCDF1CEBB99E008FF1BE /* levels */,
+				4923BCE01CEBB99E008FF1BE /* sounds */,
 				EB24EB8F1C5B0EAB0069DBBE /* textures */,
 				521A8EA819F11F5000D177D7 /* fonts */,
 			);
@@ -296,10 +323,19 @@
 		46880B8319C43A87006E1F66 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				4923BCC81CEBB976008FF1BE /* C_AI.cpp */,
+				4923BCC91CEBB976008FF1BE /* C_Gameplay.cpp */,
+				4923BCCA1CEBB976008FF1BE /* C_Input.cpp */,
+				4923BCCB1CEBB976008FF1BE /* C_MainMenu.cpp */,
+				4923BCCC1CEBB976008FF1BE /* C_Physics.cpp */,
+				4923BCCD1CEBB976008FF1BE /* M_Car.cpp */,
+				4923BCCE1CEBB976008FF1BE /* M_LevelInstance.cpp */,
+				4923BCCF1CEBB976008FF1BE /* M_Pedestrian.cpp */,
+				4923BCD01CEBB976008FF1BE /* M_Powerup.cpp */,
+				4923BCD11CEBB976008FF1BE /* M_Shadow.cpp */,
+				4923BCD21CEBB976008FF1BE /* PFGameRoot.cpp */,
 				46880B8419C43A87006E1F66 /* AppDelegate.cpp */,
 				46880B8519C43A87006E1F66 /* AppDelegate.h */,
-				46880B8619C43A87006E1F66 /* HelloWorld.cpp */,
-				46880B8719C43A87006E1F66 /* HelloWorld.h */,
 			);
 			name = Classes;
 			path = ../Classes;
@@ -423,7 +459,7 @@
 				LastUpgradeCheck = 0720;
 				TargetAttributes = {
 					1D6058900D05DD3D006BFB54 = {
-						DevelopmentTeam = 69848UR4YF;
+						DevelopmentTeam = 9S2N6T9AJW;
 					};
 				};
 			};
@@ -484,9 +520,12 @@
 				5087E78517EB970100C73F5D /* Icon-72.png in Resources */,
 				521A8E6519F0C34300D177D7 /* Default-736h@3x.png in Resources */,
 				521A8EA919F11F5000D177D7 /* fonts in Resources */,
+				4923BCE11CEBB99E008FF1BE /* constants in Resources */,
+				4923BCE31CEBB99E008FF1BE /* sounds in Resources */,
 				50EF62A317ECD613001EB2F8 /* Icon-50.png in Resources */,
 				5087E78017EB970100C73F5D /* Icon-114.png in Resources */,
 				50EF62A217ECD613001EB2F8 /* Icon-29.png in Resources */,
+				4923BCE21CEBB99E008FF1BE /* levels in Resources */,
 				50EF629617ECD46A001EB2F8 /* Icon-40.png in Resources */,
 				5087E78217EB970100C73F5D /* Icon-144.png in Resources */,
 				50EF629817ECD46A001EB2F8 /* Icon-80.png in Resources */,
@@ -516,10 +555,20 @@
 			buildActionMask = 2147483647;
 			files = (
 				46880B8819C43A87006E1F66 /* AppDelegate.cpp in Sources */,
-				46880B8A19C43A87006E1F66 /* HelloWorld.cpp in Sources */,
 				503AE10017EB989F00D1A890 /* AppController.mm in Sources */,
+				4923BCDD1CEBB976008FF1BE /* PFGameRoot.cpp in Sources */,
+				4923BCD81CEBB976008FF1BE /* M_Car.cpp in Sources */,
+				4923BCDC1CEBB976008FF1BE /* M_Shadow.cpp in Sources */,
+				4923BCD61CEBB976008FF1BE /* C_MainMenu.cpp in Sources */,
+				4923BCD31CEBB976008FF1BE /* C_AI.cpp in Sources */,
 				503AE10217EB989F00D1A890 /* RootViewController.mm in Sources */,
 				503AE10117EB989F00D1A890 /* main.m in Sources */,
+				4923BCD51CEBB976008FF1BE /* C_Input.cpp in Sources */,
+				4923BCD91CEBB976008FF1BE /* M_LevelInstance.cpp in Sources */,
+				4923BCDB1CEBB976008FF1BE /* M_Powerup.cpp in Sources */,
+				4923BCD41CEBB976008FF1BE /* C_Gameplay.cpp in Sources */,
+				4923BCDA1CEBB976008FF1BE /* M_Pedestrian.cpp in Sources */,
+				4923BCD71CEBB976008FF1BE /* C_Physics.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -529,7 +578,6 @@
 			files = (
 				46880B8919C43A87006E1F66 /* AppDelegate.cpp in Sources */,
 				503AE10517EB98FF00D1A890 /* main.cpp in Sources */,
-				46880B8B19C43A87006E1F66 /* HelloWorld.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -574,7 +622,7 @@
 					"$(SRCROOT)/../cocos2d/cocos/platform/ios/Simulation",
 				);
 				INFOPLIST_FILE = ios/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				LIBRARY_SEARCH_PATHS = "";
 				OTHER_LDFLAGS = (
 					"$(_COCOS_LIB_IOS_BEGIN)",
@@ -612,7 +660,7 @@
 					"$(SRCROOT)/../cocos2d/cocos/platform/ios/Simulation",
 				);
 				INFOPLIST_FILE = ios/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				LIBRARY_SEARCH_PATHS = "";
 				OTHER_LDFLAGS = (
 					"$(_COCOS_LIB_IOS_BEGIN)",

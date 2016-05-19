@@ -139,4 +139,5 @@ void PhysicsController::endContact(b2Contact* contact) {
 void PhysicsController::reset() {
 	_world->clear();
 	_reachedCaster = false;
+    _hasDied = false;
 }
