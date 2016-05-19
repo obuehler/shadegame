@@ -730,10 +730,12 @@ void GameController::update(float dt) {
 			if (_input.didDebug()) { setDebug(!isDebug()); }
 			// Process the movement
 			if (!_input._screencoords) { // Tap position is raw, need to compute screen coordinates
-				CCLOG("Last tap: %f,%f", _input._lasttap.x, _input._lasttap.y);
-				_input._lasttap = _level->_playerPos.object->getPosition() + (_input._lasttap / (BOX2D_SCALE));
-				CCLOG("On Game World: %f,%f", _input._lasttap.x, _input._lasttap.y);
-				CCLOG("%f,%f", (_level->_playerPos.object->getPosition()).x, (_level->_playerPos.object->getPosition().y));
+				//CCLOG("Last tap: %f,%f", _input._lasttap.x, _input._lasttap.y);
+				int signx = _input._lasttap.x / abs(_input._lasttap.x);
+				int signy = _input._lasttap.y / abs(_input._lasttap.y);
+				_input._lasttap = (_level->_playerPos.object->getPosition() + (_input._lasttap / (BOX2D_SCALE)) + Vec2(_level->_playerPos.object->getWidth()*signx, _level->_playerPos.object->getHeight()*signy));
+				//CCLOG("On Game World: %f,%f", _input._lasttap.x, _input._lasttap.y);
+				//CCLOG("%f,%f", (_level->_playerPos.object->getPosition()).x, (_level->_playerPos.object->getPosition().y));
 				_input._screencoords = true;
 			}
 			//CCLOG("%f", (_level->_playerPos.object->getPosition() - _input._lasttap).lengthSquared());

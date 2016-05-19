@@ -17,6 +17,8 @@ using namespace std;
 #define LEVEL_FIVE_FILE "levels/level5.shadl"
 #define LEVEL_SIX_KEY "level6"
 #define LEVEL_SIX_FILE "levels/level6.shadl"
+#define LEVEL_SEVEN_KEY "level7"
+#define LEVEL_SEVEN_FILE "levels/level7.shadl"
 #define MENU_BACKGROUND_KEY "mbackground"
 
 MainMenuButton* MainMenuButton::create(GameController* gc) {
@@ -151,6 +153,7 @@ void MainMenuController::preload() {
 	loadGameController(LEVEL_FOUR_KEY, LEVEL_FOUR_FILE);
 	loadGameController(LEVEL_FIVE_KEY, LEVEL_FIVE_FILE);
 	loadGameController(LEVEL_SIX_KEY, LEVEL_SIX_FILE);
+	loadGameController(LEVEL_SEVEN_KEY, LEVEL_SEVEN_FILE);
 
 	// Load the textures (Autorelease objects)
 	_assets = AssetManager::getInstance()->getCurrent();
