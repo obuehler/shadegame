@@ -5,6 +5,8 @@
 #include <M_Caster.h>
 #include <M_Pedestrian.h>
 #include <M_MovingObject.h>
+#include "M_LevelInstance.h"
+
 
 using namespace cocos2d;
 
@@ -13,7 +15,7 @@ class AIController {
 
 	bool _active = false;
 
-	vector<OurMovingObject<Pedestrian>*> _pedMovers;
+	vector<LevelInstance::MovingObjectMetadata<Pedestrian>> _pedMovers;
 	OurMovingObject<Caster>* _caster;
 	Shadow* _avatar;
 	
@@ -40,7 +42,7 @@ class AIController {
 	*/
 	void dispose();
 
-	bool init(vector<OurMovingObject<Pedestrian>*>, OurMovingObject<Caster>*, Shadow*);
+	bool init(LevelInstance*);
 
 	void stop();
 	void reset();

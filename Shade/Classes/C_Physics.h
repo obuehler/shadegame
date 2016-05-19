@@ -3,6 +3,7 @@
 
 #include "cocos2d.h"
 #include <cornell.h>
+#include "M_LevelInstance.h"
 #include <Box2D/Dynamics/Contacts/b2Contact.h>
 
 namespace cocos2d {
@@ -17,6 +18,8 @@ class PhysicsController {
 
 	/** Whether we have reached the caster */
 	bool _reachedCaster;
+	/** Whether the caster has died */
+	bool _hasDied;
 
 	/** The Box2D world */
 	WorldController* _world;
@@ -24,6 +27,15 @@ class PhysicsController {
 
 
 public:
+
+	static const b2Filter characterFilter;
+	static const b2Filter objectFilter;
+	static const b2Filter casterFilter;
+	static const b2Filter shadowFilter;
+	static const b2Filter characterSensorFilter;
+	static const b2Filter pedestrianFilter;
+	static const b2Filter emptyFilter;
+
 #pragma mark -
 #pragma mark Initialization
 	/**

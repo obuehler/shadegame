@@ -64,7 +64,7 @@ InputController::InputController() :
 	_resetPressed(false),
 	_debugPressed(false),
 	_exitPressed(false),
-	_pausePressed(false),
+	//_pausePressed(false),
 	_touchListener(nullptr)
 	//_mouseListener(nullptr)
 {
@@ -72,10 +72,15 @@ InputController::InputController() :
 	_keyDebug = false;
 	_keyExit = false;
 
+	_keySwipe = false;
 	_keyDoubleTap = false;
 
 	_horizontal = 0.0f;
 	_vertical = 0.0f;
+	
+	_lasttap = Vec2(0.0f, 0.0f);
+	_screencoords = false;
+
 	_keyFire = false;
 	_keyJump = false;
 
@@ -221,7 +226,7 @@ void InputController::update(float dt) {
 	_exitPressed = _keyExit;
 	_firePressed = _keyFire;
 	_jumpPressed = _keyJump;
-	_pausePressed = _keyDoubleTap;
+	//_pausePressed = _keyDoubleTap;
 
 	// Directional controls
 	//_horizontal = 0.0f;
@@ -303,6 +308,29 @@ bool InputController::checkJump(const Vec2& start, const Vec2& stop, timestamp_t
 	return false;
 }
 
+/** BLAH
+* Returns a nonzero value if this is a quick left or right swipe
+*
+* The function returns -1 if it is left swipe and 1 if it is a right swipe.
+*
+* @param  start    the start position of the candidate swipe
+* @param  stop     the end position of the candidate swipe
+* @param  current  the current timestamp of the gesture
+*
+* @return a nonzero value if this is a quick left or right swipe
+*/
+bool InputController::checkSwipe(const Vec2& start, const Vec2& stop, timestamp_t current) {
+	// Look for swipes up that are "long enough"
+	if (elapsed_millis(_swipetime, current) < EVENT_SWIPE_TIME) {
+		float xdiff = (stop.x - start.x);
+		float thresh = EVENT_SWIPE_LENGTH*_bounds.size.width;
+		if (xdiff > thresh) {
+			return true;
+		}
+	}
+	return false;
+}
+
 /**
 * Check if it touched the center of the screen
 *
@@ -330,8 +358,13 @@ bool InputController::isCenter(const Vec2& pos) {
 * @return True if the touch was processed; false otherwise.
 */
 bool InputController::touchBeganCB(Touch* t, timestamp_t current) {
+	CCLOG("%s", "began");
 	Vec2 pos = t->getLocation();
 	_swipetime = current;
+	startposition = t->getLocation();
+	_swipeStarted = true;
+
+
 	_keyDoubleTap = (elapsed_millis(_dbtaptime, current) <= EVENT_DOUBLE_CLICK);
 
 	if (isCenter(pos)) {
@@ -340,6 +373,8 @@ bool InputController::touchBeganCB(Touch* t, timestamp_t current) {
 	}
 	_vertical = (pos.y - _bounds.getMidY()) / (_bounds.size.height / 2.0f);
 	_horizontal = (pos.x - _bounds.getMidX()) / (_bounds.size.width / 2.0f);
+	_lasttap = Vec2(pos.x - _bounds.getMidX(), pos.y - _bounds.getMidY());
+	_screencoords = false;
 	return true;
 }
 
@@ -361,7 +396,15 @@ void InputController::touchEndedCB(Touch* t, timestamp_t current) {
 * @param event The associated event
 */
 void InputController::touchMovedCB(Touch* t, timestamp_t current) {
-	
+	if (_swipeStarted) {
+		_keySwipe = checkSwipe(startposition, t->getLocation(), current);
+		if (_keySwipe) {
+			_swipeStarted = false;
+		}
+	}
+	else {
+		_keySwipe = false;
+	}
 }
 
 /**
@@ -386,5 +429,4 @@ void InputController::touchCancelCB(Touch* t, timestamp_t current) {
 	_rtouch.count = 0;
 	_btouch.count = 0;
 	_mtouch.count = 0;
-
 }
