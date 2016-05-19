@@ -8,6 +8,8 @@
 #include <ShadowCount.h>
 
 bool PhysicsController::init(const Size& size) {
+	_reachedCaster = false;
+	
 	// Create the world
 	_world = WorldController::create(Rect(Vec2(0,0), size), Vec2(0.0f, 0.0f));
 	if (_world != nullptr) {
@@ -26,8 +28,7 @@ bool PhysicsController::init(const Size& size) {
 
 
 PhysicsController::PhysicsController() :
-	_world(nullptr),
-	_reachedCaster(false)
+	_world(nullptr)
 {
 }
 
