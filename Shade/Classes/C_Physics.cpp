@@ -138,7 +138,6 @@ void PhysicsController::endContact(b2Contact* contact) {
 		sc = (ShadowCount*)(fix1->GetUserData());
 	}
 	if (sc != nullptr) sc->dec();
-	
 }
 
 void PhysicsController::reset() {

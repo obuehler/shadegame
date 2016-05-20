@@ -56,9 +56,8 @@ private:
 	bool  _keyRight;
 	bool  _keyUp;
 	bool  _keyDown;
-	/** Whether the doubletap is down */
+	
 	bool  _keySwipe;
-    bool  _keyDoubleTap;
 
 protected:
 	// EVENT LISTENERS
@@ -210,6 +209,7 @@ protected:
 #pragma mark -
 #pragma mark Input Control
 public:
+	bool  _keyDoubleTap;
 	Vec2 _lasttap;
 	bool _screencoords;
 	/**
