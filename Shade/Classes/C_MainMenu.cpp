@@ -171,7 +171,7 @@ void MainMenuController::preload() {
 	tloader->loadAsync(PEDESTRIAN_TEXTURE, "textures/Pedestrian.png");
 	tloader->loadAsync(PEDESTRIAN_SHADOW_TEXTURE, "textures/Pedestrian_S.png");
 	tloader->loadAsync(INDICATOR, "textures/indicator.png");
-	tloader->loadAsync(CAR_TEXTURE, "textures/Car1.png");
+	tloader->loadAsync(CAR_TEXTURE, "textures/car_animation.png");
 	tloader->loadAsync(CAR_SHADOW_TEXTURE, "textures/Car1_S.png");
 	tloader->loadAsync(GOAL_TEXTURE, "textures/caster_animation.png");
 	//tloader->loadAsync("goalpool", "textures/caster_animation.png");

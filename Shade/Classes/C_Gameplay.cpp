@@ -579,7 +579,8 @@ void GameController::populate() {
 
 	for (LevelInstance::CarMetadata pd : _level->_cars) {
 		animNodePtr = (AnimationNode*)(pd.object->getObject()->getSceneNode());
-		animNodePtr->initWithFilmstrip(_assets->get<Texture2D>(CAR_TEXTURE), CAR_ROWS, CAR_COLS);
+		Texture2D* cartex = _assets->get<Texture2D>(CAR_TEXTURE);
+		animNodePtr->initWithFilmstrip(cartex, CAR_ROWS, CAR_COLS);
 		animNodePtr->setScale(cscale / CAR_SCALE_DOWN);
 		pd.object->getObject()->init(pd.position, Size((animNodePtr->getContentSize().width * cscale)
 			/ (scale.x * CAR_SCALE_DOWN), (animNodePtr->getContentSize().height * cscale)
