@@ -88,7 +88,7 @@ void PlatformRoot::update(float deltaTime) {
     if (_preloaded && !_gameplay.isActive() && complete) {
         // Transfer control to the main menu subcontroller
         removeAllChildren();
-        _gameplay.init(this);
+        if(!_gameplay.isActive()) _gameplay.init(this);
     } else if (_gameplay.isActive()) {
         _gameplay.update(deltaTime);
     } else if (!_preloaded) {

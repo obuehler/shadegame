@@ -48,6 +48,7 @@ void PhysicsController::dispose() {
 		_world->release();
 		_world = nullptr;
 	}
+	_latchedOnto = nullptr;
 }
 
 
@@ -102,14 +103,14 @@ void PhysicsController::beginContact(b2Contact* contact) {
 		(fix2->GetFilterData().categoryBits == PEDESTRIAN_BIT && fix1->GetFilterData().categoryBits == CHARACTER_SENSOR_BIT)) {
 		_hasDied = true;
 	}
-	if (fix1->GetFilterData().categoryBits == PEDESTRIAN_BIT && fix2->GetFilterData().categoryBits == OBJECT_BIT) {
+	if (fix1->GetFilterData().categoryBits == PEDESTRIAN_BIT && (fix2->GetFilterData().categoryBits == OBJECT_BIT || fix2->GetFilterData().categoryBits == CAR_BIT)) {
 		
 		fix1->SetFilterData(emptyFilter);
 		((OurMovingObject<Pedestrian>*)(fix1->GetUserData()))->getShadow()->getBody()->GetFixtureList()->SetFilterData(emptyFilter);
 		((OurMovingObject<Pedestrian>*)(fix1->GetUserData()))->getObject()->getSceneNode()->setVisible(false);
 		((OurMovingObject<Pedestrian>*)(fix1->GetUserData()))->getShadow()->getSceneNode()->setVisible(false);
 	}
-	if (fix2->GetFilterData().categoryBits == PEDESTRIAN_BIT && fix1->GetFilterData().categoryBits == OBJECT_BIT) {
+	if (fix2->GetFilterData().categoryBits == PEDESTRIAN_BIT && (fix1->GetFilterData().categoryBits == OBJECT_BIT || fix1->GetFilterData().categoryBits == CAR_BIT)) {
 		//_world->removeObstacle(((OurMovingObject<Pedestrian>*)(fix2->GetUserData()))->getObject());
 		//_world->removeObstacle(((OurMovingObject<Pedestrian>*)(fix2->GetUserData()))->getShadow());
 		
@@ -138,10 +139,12 @@ void PhysicsController::endContact(b2Contact* contact) {
 		sc = (ShadowCount*)(fix1->GetUserData());
 	}
 	if (sc != nullptr) sc->dec();
+	
 }
 
 void PhysicsController::reset() {
 	_world->clear();
 	_reachedCaster = false;
+	_latchedOnto = nullptr;
     _hasDied = false;
 }

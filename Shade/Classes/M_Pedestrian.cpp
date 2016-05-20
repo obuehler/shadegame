@@ -8,7 +8,7 @@ void Pedestrian::act(Pedestrian::ActionType action, int actionLength, int action
 	b2Vec2 moveVector;
 	b2Body* obody;
 	b2Body* sbody;
-	Vec2 pos = object->getPosition();
+	Vec2 pos = object->getPosition();	
 
 	float angle = object->getAngle() - M_PI;
 	float speed = 2.0f; // Speed should be pulled out and made a parameter

@@ -76,7 +76,7 @@ using namespace std;
 /** How close the character has to be to the target location to stop moving, in Box2D coordinates, squared */
 #define TARGET_REACH_EPSILON_SQUARED 0.005f
 /** How close the character has to be to a shadow to latch onto it, in Box2D coordinates, squared */
-#define LATCH_LIMIT_SQUARED 2.25f
+#define LATCH_LIMIT_SQUARED 5.25f
 
 /** The relative background images folder path */
 #define BACKGROUNDS_FOLDER "textures/backgrounds/"
@@ -234,7 +234,7 @@ void GameController::initialize(RootLayer* root) {
 	_gameroot = Node::create();
     
     _winnode = PolygonNode::createWithTexture(_assets->get<Texture2D>(WIN_IMAGE));
-    _winnode->setPosition(Point(center.x, dimen.height * 0.6f));
+    _winnode->setPosition(Point(center.x, dimen.height * 0.8f));
 	_winnode->setVisible(false);
     
     
@@ -307,7 +307,7 @@ void GameController::initialize(RootLayer* root) {
 		switch (type)
 		{
 		case ui::Widget::TouchEventType::ENDED:
-			deinitialize(); // sets _active to false
+			_back = true; // sets _active to false
 			break;
 		default:
 			break;
@@ -332,6 +332,24 @@ void GameController::initialize(RootLayer* root) {
 	});
 	_tryAgainButton->setVisible(false);
 
+	_nextLevelButton = ui::Button::create();
+	_nextLevelButton->setTouchEnabled(true);
+	_nextLevelButton->loadTextures("textures/menu/Next Level.png", "textures/menu/Next Level.png", "");
+	_nextLevelButton->setPosition(Point(center.x, dimen.height * 0.55f));
+	_nextLevelButton->addTouchEventListener([&](Ref* sender, cocos2d::ui::Widget::TouchEventType type) {
+		switch (type)
+		{
+		case ui::Widget::TouchEventType::ENDED:
+			CCLOG("PRESSED");
+			_nextLevel = true;
+			_back = true;
+			break;
+		default:
+			break;
+		}
+	});
+	_nextLevelButton->setVisible(false);
+
     // Add everything to the root and retain
 	_gameroot->addChild(_backgroundnode, 1);
 	_gameroot->addChild(_worldnode,2);
@@ -344,6 +362,7 @@ void GameController::initialize(RootLayer* root) {
 	_gameroot->addChild(_backButton, BACK_BUTTON_Z);
 	_gameroot->addChild(_tryAgainButton, RESUME_BUTTON_Z);
 	_gameroot->addChild(_resumeButton, RESUME_BUTTON_Z);
+	_gameroot->addChild(_nextLevelButton, RESUME_BUTTON_Z);
 	_gameroot->addChild(_indicator, INDICATOR_Z);
     _rootnode = root;
 	_rootnode->addChild(_gameroot, 0);
@@ -362,9 +381,8 @@ void GameController::initialize(RootLayer* root) {
 	_input.setZero();
 
 	_active = true;
-    
-   
-
+	_nextLevel = false;
+	_back = false;
 }
 
 /**
@@ -555,8 +573,8 @@ void GameController::populate() {
 		//animNodePtr->initWithFilmstrip(_assets->get<Texture2D>(PEDESTRIAN_TEXTURE), PEDESTRIAN_ROWS, PEDESTRIAN_COLS);   TODO uncomment when we have pedestrian filmstrip
 		animNodePtr->setScale(cscale / PEDESTRIAN_SCALE_DOWN);
 		pd.object->getObject()->init(pd.position, Size((animNodePtr->getContentSize().width * cscale)
-			/ (scale.x * PEDESTRIAN_SCALE_DOWN), (animNodePtr->getContentSize().height * cscale)
-			/ (scale.y * PEDESTRIAN_SCALE_DOWN)), &objectFilter);
+			/ (scale.x * PEDESTRIAN_SCALE_DOWN *2 ), (animNodePtr->getContentSize().height * cscale)
+			/ (scale.y * PEDESTRIAN_SCALE_DOWN*1.5)), &pedestrianFilter);
 
 		animNodePtr = (AnimationNode*)(pd.object->getShadow()->getSceneNode());
 		animNodePtr->initWithTexture(_assets->get<Texture2D>(PEDESTRIAN_SHADOW_TEXTURE));
@@ -575,6 +593,7 @@ void GameController::populate() {
 		pd.object->getObject()->setDebugNode(newDebugNode());
 		pd.object->getShadow()->setDebugNode(newDebugNode());
 		addObstacle(pd.object->getObject(), PEDESTRIAN_OBJECT_Z);
+		pd.object->getObject()->getBody()->GetFixtureList()->SetUserData(pd.object);
 		addObstacle(pd.object->getShadow(), PEDESTRIAN_SHADOW_Z);
 		pd.object->getShadow()->getBody()->SetUserData(pd.object->getShadow());
 	}
@@ -657,6 +676,8 @@ void GameController::reset() {
 	setPaused(false);
     setFailure(false);
     setComplete(false);
+	_nextLevel = false;
+	_back = false;
 
 	//_level.populateLevel(true) TODO uncomment this after dynamic level loading is implemented
     populate();
@@ -748,125 +769,132 @@ void GameController::setFailure(bool value) {
  */
 void GameController::update(float dt) {
 	_input.update(dt);
+	if (!_back) {
+		// Process the toggled key commands
+		if (_input.didReset()) {
+			reset();
+		}
+		if (_input.didExit()) {
+			_rootnode->shutdown();
+		}
 
-	// Process the toggled key commands
-	if (_input.didReset()) { 
-		reset();
-	}
-	if (_input.didExit()) {
-		_rootnode->shutdown();
-	}
+		if (_input.didPause() && !_failed && !_complete) {
+			togglePause();
+		}
 
-	if (_input.didPause() && !_failed && !_complete) {
-		togglePause();
-	}
-    
-	if (!_paused) {
-		if (!_failed && !_complete) {
-			if (_input.didDebug()) { setDebug(!isDebug()); }
-			// Process the movement
-			if (!_input._screencoords) { // Tap position is raw, need to compute screen coordinates
-				_input._lasttap = _level->_playerPos.object->getPosition() + (_input._lasttap / (BOX2D_SCALE));
-				_input._screencoords = true;
-				_physics._latchedOnto = nullptr;
-			}
-			if (_input.didDoubleTap()) {
-				if ((_level->_playerPos.object->getPosition() - _input._lasttap).lengthSquared() <= LATCH_LIMIT_SQUARED) {
-					latchposition->getBody()->GetFixtureList()->SetFilterData(latchFilter);
-					latchposition->setPosition(_input._lasttap);
+		if (!_paused) {
+			if (!_failed && !_complete) {
+				if (_input.didDebug()) { setDebug(!isDebug()); }
+				// Process the movement
+				if (!_input._screencoords) { // Tap position is raw, need to compute screen coordinates
+					_input._lasttap = _level->_playerPos.object->getPosition() + (_input._lasttap / (BOX2D_SCALE));
+					_input._screencoords = true;
+					_physics._latchedOnto = nullptr;
+				}
+				if (_input.didDoubleTap()) {
+					if ((_level->_playerPos.object->getPosition() - _input._lasttap).lengthSquared() <= LATCH_LIMIT_SQUARED) {
+						latchposition->getBody()->GetFixtureList()->SetFilterData(latchFilter);
+						latchposition->setPosition(_input._lasttap);
+					}
+					else {
+						_input._keyDoubleTap = false;
+					}
 				}
 				else {
-					_input._keyDoubleTap = false;
+					latchposition->getBody()->GetFixtureList()->SetFilterData(PhysicsController::emptyFilter);
 				}
-			}
-			else {
-				latchposition->getBody()->GetFixtureList()->SetFilterData(PhysicsController::emptyFilter);
-			}
-			if (_physics._latchedOnto == nullptr) {
-				if (_input.getHorizontal() * _input.getHorizontal() + _input.getVertical()
-					* _input.getVertical() < DEADSPACE_SIZE * DEADSPACE_SIZE ||
-					(_level->_playerPos.object->getPosition() - _input._lasttap).lengthSquared() <= TARGET_REACH_EPSILON_SQUARED) {
-					_level->_playerPos.object->stopMovement();
+				if (_physics._latchedOnto == nullptr) {
+					if (_input.getHorizontal() * _input.getHorizontal() + _input.getVertical()
+						* _input.getVertical() < DEADSPACE_SIZE * DEADSPACE_SIZE ||
+						(_level->_playerPos.object->getPosition() - _input._lasttap).lengthSquared() <= TARGET_REACH_EPSILON_SQUARED) {
+						_level->_playerPos.object->stopMovement();
+					}
+					else {
+						Vec2 movVec = _input._lasttap - _level->_playerPos.object->getPosition();
+						_level->_playerPos.object->changeVelocity(movVec.x, movVec.y);
+					}
 				}
 				else {
-					Vec2 movVec = _input._lasttap - _level->_playerPos.object->getPosition();
-					_level->_playerPos.object->changeVelocity(movVec.x, movVec.y);
+					_level->_playerPos.object->getBody()->SetLinearVelocity(_physics._latchedOnto->getBody()->GetLinearVelocity());
+				}
+				for (LevelInstance::CarMetadata car : _level->_cars)
+					car.object->act();
+				for (LevelInstance::PedestrianMetadata ped : _level->_pedestrians)
+					ped.object->act();
+
+				_physics.update(dt);
+				_ai.update();
+
+				if (_physics._justLatched) {
+					_level->_playerPos.object->setPosition(
+						_physics._latchedOnto->getPosition().x,
+						_physics._latchedOnto->getPosition().y);
+					_physics._justLatched = false;
+				}
+
+				// Update the indicator direction
+				// Subtract the found angle from 90 since getAngle returns angle with x-axis instead of y
+				_indicator->setRotation(90.0f - CC_RADIANS_TO_DEGREES(
+					(_level->_casterPos.object->getObject()->getPosition() -
+						_level->_playerPos.object->getPosition()).getAngle()));
+
+			}
+
+
+			/* if (_avatar->isJumping()) {
+				Sound* source = _assets->get<Sound>(JUMP_EFFECT);
+				SoundEngine::getInstance()->playEffect(JUMP_EFFECT,source,false,EFFECT_VOLUME);
+			 */
+
+			if (!_failed) {
+				if (!_complete && _physics._reachedCaster) setComplete(true);
+				if (!_complete && _physics._hasDied) setFailure(true);
+				if (!_complete) {
+					// Check for exposure or cover
+					_exposure += dt * (1.0f - ((1.0f + EXPOSURE_COOLDOWN_RATIO) * _level->_playerPos.object->getCoverRatio()));
+					if (_exposure < 0.0f) _exposure = 0.0f;
+					if (_exposure >= EXPOSURE_LIMIT) {
+						_exposure = EXPOSURE_LIMIT;
+						setFailure(true);
+					}
+					_exposurebar->setPolygon(_exposurepoly * Vec2(1.0f - (_exposure / EXPOSURE_LIMIT), 1.0f));
+					_exposurebar->setVisible(true);
 				}
 			}
-			else {
-				_level->_playerPos.object->getBody()->SetLinearVelocity(_physics._latchedOnto->getBody()->GetLinearVelocity());
-			}
-			for (LevelInstance::CarMetadata car : _level->_cars)
-				car.object->act();
-			for (LevelInstance::PedestrianMetadata ped : _level->_pedestrians)
-				ped.object->act();
-			
-			_physics.update(dt);
-			_ai.update();
 
-			if (_physics._justLatched) {
-				_level->_playerPos.object->setPosition(
-					_physics._latchedOnto->getPosition().x,
-					_physics._latchedOnto->getPosition().y);
-				_physics._justLatched = false;
+			_level->_playerPos.object->updateAnimation();
+
+			// Reset the game if we win or lose.
+			if (_countdown > 0) {
+				if (_countdown % 8 == 0) {
+					int winframe = _winAnimation->getFrame();
+					int loseframe = _loseAnimation->getFrame();
+					if (winframe == _winAnimation->getSize() - 1) {
+						winframe = -1;
+					}
+					if (loseframe == _loseAnimation->getSize() - 1) {
+						loseframe = loseframe - 1;
+					}
+					_winAnimation->setFrame(winframe + 1);
+					_loseAnimation->setFrame(loseframe + 1);
+				}
+				_countdown--;
 			}
-			
-			// Update the indicator direction
-			// Subtract the found angle from 90 since getAngle returns angle with x-axis instead of y
-			_indicator->setRotation(90.0f - CC_RADIANS_TO_DEGREES(
-				(_level->_casterPos.object->getObject()->getPosition() - 
-					_level->_playerPos.object->getPosition()).getAngle()));
-          
+			else if (_countdown == 0) {
+				if (_failed || _complete) {
+					_backButton->setVisible(true);
+					if (_failed) {
+						_tryAgainButton->setVisible(true);
+					}
+					if (_complete) {
+						_nextLevelButton->setVisible(true);
+					}
+				}
+			}
 		}
-
-
-		/* if (_avatar->isJumping()) {
-			Sound* source = _assets->get<Sound>(JUMP_EFFECT);
-			SoundEngine::getInstance()->playEffect(JUMP_EFFECT,source,false,EFFECT_VOLUME);
-		 */
-
-		if (!_failed) {
-			if (!_complete && _physics._reachedCaster) setComplete(true);
-			if (!_complete && _physics._hasDied) setFailure(true);
-			if (!_complete) {
-				// Check for exposure or cover
-				_exposure += dt * (1.0f - ((1.0f + EXPOSURE_COOLDOWN_RATIO) * _level->_playerPos.object->getCoverRatio()));
-				if (_exposure < 0.0f) _exposure = 0.0f;
-				if (_exposure >= EXPOSURE_LIMIT) {
-					_exposure = EXPOSURE_LIMIT;
-					setFailure(true);
-				}
-				_exposurebar->setPolygon(_exposurepoly * Vec2(1.0f - (_exposure / EXPOSURE_LIMIT), 1.0f));
-				_exposurebar->setVisible(true);
-			}
-		}
-
-		_level->_playerPos.object->updateAnimation();
-
-		// Reset the game if we win or lose.
-		if (_countdown > 0) {
-			if (_countdown % 8 == 0) {
-				int winframe = _winAnimation->getFrame();
-				int loseframe = _loseAnimation->getFrame();
-				if (winframe == _winAnimation->getSize() - 1) {
-					winframe = -1;
-				}
-				if (loseframe == _loseAnimation->getSize() - 1) {
-					loseframe = loseframe -1;
-				}
-				_winAnimation->setFrame(winframe + 1);
-				_loseAnimation->setFrame(loseframe + 1);
-			}
-			_countdown--;
-		}
-		else if (_countdown == 0) {
-			if (_failed || _complete) {
-				_backButton->setVisible(true);
-				if (_failed) {
-					_tryAgainButton->setVisible(true);
-				}
-			}
-		}
+	}
+	else {
+		deinitialize();
 	}
 }
 

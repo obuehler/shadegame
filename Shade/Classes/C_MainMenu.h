@@ -36,6 +36,7 @@ public:
 	static MainMenuButton* create(GameController* gc);
 	void dispose();
 	GameController* const getController() { return _controller; }
+	int index;
 };
 
 #pragma mark -
@@ -57,11 +58,15 @@ protected:
 	
 	// Vector of gamecontroller trigger buttons
 	vector<MainMenuButton*> mainMenuButtons;
+	// Tutorial button
+	MainMenuButton* _tutButt;
 	// Active Gamecomtroller
 	GameController * _activeController;
 
 	/** Whether or not this menu is still active */
 	bool _active;
+	// index of current controller
+	int _currController;
 
 public:
 	bool init(RootLayer* root);
