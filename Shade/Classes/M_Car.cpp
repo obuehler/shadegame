@@ -4,6 +4,7 @@
 #include <cocos2d.h>
 
 #define CAR_SPEED 2.0f
+#define CAR_ANIMATION_SPEED 5
 
 using namespace cocos2d;
 
@@ -19,6 +20,8 @@ void Car::act(Car::ActionType action, int actionLength, int actionCounter, BoxOb
 	switch (action) {
 		case GO: // Go forward in the current direction
 			//CCLOG("%s", "GO");
+			if (actionCounter % CAR_ANIMATION_SPEED == CAR_ANIMATION_SPEED - 1)
+				((AnimationNode*)(object->getSceneNode()))->setFrame((((AnimationNode*)(object->getSceneNode()))->getFrame() + 1) % ((AnimationNode*)(object->getSceneNode()))->getSize());
 			moveVector = b2Vec2(CAR_SPEED*cos(angle), CAR_SPEED*sin(angle));
 			obody = object->getBody();
 			obody->SetLinearVelocity(moveVector);
@@ -27,6 +30,7 @@ void Car::act(Car::ActionType action, int actionLength, int actionCounter, BoxOb
 			break;
 		case STOP: // Stop moving
 			//CCLOG("%s", "STOP");
+			((AnimationNode*)(object->getSceneNode()))->setFrame(0);
 			moveVector = b2Vec2(0.0f, 0.0f);
 			obody = object->getBody();
 			obody->SetLinearVelocity(moveVector);

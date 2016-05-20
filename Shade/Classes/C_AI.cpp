@@ -16,7 +16,9 @@ bool AIController::init(LevelInstance * level) {
 
 AIController::AIController() :
 	_caster(nullptr),
-	_avatar(nullptr)
+	_avatar(nullptr),
+	_chasing(false),
+	_active(false)
 {
 }
 
@@ -47,14 +49,15 @@ void AIController::updatePed(OurMovingObject<Pedestrian>* ped) {
 	Vec2 avaPos = _avatar->getPosition();
 	Vec2 diff = avaPos - (ped->getPosition());
 	int speed = 2;
-	//CCLOG("%f,%f", diff.x, diff.y);
 	if (diff.getLength() < 10) {
+		_chasing = true;
 		diff.normalize();
 		ped->setHorizontalMovement(diff.x*speed);
 		ped->setVerticalMovement(diff.y*speed);
 		ped->applyForce();
 	}
 	else {
+		_chasing = false;
 		ped->_actionQueue->push(Pedestrian::ActionType::STAND, 1);
 	}
 }

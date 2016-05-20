@@ -23,6 +23,7 @@
 
 #ifndef __M_SHADOW_H__
 #define __M_SHADOW_H__
+#include <cornell.h>
 #include <cornell/CUBoxObstacle.h>
 #include <cornell/CUCapsuleObstacle.h>
 #include <cornell/CUWireNode.h>
@@ -48,6 +49,8 @@ using namespace cocos2d;
 #define DUDE_DAMPING    10.0f
 /** The maximum character speed */
 #define DUDE_MAXSPEED   5.0f
+/** The key for the running sound effect */
+#define RUN_SOUND "rnr"
 
 /** The player animation filmstrip attributes */
 #define PLAYER_ROWS 1
@@ -283,7 +286,7 @@ public:
 	void changeVelocity(float x, float y);
 
 	/** Updates the character's animation frame according to its movement. */
-	void updateAnimation();
+	void updateAnimation(bool unlatched);
 
 	// Function to call when shade dies
 	void shadeDie();

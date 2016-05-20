@@ -13,6 +13,10 @@
 #define CAR_FRICTION 0.5f
 #define CAR_RESTITUTION 0.0f // TODO increase this when latching is implemented
 
+/** Animation constants */
+#define CAR_ROWS 5
+#define CAR_COLS 2
+
 using namespace cocos2d;
 
 struct Car {

@@ -51,7 +51,13 @@
 /** Debug color for the sensor */
 #define DEBUG_COLOR     Color3B::RED
 /** The scaling value for the animation frame rate */
-#define ANIMATION_DELTA 0.003f
+#define ANIMATION_DELTA 0.007f
+/** The sound effect for running */
+#define RUN_EFFECT     "runn"
+#define RUN_VOLUME 1.5f
+#define SPEED_EPSILON 0.01f
+
+using namespace cocos2d;
 
 
 #pragma mark -
@@ -358,13 +364,21 @@ void Shadow::update(float dt) {
     CapsuleObstacle::update(dt);
 }
 
-void Shadow::updateAnimation() {
+void Shadow::updateAnimation(bool unlatched) {
 	float32 speed = _body->GetLinearVelocity().LengthSquared();
-	if (speed == 0.0f) {
+	if (speed < SPEED_EPSILON) {
+		if (SoundEngine::getInstance()->getEffectState(RUN_EFFECT) != SoundEngine::SoundState::INACTIVE) {
+			SoundEngine::getInstance()->stopEffect(RUN_EFFECT);
+			CCLOG("stopped");
+		}
 		_animationCounter = 1.0f;
 		((AnimationNode*)getSceneNode())->setFrame(0);
 	}
-	else {
+	else if (unlatched) {
+		if (SoundEngine::getInstance()->getEffectState(RUN_SOUND) == SoundEngine::SoundState::INACTIVE
+			|| SoundEngine::getInstance()->getEffectState(RUN_SOUND) == SoundEngine::SoundState::PAUSED) {
+			SoundEngine::getInstance()->playEffect(RUN_EFFECT, AssetManager::getInstance()->getCurrent()->get<Sound>(RUN_SOUND), true, RUN_VOLUME);
+		}
 		_animationCounter += speed * ANIMATION_DELTA;
 		((AnimationNode*)getSceneNode())->setFrame(
 			((int)_animationCounter) % ((AnimationNode*)getSceneNode())->getSize());

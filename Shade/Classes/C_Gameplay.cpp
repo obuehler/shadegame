@@ -114,8 +114,6 @@ using namespace std;
 #define PEW_EFFECT      "pew"
 /** The sound effect for a bullet collision */
 #define POP_EFFECT      "pop"
-/** The sound effect for jumping */
-#define JUMP_EFFECT     "jump"
 /** The volume for the music */
 #define MUSIC_VOLUME    0.7f
 /** The volume for sound effects */
@@ -581,8 +579,7 @@ void GameController::populate() {
 
 	for (LevelInstance::CarMetadata pd : _level->_cars) {
 		animNodePtr = (AnimationNode*)(pd.object->getObject()->getSceneNode());
-		animNodePtr->initWithTexture(_assets->get<Texture2D>(CAR_TEXTURE));
-		// animNodePtr->initWithFilmstrip(_assets->get<Texture2D>(CAR_TEXTURE), CAR_ROWS, CAR_COLS);
+		animNodePtr->initWithFilmstrip(_assets->get<Texture2D>(CAR_TEXTURE), CAR_ROWS, CAR_COLS);
 		animNodePtr->setScale(cscale / CAR_SCALE_DOWN);
 		pd.object->getObject()->init(pd.position, Size((animNodePtr->getContentSize().width * cscale)
 			/ (scale.x * CAR_SCALE_DOWN), (animNodePtr->getContentSize().height * cscale)
@@ -702,8 +699,8 @@ void GameController::setComplete(bool value) {
 		_winAnimation->setPosition(_rootnode->getContentSize()/2);
 		_level->_playerPos.object->getSceneNode()->setVisible(false);
 		_winAnimation->setVisible(true);
-        Sound* source = _assets->get<Sound>(WIN_MUSIC);
-        SoundEngine::getInstance()->playMusic(source,false,MUSIC_VOLUME);
+		SoundEngine::getInstance()->stopAllEffects();
+        SoundEngine::getInstance()->playMusic(_assets->get<Sound>(WIN_MUSIC),false,MUSIC_VOLUME);
         _winnode->setVisible(true);
 		_countdown = EXIT_COUNT;
     } else {
@@ -725,8 +722,8 @@ void GameController::setFailure(bool value) {
 		_loseAnimation->setPosition(_rootnode->getContentSize() / 2);
 		_level->_playerPos.object->getSceneNode()->setVisible(false);
 		_loseAnimation->setVisible(true);
-        Sound* source = _assets->get<Sound>(LOSE_MUSIC);
-        SoundEngine::getInstance()->playMusic(source,false,MUSIC_VOLUME);
+		SoundEngine::getInstance()->stopAllEffects();
+        SoundEngine::getInstance()->playMusic(_assets->get<Sound>(LOSE_MUSIC),false,MUSIC_VOLUME);
         _losenode->setVisible(true);
 		_countdown = EXIT_COUNT;
     } else {
@@ -816,7 +813,7 @@ void GameController::update(float dt) {
 			_indicator->setRotation(90.0f - CC_RADIANS_TO_DEGREES(
 				(_level->_casterPos.object->getObject()->getPosition() - 
 					_level->_playerPos.object->getPosition()).getAngle()));
-          
+			_level->_playerPos.object->updateAnimation(_physics._latchedOnto == nullptr);
 		}
 
 
@@ -840,8 +837,6 @@ void GameController::update(float dt) {
 				_exposurebar->setVisible(true);
 			}
 		}
-
-		_level->_playerPos.object->updateAnimation();
 
 		// Reset the game if we win or lose.
 		if (_countdown > 0) {

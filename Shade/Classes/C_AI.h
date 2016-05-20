@@ -13,7 +13,9 @@ using namespace cocos2d;
 class AIController {
 	friend class GameController;
 
-	bool _active = false;
+	bool _active;
+
+	bool _chasing;
 
 	vector<LevelInstance::MovingObjectMetadata<Pedestrian>> _pedMovers;
 	OurMovingObject<Caster>* _caster;

@@ -182,9 +182,11 @@ void MainMenuController::preload() {
 
 
 	_assets->loadAsync<Sound>(GAME_MUSIC, "sounds/DD_Main.mp3");
-	_assets->loadAsync<Sound>(WIN_MUSIC, "sounds/DD_Victory.mp3");
-	_assets->loadAsync<Sound>(LOSE_MUSIC, "sounds/DD_Failure.mp3");
-	//_assets->loadAsync<TTFont>(MESSAGE_FONT, "fonts/RetroGame.ttf");
+	_assets->loadAsync<Sound>(WIN_MUSIC, "sounds/win.mp3");
+	_assets->loadAsync<Sound>(LOSE_MUSIC, "sounds/lose.mp3");
+	_assets->loadAsync<Sound>(LATCH_SOUND, "sounds/latch.mp3");
+	_assets->loadAsync<Sound>(SIGHTED_SOUND, "sounds/sighted.mp3");
+	_assets->loadAsync<Sound>(RUN_SOUND, "sounds/run.mp3");
 
 	JSONReader reader;
 	reader.initWithFile(STATIC_OBJECTS);

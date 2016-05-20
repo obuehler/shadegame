@@ -76,6 +76,13 @@
 #define WIN_MUSIC       "win"
 /** The key the failure game music */
 #define LOSE_MUSIC      "lose"
+/** The key for the latching sound effect */
+#define LATCH_SOUND "latch"
+/** The key for the sound effect for being sighted by a pedestrian */
+#define SIGHTED_SOUND "sighted"
+
+
+
 #define WIN_IMAGE "win"
 #define LOSE_IMAGE "lose"
 
