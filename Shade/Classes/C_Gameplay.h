@@ -49,6 +49,10 @@
 #define PEDESTRIAN_TEXTURE "pimage"
 /** The key for the pedestrian shadow texture in the asset manager */
 #define PEDESTRIAN_SHADOW_TEXTURE "psimage"
+/** The key for the pedestrian object texture in the asset manager */
+#define PEDESTRIAN_POOL_TEXTURE "ppoolimage"
+/** The key for the pedestrian shadow texture in the asset manager */
+#define PEDESTRIAN_POOL_SHADOW_TEXTURE "ppoolsimage"
 /** The key for the car object texture in the asset manager */
 #define CAR_TEXTURE "cimage"
 /** The key for the car shadow texture in the asset manager */
@@ -181,6 +185,8 @@ protected:
 	ui::Button* _backButton;
 	/** The try again button */
 	ui::Button* _tryAgainButton;
+	/** The next level button */
+	ui::Button* _nextLevelButton;
 
     // Physics objects for the game
     /** Reference to the goalDoor (for collision detection) */
@@ -198,6 +204,10 @@ protected:
     bool _failed;
 	/** Whether we have paused the game */
 	bool _paused;
+	/** Whether we want to go to next level */
+	bool _nextLevel;
+	/** Whether we want to go back to main menu */
+	bool _back;
 	/** The current level of exposure */
 	float _exposure;
     /** Countdown active for winning or losing */
@@ -353,6 +363,15 @@ public:
      * @param value whether the level is failed.
      */
     void setFailure(bool value);
+
+	/**
+	* Whether the player wants to go the next level.
+	*
+	* If true, the level will increment after a countdown
+	*
+	* @param value whether the next level is wanted.
+	*/
+	bool nextLevel() { return _nextLevel; };
     
     
 #pragma mark -

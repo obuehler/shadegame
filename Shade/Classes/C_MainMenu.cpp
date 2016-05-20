@@ -5,6 +5,8 @@
 using namespace cocos2d;
 using namespace std;
 
+#define TUTORIAL_KEY "tutorial"
+#define TUTORIAL_FILE "levels/tutorial.shadl"
 #define LEVEL_ONE_KEY "level1"
 #define LEVEL_ONE_FILE "levels/level1.shadl"
 #define LEVEL_TWO_KEY "level2"
@@ -24,6 +26,7 @@ using namespace std;
 #define LEVEL_NINE_KEY "level9"
 #define LEVEL_NINE_FILE "levels/level9.shadl"
 #define MENU_BACKGROUND_KEY "mbackground"
+#define TUTORIAL_BUTTON "tutbutt"
 
 MainMenuButton* MainMenuButton::create(GameController* gc) {
 	MainMenuButton* q = new (std::nothrow) MainMenuButton();
@@ -80,6 +83,11 @@ bool MainMenuController::init(RootLayer* root) {
 	_worldnode->retain();
 	_rootnode->addChild(_worldnode, 0);
 
+	// Tutorial button
+	_tutButt->setScale(_backgroundnode->getScaleX() * 0.5f, _backgroundnode->getScaleY() * 0.5f);
+	_tutButt->setPosition(Vec2((_rootnode->getContentSize().width / 2.0f), (_rootnode->getContentSize().height * 0.93f)));
+	_worldnode->addChild(_tutButt, 1);
+
 	//Add buttons
 	int xbutt = 3;
 	int ybutt = 3;
@@ -89,36 +97,47 @@ bool MainMenuController::init(RootLayer* root) {
 			int num = i*xbutt + j;
 			if (num < mainMenuButtons.size()) {
 				MainMenuButton* button = mainMenuButtons[num];
+				button->index = num;
 				button->loadTextures("textures/menu/" + std::to_string(num) + "-01.png", "textures/menu/" + std::to_string(num) + "-01.png");
 				button->setScale(_backgroundnode->getScaleX() * 0.75f, _backgroundnode->getScaleY() * 0.75f);
-				button->setPosition(Vec2((dimen.width / 3.0f) + (dimen.width * j) / 6.0f, (dimen.height * 0.5f) + (dimen.width * (1 - i)) / 6.0f));
+				button->setPosition(Vec2((dimen.width / 3.0f) + (dimen.width * j) / 6.0f, (dimen.height * 0.40f) + (dimen.width * (1 - i)) / 6.3f));
 				button->setTouchEnabled(true);
 				//Add event listener
 				button->addTouchEventListener([&](Ref* sender, ui::Widget::TouchEventType type) {
 					switch (type) {
 					case ui::Widget::TouchEventType::ENDED:
-						_activeController = ((MainMenuButton*)sender)->getController();
+						button = ((MainMenuButton*)sender);
+						_currController = button->index;
+						_activeController = button->getController();
 						_rootnode->removeAllChildren();
 						_activeController->initialize(_rootnode);
 					}
 				});
 				_worldnode->addChild(button, 1);
-
 				button->retain();
 			}
 		}
 	}
-
 	_active = true;
 	return true;
 }
 
 void MainMenuController::update(float dt) {
+	CCLOG("%d", _currController);
 	if (_activeController != nullptr) {
 		if (!_activeController->isActive()) {
-			_activeController = nullptr;
-			_rootnode->addChild(_worldnode, 0);
-			return;
+			if (_activeController->nextLevel()) {
+				_currController = mainMenuButtons.size() - 1 == _currController ? _currController : _currController + 1;
+				_activeController = mainMenuButtons[_currController]->getController();
+				_rootnode->removeAllChildren();
+				_activeController->initialize(_rootnode);
+				return;
+			}
+			else {
+				_activeController = nullptr;
+				_rootnode->addChild(_worldnode, 0);
+				return;
+			}
 		}
 		_activeController->update(dt);
 	}
@@ -151,6 +170,26 @@ void MainMenuController::dispose() {
 }
 
 void MainMenuController::preload() {
+	// Tutorial button
+	GameController* gc = GameController::create(TUTORIAL_KEY, TUTORIAL_FILE);
+	gc->preload();
+	_tutButt = MainMenuButton::create(gc);
+	_tutButt->index = -1;
+	_tutButt->loadTextures("textures/Tutorial/tutorial.png", "textures/Tutorial/tutorial.png");
+	_tutButt->setTouchEnabled(true);
+	//Add event listener
+	_tutButt->addTouchEventListener([&](Ref* sender, ui::Widget::TouchEventType type) {
+		switch (type) {
+		case ui::Widget::TouchEventType::ENDED:
+			_tutButt = ((MainMenuButton*)sender);
+			_currController = _tutButt->index;
+			_activeController = _tutButt->getController();
+			_rootnode->removeAllChildren();
+			_activeController->initialize(_rootnode);
+		}
+	});
+	_tutButt->retain();
+
 	loadGameController(LEVEL_ONE_KEY, LEVEL_ONE_FILE);
 	loadGameController(LEVEL_TWO_KEY, LEVEL_TWO_FILE);
 	loadGameController(LEVEL_THREE_KEY, LEVEL_THREE_FILE);
@@ -170,16 +209,17 @@ void MainMenuController::preload() {
 	tloader->loadAsync("dudepool", "textures/Level Pool/Shade_Swim_Animation.png");
 	tloader->loadAsync(PEDESTRIAN_TEXTURE, "textures/Pedestrian.png");
 	tloader->loadAsync(PEDESTRIAN_SHADOW_TEXTURE, "textures/Pedestrian_S.png");
+	tloader->loadAsync(PEDESTRIAN_POOL_TEXTURE, "textures/Level Pool/Level2_RotationP_Animation_New.png");
+	tloader->loadAsync(PEDESTRIAN_POOL_SHADOW_TEXTURE, "textures/Level2_RotationP_Animation_S.png");
 	tloader->loadAsync(INDICATOR, "textures/indicator.png");
 	tloader->loadAsync(CAR_TEXTURE, "textures/car_animation.png");
 	tloader->loadAsync(CAR_SHADOW_TEXTURE, "textures/Car1_S.png");
 	tloader->loadAsync(GOAL_TEXTURE, "textures/caster_animation.png");
 	//tloader->loadAsync("goalpool", "textures/caster_animation.png");
-    tloader->loadAsync(WIN_IMAGE, "textures/menu/win_icon.png");
+    tloader->loadAsync(WIN_IMAGE, "textures/menu/Win Icon.png");
     tloader->loadAsync(LOSE_IMAGE, "textures/menu/lose_icon.png");
 	tloader->loadAsync(WIN_TEXTURE, "textures/Shade_Win.png");
 	tloader->loadAsync(LOSE_TEXTURE, "textures/Shade_Sun.png");
-
 
 	_assets->loadAsync<Sound>(GAME_MUSIC, "sounds/DD_Main.mp3");
 	_assets->loadAsync<Sound>(WIN_MUSIC, "sounds/win.mp3");
