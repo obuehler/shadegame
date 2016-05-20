@@ -375,6 +375,14 @@ void Shadow::setPosition(float x, float y) {
 	CapsuleObstacle::setPosition(x, y);
 }
 
+void Shadow::shadeDie() {
+	CCLOG("DIE!!");
+}
+
+void Shadow::shadeVictory() {
+	CCLOG("WIN!!");
+}
+
 
 #pragma mark -
 #pragma mark Scene Graph Methods

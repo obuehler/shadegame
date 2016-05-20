@@ -55,6 +55,13 @@
 #define CAR_SHADOW_TEXTURE "csimage"
 /** The key for the win door texture in the asset manager */
 #define GOAL_TEXTURE "goal"
+/** The key for the win animation in the asset manager */
+#define WIN_TEXTURE "winani"
+/** The key for the win animation in the asset manager */
+#define LOSE_TEXTURE "loseani"
+// Rows and cols for the end animations
+#define END_ROWS 1
+#define END_COLS 5
 /** The key for the indicator image in the asset manager */
 #define INDICATOR "ind"
 /* The tag for the object in an object-shadow pair, used for loading */
@@ -143,6 +150,10 @@ protected:
     PolygonNode* _winnode;
     /** Reference to the lose message label */
     PolygonNode* _losenode;
+	// Animation node for winning
+	AnimationNode* _winAnimation;
+	//Animation node for losing
+	AnimationNode* _loseAnimation;
 	/** Reference to the timer message label */
 	Label* _timernode;
 	/** Reference to the variable exposure bar */

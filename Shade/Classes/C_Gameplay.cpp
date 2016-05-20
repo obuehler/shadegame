@@ -318,6 +318,7 @@ void GameController::initialize(RootLayer* root) {
 		switch (type)
 		{
 		case ui::Widget::TouchEventType::ENDED:
+			_loseAnimation->setVisible(false);
 			reset();
 			break;
 		default:
@@ -463,8 +464,23 @@ void GameController::populate() {
 	// To convert from design resolution to real, divide positions by cscale
 	float cscale = Director::getInstance()->getContentScaleFactor();
 	AnimationNode* animNodePtr;
+	_winAnimation = AnimationNode::create();
+	_loseAnimation = AnimationNode::create();
 	PolygonNode* polyNodePtr;
 	PolygonNode* polyNodePtr1;
+
+#pragma mark : Animations
+	_winAnimation->initWithFilmstrip(_assets->get<Texture2D>(WIN_TEXTURE), END_ROWS, END_COLS);
+	_winAnimation->setScale(cscale / WIN_SCALE_DOWN);
+	//_winAnimation->retain();
+	_winAnimation->setVisible(false);
+	_rootnode->addChild(_winAnimation);
+
+	_loseAnimation->initWithFilmstrip(_assets->get<Texture2D>(LOSE_TEXTURE), END_ROWS, END_COLS);
+	_loseAnimation->setScale(cscale / WIN_SCALE_DOWN);
+	//_loseAnimation->retain();
+	_loseAnimation->setVisible(false);
+	_rootnode->addChild(_loseAnimation);
 
 #pragma mark : Goal door
 	animNodePtr = (AnimationNode*)(_level->_casterPos.object->getObject()->getSceneNode());
@@ -480,8 +496,6 @@ void GameController::populate() {
 	_level->_casterPos.object->getObject()->setDebugNode(newDebugNode());
     addObstacle(_level->_casterPos.object->getObject(), CASTER_Z);
 
-
-
 #pragma mark : Dude
 	animNodePtr = ((AnimationNode*)(_level->_playerPos.object->getSceneNode()));
 	animNodePtr->initWithFilmstrip(_assets->get<Texture2D>(DUDE_TEXTURE), PLAYER_ROWS, PLAYER_COLS);
@@ -490,6 +504,7 @@ void GameController::populate() {
 	_level->_playerPos.object->setDrawScale(scale);
 	_level->_playerPos.object->positionSceneNode();
 	_level->_playerPos.object->resetSceneNode();
+	_level->_playerPos.object->getSceneNode()->setVisible(true);
 	_level->_playerPos.object->setDebugNode(newDebugNode());
     addObstacle(_level->_playerPos.object, PLAYER_Z); // Put this at the very front
 
@@ -662,6 +677,9 @@ void GameController::reset() {
 	_tryAgainButton->setVisible(false);
 	_backButton->setVisible(false);
 	_resumeButton->setVisible(false);
+
+	_winAnimation->setVisible(false);
+	_loseAnimation->setVisible(false);
 }
 
 /**
@@ -674,6 +692,9 @@ void GameController::reset() {
 void GameController::setComplete(bool value) {
     _complete = value;
     if (value) {
+		_winAnimation->setPosition(_rootnode->getContentSize()/2);
+		_level->_playerPos.object->getSceneNode()->setVisible(false);
+		_winAnimation->setVisible(true);
         Sound* source = _assets->get<Sound>(WIN_MUSIC);
         SoundEngine::getInstance()->playMusic(source,false,MUSIC_VOLUME);
         _winnode->setVisible(true);
@@ -694,6 +715,9 @@ void GameController::setComplete(bool value) {
 void GameController::setFailure(bool value) {
     _failed = value;
     if (value) {
+		_loseAnimation->setPosition(_rootnode->getContentSize() / 2);
+		_level->_playerPos.object->getSceneNode()->setVisible(false);
+		_loseAnimation->setVisible(true);
         Sound* source = _assets->get<Sound>(LOSE_MUSIC);
         SoundEngine::getInstance()->playMusic(source,false,MUSIC_VOLUME);
         _losenode->setVisible(true);
@@ -779,9 +803,6 @@ void GameController::update(float dt) {
 			_indicator->setRotation(90.0f - CC_RADIANS_TO_DEGREES(
 				(_level->_casterPos.object->getObject()->getPosition() - 
 					_level->_playerPos.object->getPosition()).getAngle()));
-            
-            
-            
           
 		}
 
@@ -797,7 +818,9 @@ void GameController::update(float dt) {
 		} */ // TODO UNCOMMENT AND FIX FOR LAZY CAMERA
 
 		if (!_failed) {
-			if (!_complete && _physics._reachedCaster) setComplete(true);
+			if (!_complete && _physics._reachedCaster) {
+				setComplete(true);
+			}
 			if (!_complete) {
 				// Check for exposure or cover
 				_exposure += dt * (1.0f - ((1.0f + EXPOSURE_COOLDOWN_RATIO) * _level->_playerPos.object->getCoverRatio()));
@@ -815,6 +838,18 @@ void GameController::update(float dt) {
 
 		// Reset the game if we win or lose.
 		if (_countdown > 0) {
+			if (_countdown % 8 == 0) {
+				int winframe = _winAnimation->getFrame();
+				int loseframe = _loseAnimation->getFrame();
+				if (winframe == _winAnimation->getSize() - 1) {
+					winframe = -1;
+				}
+				if (loseframe == _loseAnimation->getSize() - 1) {
+					loseframe = loseframe -1;
+				}
+				_winAnimation->setFrame(winframe + 1);
+				_loseAnimation->setFrame(loseframe + 1);
+			}
 			_countdown--;
 		}
 		else if (_countdown == 0) {

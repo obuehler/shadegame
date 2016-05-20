@@ -43,7 +43,7 @@ using namespace cocos2d;
 /** The factor to multiply by the input */
 #define DUDE_FORCE      5.0f //20.0f
 /** The factor by which to scale down the avatar image */
-#define DUDE_SCALE	7.0f
+#define DUDE_SCALE	5.0f
 /** The amount to slow the character down */
 #define DUDE_DAMPING    10.0f
 /** The maximum character speed */
@@ -285,6 +285,11 @@ public:
 	/** Updates the character's animation frame according to its movement. */
 	void updateAnimation();
 
+	// Function to call when shade dies
+	void shadeDie();
+
+	// function to call when shade wins the game
+	void shadeVictory();
     
 CC_CONSTRUCTOR_ACCESS:
 #pragma mark Hidden Constructors

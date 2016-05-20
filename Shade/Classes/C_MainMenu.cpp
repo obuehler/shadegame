@@ -19,6 +19,10 @@ using namespace std;
 #define LEVEL_SIX_FILE "levels/level6.shadl"
 #define LEVEL_SEVEN_KEY "level7"
 #define LEVEL_SEVEN_FILE "levels/level7.shadl"
+#define LEVEL_EIGHT_KEY "level8"
+#define LEVEL_EIGHT_FILE "levels/level8.shadl"
+#define LEVEL_NINE_KEY "level9"
+#define LEVEL_NINE_FILE "levels/level9.shadl"
 #define MENU_BACKGROUND_KEY "mbackground"
 
 MainMenuButton* MainMenuButton::create(GameController* gc) {
@@ -154,6 +158,8 @@ void MainMenuController::preload() {
 	loadGameController(LEVEL_FIVE_KEY, LEVEL_FIVE_FILE);
 	loadGameController(LEVEL_SIX_KEY, LEVEL_SIX_FILE);
 	loadGameController(LEVEL_SEVEN_KEY, LEVEL_SEVEN_FILE);
+	loadGameController(LEVEL_EIGHT_KEY, LEVEL_EIGHT_FILE);
+	loadGameController(LEVEL_NINE_KEY, LEVEL_NINE_FILE);
 
 	// Load the textures (Autorelease objects)
 	_assets = AssetManager::getInstance()->getCurrent();
@@ -161,14 +167,20 @@ void MainMenuController::preload() {
 	tloader->loadAsync(EXPOSURE_BAR, "textures/exposure_bar.png");
 	tloader->loadAsync(EXPOSURE_FRAME, "textures/exposure_bar_frame.png");
 	tloader->loadAsync(DUDE_TEXTURE, "textures/player_animation.png");
+	tloader->loadAsync("dudepool", "textures/Level Pool/Shade_Swim_Animation.png");
 	tloader->loadAsync(PEDESTRIAN_TEXTURE, "textures/Pedestrian.png");
 	tloader->loadAsync(PEDESTRIAN_SHADOW_TEXTURE, "textures/Pedestrian_S.png");
 	tloader->loadAsync(INDICATOR, "textures/indicator.png");
 	tloader->loadAsync(CAR_TEXTURE, "textures/Car1.png");
 	tloader->loadAsync(CAR_SHADOW_TEXTURE, "textures/Car1_S.png");
 	tloader->loadAsync(GOAL_TEXTURE, "textures/caster_animation.png");
+	//tloader->loadAsync("goalpool", "textures/caster_animation.png");
     tloader->loadAsync(WIN_IMAGE, "textures/menu/win_icon.png");
     tloader->loadAsync(LOSE_IMAGE, "textures/menu/lose_icon.png");
+	tloader->loadAsync(WIN_TEXTURE, "textures/Shade_Win.png");
+	tloader->loadAsync(LOSE_TEXTURE, "textures/Shade_Sun.png");
+
+
 	_assets->loadAsync<Sound>(GAME_MUSIC, "sounds/DD_Main.mp3");
 	_assets->loadAsync<Sound>(WIN_MUSIC, "sounds/DD_Victory.mp3");
 	_assets->loadAsync<Sound>(LOSE_MUSIC, "sounds/DD_Failure.mp3");
