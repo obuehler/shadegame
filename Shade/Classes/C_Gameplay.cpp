@@ -73,6 +73,11 @@ using namespace std;
 #define EXPOSURE_X_POS 0.7f
 #define EXPOSURE_Y_POS 0.9f
 
+/** How close the character has to be to the target location to stop moving, in Box2D coordinates, squared */
+#define TARGET_REACH_EPSILON_SQUARED 0.005f
+/** How close the character has to be to a shadow to latch onto it, in Box2D coordinates, squared */
+#define LATCH_LIMIT_SQUARED 2.25f
+
 /** The relative background images folder path */
 #define BACKGROUNDS_FOLDER "textures/backgrounds/"
 /** The key for the (temporary) background image */
@@ -349,7 +354,7 @@ void GameController::initialize(RootLayer* root) {
 	_worldnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO change when lazy camera implemented
 	_debugnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO change when lazy camera implemented
 	_backgroundnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode()));
-    
+	_ai.init(_level);
 	setDebug(false);
 	setComplete(false);
 	setFailure(false);
@@ -388,6 +393,7 @@ void GameController::deinitialize() {
 	_input.stop();
 	_level->release();
 	_physics.dispose();
+	_ai.dispose();
 	_level = nullptr;
 	_worldnode = nullptr;
 	_debugnode = nullptr;
@@ -641,11 +647,8 @@ void GameController::addObstacle(Obstacle* obj, int zOrder) {
  * This method disposes of the world and creates a new one.
  */
 void GameController::reset() {
-	/*_level->_playerPos.object->getBody()->SetTransform(b2Vec2(_level->_size.width * 2.0f, _level->_size.height * 2.0f), 0.0f);
-	_physics.update(dt);
-	_physics.update(dt);
-	_physics.update(dt);*/
 	_physics.reset();
+	_ai.reset();
     _worldnode->removeAllChildren();
     _debugnode->removeAllChildren();
     
@@ -669,7 +672,11 @@ void GameController::reset() {
 		ped.object->_actionQueue->release();
 		ped.object->_actionQueue = ActionQueue<Pedestrian>::create(*(ped.actions));
 		ped.object->_actionQueue->retain();
+		ped.object->getObject()->getSceneNode()->setVisible(true);
+		ped.object->getShadow()->getSceneNode()->setVisible(true);
 	}
+
+	_ai.init(_level);
 
 	_worldnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO uncomment when lazy camera implemented
 	_debugnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO uncomment when lazy camera implemented
@@ -764,8 +771,13 @@ void GameController::update(float dt) {
 				_physics._latchedOnto = nullptr;
 			}
 			if (_input.didDoubleTap()) {
-				latchposition->getBody()->GetFixtureList()->SetFilterData(latchFilter);
-				latchposition->setPosition(_input._lasttap);
+				if ((_level->_playerPos.object->getPosition() - _input._lasttap).lengthSquared() <= LATCH_LIMIT_SQUARED) {
+					latchposition->getBody()->GetFixtureList()->SetFilterData(latchFilter);
+					latchposition->setPosition(_input._lasttap);
+				}
+				else {
+					_input._keyDoubleTap = false;
+				}
 			}
 			else {
 				latchposition->getBody()->GetFixtureList()->SetFilterData(PhysicsController::emptyFilter);
@@ -773,7 +785,7 @@ void GameController::update(float dt) {
 			if (_physics._latchedOnto == nullptr) {
 				if (_input.getHorizontal() * _input.getHorizontal() + _input.getVertical()
 					* _input.getVertical() < DEADSPACE_SIZE * DEADSPACE_SIZE ||
-					(_level->_playerPos.object->getPosition() - _input._lasttap).lengthSquared() < 0.01f) {
+					(_level->_playerPos.object->getPosition() - _input._lasttap).lengthSquared() <= TARGET_REACH_EPSILON_SQUARED) {
 					_level->_playerPos.object->stopMovement();
 				}
 				else {
@@ -790,6 +802,7 @@ void GameController::update(float dt) {
 				ped.object->act();
 			
 			_physics.update(dt);
+			_ai.update();
 
 			if (_physics._justLatched) {
 				_level->_playerPos.object->setPosition(
@@ -812,15 +825,9 @@ void GameController::update(float dt) {
 			SoundEngine::getInstance()->playEffect(JUMP_EFFECT,source,false,EFFECT_VOLUME);
 		 */
 
-		/* if (_avatar->getVX() != 0.0f || _avatar->getVY() != 0.0f) {
-			_worldnode->stopAllActionsByTag(FOLLOW_ACTION_TAG);
-			_worldnode->runAction(EaseOut::create(MoveTo::create(2, _avatar->getPosition()), 4.0f))->setTag(FOLLOW_ACTION_TAG);
-		} */ // TODO UNCOMMENT AND FIX FOR LAZY CAMERA
-
 		if (!_failed) {
-			if (!_complete && _physics._reachedCaster) {
-				setComplete(true);
-			}
+			if (!_complete && _physics._reachedCaster) setComplete(true);
+			if (!_complete && _physics._hasDied) setFailure(true);
 			if (!_complete) {
 				// Check for exposure or cover
 				_exposure += dt * (1.0f - ((1.0f + EXPOSURE_COOLDOWN_RATIO) * _level->_playerPos.object->getCoverRatio()));

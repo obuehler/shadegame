@@ -47,7 +47,7 @@ public class EditorMenu extends JMenu {
 					type.imageFormat = originalPath.substring(originalPath.lastIndexOf(".") + 1);
 				}
 				if (type.shadowImageFormat == null) {
-					type.shadowImageFormat = originalShadowPath.substring(originalPath.lastIndexOf(".") + 1);
+					type.shadowImageFormat = originalShadowPath.substring(originalShadowPath.lastIndexOf(".") + 1);
 				}
 				Files.copy(Paths.get(originalPath), Paths.get(type.getIconPath()),
 						StandardCopyOption.REPLACE_EXISTING);

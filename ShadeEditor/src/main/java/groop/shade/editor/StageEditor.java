@@ -413,6 +413,9 @@ public class StageEditor extends JFrame {
 		instancesRunning--;
 		if (instancesRunning <= 0) {
 			String output = new Json(JsonWriter.OutputType.json).toJson(staticObjectTypes);
+			for (StaticObjectType t : staticObjectTypes.types) {
+				System.out.println(t.shadowImageFormat);
+			}
 			if (output.length() == 0) {
 				Helpers.couldNotSaveFile(this);
 			} else {
