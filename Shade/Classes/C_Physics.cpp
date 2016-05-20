@@ -6,14 +6,7 @@
 #include <Box2D/Dynamics/Joints/b2WeldJoint.h>
 #include <ShadowCount.h>
 
-const b2Filter PhysicsController::characterFilter = b2Filter(CHARACTER_BIT, OBJECT_BIT, 0);
-const b2Filter PhysicsController::objectFilter = b2Filter(OBJECT_BIT, CHARACTER_BIT | CASTER_BIT | PEDESTRIAN_BIT, 1);
-const b2Filter PhysicsController::casterFilter = b2Filter(CASTER_BIT, CHARACTER_SENSOR_BIT | OBJECT_BIT, 1);
-const b2Filter PhysicsController::shadowFilter = b2Filter(SHADOW_BIT, CHARACTER_SENSOR_BIT, -1);
-const b2Filter PhysicsController::characterSensorFilter = b2Filter(CHARACTER_SENSOR_BIT, SHADOW_BIT | CASTER_BIT | PEDESTRIAN_BIT, -2);
-const b2Filter PhysicsController::pedestrianFilter = b2Filter(PEDESTRIAN_BIT, CHARACTER_SENSOR_BIT | OBJECT_BIT, 1);
 const b2Filter PhysicsController::emptyFilter = b2Filter(EMPTY_BIT, 0x00, -1);
-
 
 bool PhysicsController::init(const Size& size) {
 	_reachedCaster = false;
@@ -37,7 +30,9 @@ bool PhysicsController::init(const Size& size) {
 
 
 PhysicsController::PhysicsController() :
-	_world(nullptr)
+	_world(nullptr),
+	_latchedOnto(nullptr),
+	_justLatched(false)
 {
 }
 
@@ -80,13 +75,24 @@ void PhysicsController::beginContact(b2Contact* contact) {
 	b2Fixture* fix1 = contact->GetFixtureA();
 	b2Fixture* fix2 = contact->GetFixtureB();
 	CCLOG("%x,%x", fix1->GetFilterData().categoryBits, fix2->GetFilterData().categoryBits);
-	// If one of the fixtures is from a shadow, the other fixture is
-	// definitely our character. Mark as in shadow if so.
-	if (fix1->GetFilterData().categoryBits == SHADOW_BIT)
+	if (fix1->GetFilterData().categoryBits == SHADOW_BIT && fix2->GetFilterData().categoryBits == CHARACTER_SENSOR_BIT)
 		((ShadowCount*)(fix2->GetUserData()))->inc();
-	if (fix2->GetFilterData().categoryBits == SHADOW_BIT)
+	if (fix2->GetFilterData().categoryBits == SHADOW_BIT && fix1->GetFilterData().categoryBits == CHARACTER_SENSOR_BIT)
 		((ShadowCount*)(fix1->GetUserData()))->inc();
-
+	
+	if (fix1->GetFilterData().categoryBits == LATCH_BIT) {
+		if (_latchedOnto != (Obstacle*)(fix2->GetBody()->GetUserData())) {
+			_latchedOnto = (Obstacle*)(fix2->GetBody()->GetUserData());
+			_justLatched = true; // reset to false by gamecontroller when latchedonto is fetched
+		}
+	}
+	if (fix2->GetFilterData().categoryBits == LATCH_BIT) {
+		if (_latchedOnto != (Obstacle*)(fix1->GetBody()->GetUserData())) {
+			_latchedOnto = (Obstacle*)(fix1->GetBody()->GetUserData());
+			_justLatched = true;
+		}
+	}
+        
 	// If we hit the caster, we are done
 	if ((fix1->GetFilterData().categoryBits == CASTER_BIT && fix2->GetFilterData().categoryBits == CHARACTER_SENSOR_BIT) ||
 		(fix2->GetFilterData().categoryBits == CASTER_BIT && fix1->GetFilterData().categoryBits == CHARACTER_SENSOR_BIT)) {
@@ -97,8 +103,6 @@ void PhysicsController::beginContact(b2Contact* contact) {
 		_hasDied = true;
 	}
 	if (fix1->GetFilterData().categoryBits == PEDESTRIAN_BIT && fix2->GetFilterData().categoryBits == OBJECT_BIT) {
-		//_world->removeObstacle(((OurMovingObject<Pedestrian>*)(fix1->GetUserData()))->getObject());
-		//_world->removeObstacle(((OurMovingObject<Pedestrian>*)(fix1->GetUserData()))->getShadow());
 		
 		fix1->SetFilterData(emptyFilter);
 		((OurMovingObject<Pedestrian>*)(fix1->GetUserData()))->getShadow()->getBody()->GetFixtureList()->SetFilterData(emptyFilter);

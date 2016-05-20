@@ -21,19 +21,17 @@ class PhysicsController {
 	/** Whether the caster has died */
 	bool _hasDied;
 
+	/** The shadow latched onto */
+	Obstacle* _latchedOnto;
+	/** Whether we just latched onto a shadow */
+	bool _justLatched;
+
 	/** The Box2D world */
 	WorldController* _world;
-	
-
 
 public:
 
-	static const b2Filter characterFilter;
-	static const b2Filter objectFilter;
-	static const b2Filter casterFilter;
-	static const b2Filter shadowFilter;
-	static const b2Filter characterSensorFilter;
-	static const b2Filter pedestrianFilter;
+	/** A filter that doesn't collide with anything */
 	static const b2Filter emptyFilter;
 
 #pragma mark -

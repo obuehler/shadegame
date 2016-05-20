@@ -16,19 +16,24 @@
 
 // No category bit should have value 0x01 since that's Box2D default
 /** Category bit for solid level objects */
-#define OBJECT_BIT 0x02
+#define OBJECT_BIT 0x0002
 /** Category bit for shadows in a level */
-#define SHADOW_BIT 0x04
+#define SHADOW_BIT 0x0004
 /** Category bit for the caster */
-#define CASTER_BIT 0x08
+#define CASTER_BIT 0x0008
 /** Category bit for the character sensor fixtures */
-#define CHARACTER_SENSOR_BIT 0x10
+#define CHARACTER_SENSOR_BIT 0x0010
 /** Category bit for the character itself */
-#define CHARACTER_BIT 0x20
+#define CHARACTER_BIT 0x0020
 /** Category bit for the pedestrian */
-#define PEDESTRIAN_BIT 0x40
+#define PEDESTRIAN_BIT 0x0040
 /** Category bit for the filter which doesnt collide */
-#define EMPTY_BIT 0x80
+#define EMPTY_BIT 0x0080
+/** Category bit for the latch indicator */
+#define LATCH_BIT 0x0100
+/** Category bit for the car */
+#define CAR_BIT 0x0200
+
 /** Default scale from Box2D to intended pixel coordinates */
 #define BOX2D_SCALE 50.0f
 

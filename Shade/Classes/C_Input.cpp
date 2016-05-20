@@ -1,4 +1,4 @@
-﻿//
+//
 //  PFInputController.cpp
 //  PlatformerDemo
 //
@@ -226,7 +226,6 @@ void InputController::update(float dt) {
 	_exitPressed = _keyExit;
 	_firePressed = _keyFire;
 	_jumpPressed = _keyJump;
-	//_pausePressed = _keyDoubleTap;
 
 	// Directional controls
 	//_horizontal = 0.0f;
@@ -244,7 +243,7 @@ void InputController::update(float dt) {
 		_vertical -= 1.0f;
 	}
 
-	_keyDoubleTap = false;
+	
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
 	// Need to clear keys in the mobile state
@@ -289,46 +288,26 @@ return Zone::UNDEFINED;
 } */
 
 /**
-* Returns true if this is a jump swipe.
-*
-* A jump swipe is a quick swipe up in either the left or right zone.
-*
-* @param  start    the start position of the candidate swipe
-* @param  stop     the end position of the candidate swipe
-* @param  current  the current timestamp of the gesture
-*
-* @return true if this is a jump swipe.
-*/
-bool InputController::checkJump(const Vec2& start, const Vec2& stop, timestamp_t current) {
-	// Look for swipes up that are "long enough"
-	float ydiff = (stop.y - start.y);
-	if (elapsed_millis(_swipetime, current) < EVENT_SWIPE_TIME) {
-		return (ydiff > EVENT_SWIPE_LENGTH*_bounds.size.height);
-	}
-	return false;
-}
-
-/** BLAH
-* Returns a nonzero value if this is a quick left or right swipe
-*
-* The function returns -1 if it is left swipe and 1 if it is a right swipe.
-*
-* @param  start    the start position of the candidate swipe
-* @param  stop     the end position of the candidate swipe
-* @param  current  the current timestamp of the gesture
-*
-* @return a nonzero value if this is a quick left or right swipe
-*/
+ * Returns a nonzero value if this is a quick left or right swipe
+ *
+ * The function returns -1 if it is left swipe and 1 if it is a right swipe.
+ *
+ * @param  start    the start position of the candidate swipe
+ * @param  stop     the end position of the candidate swipe
+ * @param  current  the current timestamp of the gesture
+ *
+ * @return a nonzero value if this is a quick left or right swipe
+ */
 bool InputController::checkSwipe(const Vec2& start, const Vec2& stop, timestamp_t current) {
-	// Look for swipes up that are "long enough"
-	if (elapsed_millis(_swipetime, current) < EVENT_SWIPE_TIME) {
-		float xdiff = (stop.x - start.x);
-		float thresh = EVENT_SWIPE_LENGTH*_bounds.size.width;
-		if (xdiff > thresh) {
-			return true;
-		}
-	}
-	return false;
+    // Look for swipes up that are "long enough"
+    if (elapsed_millis(_swipetime,current) < EVENT_SWIPE_TIME) {
+        float xdiff = (stop.x-start.x);
+        float thresh = EVENT_SWIPE_LENGTH*_bounds.size.width;
+        if (xdiff > thresh) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
@@ -358,16 +337,14 @@ bool InputController::isCenter(const Vec2& pos) {
 * @return True if the touch was processed; false otherwise.
 */
 bool InputController::touchBeganCB(Touch* t, timestamp_t current) {
-	CCLOG("%s", "began");
-	Vec2 pos = t->getLocation();
-	_swipetime = current;
-	startposition = t->getLocation();
-	_swipeStarted = true;
-
-
-	_keyDoubleTap = (elapsed_millis(_dbtaptime, current) <= EVENT_DOUBLE_CLICK);
-
-	if (isCenter(pos)) {
+	pos = t->getLocation();
+    _swipetime = current;
+    startposition = t->getLocation();
+    _swipeStarted = true;
+    
+    _keyDoubleTap = (elapsed_millis(_dbtaptime, current) <= EVENT_DOUBLE_CLICK);
+	
+    if (isCenter(pos)) {
 		_vertical = 0;
 		_horizontal = 0;
 	}

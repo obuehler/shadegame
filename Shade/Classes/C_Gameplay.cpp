@@ -19,12 +19,12 @@
 //
 // This is the root, so there are a lot of includes
 #include <string>
-#include <cornell.h>
 #include "C_Gameplay.h"
 #include "C_Input.h"
 #include "M_Shadow.h"
 #include "M_MovingObject.h"
 #include "ActionQueue.h"
+#include "C_Physics.h"
 
 
 using namespace cocos2d;
@@ -133,9 +133,18 @@ using namespace std;
 #define BUILDING_OBJECT_Z 9
 #define BUILDING_SHADOW_Z 5
 #define PEDESTRIAN_OBJECT_Z 8
-#define PEDESTRIAN_SHADOW_Z 4 
+#define PEDESTRIAN_SHADOW_Z 4
 #define CAR_OBJECT_Z 10
 #define CAR_SHADOW_Z 6
+
+const b2Filter GameController::characterFilter = b2Filter(CHARACTER_BIT, OBJECT_BIT, 0);
+const b2Filter GameController::objectFilter = b2Filter(OBJECT_BIT, CHARACTER_BIT, 1);
+const b2Filter GameController::casterFilter = b2Filter(CASTER_BIT, CHARACTER_SENSOR_BIT, 1);
+const b2Filter GameController::shadowFilter = b2Filter(SHADOW_BIT, CHARACTER_SENSOR_BIT | LATCH_BIT, -1);
+const b2Filter GameController::characterSensorFilter = b2Filter(CHARACTER_SENSOR_BIT, SHADOW_BIT | CASTER_BIT | PEDESTRIAN_BIT, -2);
+const b2Filter GameController::pedestrianFilter = b2Filter(PEDESTRIAN_BIT, CHARACTER_SENSOR_BIT | OBJECT_BIT, 1);
+const b2Filter GameController::latchFilter = b2Filter(LATCH_BIT, SHADOW_BIT, -3);
+const b2Filter GameController::carFilter = b2Filter(CAR_BIT, 0, 1);
 
 #pragma mark -
 #pragma mark Initialization
@@ -293,7 +302,6 @@ void GameController::initialize(RootLayer* root) {
 		switch (type)
 		{
 		case ui::Widget::TouchEventType::ENDED:
-			reset();
 			deinitialize(); // sets _active to false
 			break;
 		default:
@@ -341,8 +349,6 @@ void GameController::initialize(RootLayer* root) {
 	_debugnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO change when lazy camera implemented
 	_backgroundnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode()));
     
-	_ai.init(_level);
-	
 	setDebug(false);
 	setComplete(false);
 	setFailure(false);
@@ -350,6 +356,9 @@ void GameController::initialize(RootLayer* root) {
 	_input.setZero();
 
 	_active = true;
+    
+   
+
 }
 
 /**
@@ -377,9 +386,7 @@ void GameController::deinitialize() {
 	_input.setZero();
 	_input.stop();
 	_level->release();
-	_physics.reset();
 	_physics.dispose();
-	_ai.dispose();
 	_level = nullptr;
 	_worldnode = nullptr;
 	_debugnode = nullptr;
@@ -397,11 +404,10 @@ void GameController::deinitialize() {
 	_complete = false;
 	_failed = false;
 	_active = false;
-	
 }
 
 void GameController::addWalls() {
-	BoxObstacle* wallobj = BoxObstacle::create(Vec2(WALL_THICKNESS * 0.5f, _level->_size.height * 0.5f), Size(WALL_THICKNESS, _level->_size.height), &PhysicsController::objectFilter);
+	BoxObstacle* wallobj = BoxObstacle::create(Vec2(WALL_THICKNESS * 0.5f, _level->_size.height * 0.5f), Size(WALL_THICKNESS, _level->_size.height), &objectFilter);
 	wallobj->setBodyType(b2_staticBody);
 	wallobj->setDensity(BASIC_DENSITY);
 	wallobj->setFriction(BASIC_FRICTION);
@@ -410,7 +416,7 @@ void GameController::addWalls() {
 	wallobj->setSceneNode(Node::create());
 	wallobj->setDebugNode(newDebugNode());
 	addObstacle(wallobj, 1);
-	wallobj = BoxObstacle::create(Vec2(_level->_size.width - WALL_THICKNESS * 0.5f, _level->_size.height * 0.5f), Size(WALL_THICKNESS, _level->_size.height), &PhysicsController::objectFilter);
+	wallobj = BoxObstacle::create(Vec2(_level->_size.width - WALL_THICKNESS * 0.5f, _level->_size.height * 0.5f), Size(WALL_THICKNESS, _level->_size.height), &objectFilter);
 	wallobj->setBodyType(b2_staticBody);
 	wallobj->setDensity(BASIC_DENSITY);
 	wallobj->setFriction(BASIC_FRICTION);
@@ -419,7 +425,7 @@ void GameController::addWalls() {
 	wallobj->setSceneNode(Node::create());
 	wallobj->setDebugNode(newDebugNode());
 	addObstacle(wallobj, 1);
-	wallobj = BoxObstacle::create(Vec2(_level->_size.width * 0.5f, WALL_THICKNESS * 0.5f), Size(_level->_size.width - WALL_THICKNESS * 2, WALL_THICKNESS), &PhysicsController::objectFilter);
+	wallobj = BoxObstacle::create(Vec2(_level->_size.width * 0.5f, WALL_THICKNESS * 0.5f), Size(_level->_size.width - WALL_THICKNESS * 2, WALL_THICKNESS), &objectFilter);
 	wallobj->setBodyType(b2_staticBody);
 	wallobj->setDensity(BASIC_DENSITY);
 	wallobj->setFriction(BASIC_FRICTION);
@@ -428,7 +434,7 @@ void GameController::addWalls() {
 	wallobj->setSceneNode(Node::create());
 	wallobj->setDebugNode(newDebugNode());
 	addObstacle(wallobj, 1);
-	wallobj = BoxObstacle::create(Vec2(_level->_size.width * 0.5f, _level->_size.height - WALL_THICKNESS * 0.5f), Size(_level->_size.width - WALL_THICKNESS * 2, WALL_THICKNESS), &PhysicsController::objectFilter);
+	wallobj = BoxObstacle::create(Vec2(_level->_size.width * 0.5f, _level->_size.height - WALL_THICKNESS * 0.5f), Size(_level->_size.width - WALL_THICKNESS * 2, WALL_THICKNESS), &objectFilter);
 	wallobj->setBodyType(b2_staticBody);
 	wallobj->setDensity(BASIC_DENSITY);
 	wallobj->setFriction(BASIC_FRICTION);
@@ -467,7 +473,7 @@ void GameController::populate() {
 	_level->_casterPos.object->getObject()->init(_level->_casterPos.position,
 		Size((animNodePtr->getContentSize().width * cscale) / (CASTER_SCALE_DOWN * scale.x),
 			(animNodePtr->getContentSize().height * cscale) / (CASTER_SCALE_DOWN * scale.y)),
-			&PhysicsController::casterFilter);
+			&casterFilter);
 	_level->_casterPos.object->getObject()->setDrawScale(scale);
 	_level->_casterPos.object->getObject()->positionSceneNode();
 	_level->_casterPos.object->getObject()->resetSceneNode();
@@ -475,17 +481,16 @@ void GameController::populate() {
     addObstacle(_level->_casterPos.object->getObject(), CASTER_Z);
 
 
+
 #pragma mark : Dude
 	animNodePtr = ((AnimationNode*)(_level->_playerPos.object->getSceneNode()));
 	animNodePtr->initWithFilmstrip(_assets->get<Texture2D>(DUDE_TEXTURE), PLAYER_ROWS, PLAYER_COLS);
 	animNodePtr->setScale(cscale / DUDE_SCALE);
-	_level->_playerPos.object->init(_level->_playerPos.position, scale * DUDE_SCALE, &PhysicsController::characterFilter, &PhysicsController::characterSensorFilter);
+	_level->_playerPos.object->init(_level->_playerPos.position, scale * DUDE_SCALE, &characterFilter, &characterSensorFilter);
 	_level->_playerPos.object->setDrawScale(scale);
 	_level->_playerPos.object->positionSceneNode();
 	_level->_playerPos.object->resetSceneNode();
 	_level->_playerPos.object->setDebugNode(newDebugNode());
-	_level->_playerPos.object->setHorizontalMovement(0.0f);
-	_level->_playerPos.object->setVerticalMovement(0.0f);
     addObstacle(_level->_playerPos.object, PLAYER_Z); // Put this at the very front
 
 
@@ -500,8 +505,8 @@ void GameController::populate() {
 		polyNodePtr->setScale(cscale);
 		
 		Vec2 offset = { polyNodePtr1->getContentSize().width * cscale / (scale.x * -5.0f), polyNodePtr1->getContentSize().height * cscale / (scale.y * 4.0f) };
-		d.object->init(d.position + offset, Size(polyNodePtr1->getContentSize().width * cscale / scale.x, polyNodePtr1->getContentSize().height * cscale / scale.y), &PhysicsController::objectFilter); // Body
-		d.shadow->init(d.position, Size(polyNodePtr->getContentSize().width * cscale / scale.x, polyNodePtr->getContentSize().height * cscale / scale.y), &PhysicsController::shadowFilter); // Shadoe
+		d.object->init(d.position + offset, Size(polyNodePtr1->getContentSize().width * cscale / scale.x, polyNodePtr1->getContentSize().height * cscale / scale.y), &objectFilter); // Body
+		d.shadow->init(d.position, Size(polyNodePtr->getContentSize().width * cscale / scale.x, polyNodePtr->getContentSize().height * cscale / scale.y), &shadowFilter); // Shadoe
 
 		d.object->setDrawScale(scale);
 		d.object->positionSceneNode();
@@ -514,6 +519,7 @@ void GameController::populate() {
 		d.object->setBodyType(b2_staticBody);
 		addObstacle(d.object, BUILDING_OBJECT_Z);
 		addObstacle(d.shadow, BUILDING_SHADOW_Z);
+		d.shadow->getBody()->SetUserData(d.shadow);
 		
 	}
 
@@ -529,7 +535,7 @@ void GameController::populate() {
 		animNodePtr->setScale(cscale / PEDESTRIAN_SCALE_DOWN);
 		pd.object->getObject()->init(pd.position, Size((animNodePtr->getContentSize().width * cscale)
 			/ (scale.x * PEDESTRIAN_SCALE_DOWN), (animNodePtr->getContentSize().height * cscale)
-			/ (scale.y * PEDESTRIAN_SCALE_DOWN)), &PhysicsController::pedestrianFilter);
+			/ (scale.y * PEDESTRIAN_SCALE_DOWN)), &objectFilter);
 
 		animNodePtr = (AnimationNode*)(pd.object->getShadow()->getSceneNode());
 		animNodePtr->initWithTexture(_assets->get<Texture2D>(PEDESTRIAN_SHADOW_TEXTURE));
@@ -537,10 +543,7 @@ void GameController::populate() {
 		animNodePtr->setScale(cscale / PEDESTRIAN_SCALE_DOWN);
 		pd.object->getShadow()->init(pd.position, Size((animNodePtr->getContentSize().width * cscale)
 			/ (scale.x * PEDESTRIAN_SCALE_DOWN), (animNodePtr->getContentSize().height * cscale)
-			/ (PEDESTRIAN_SCALE_DOWN * scale.y)), &PhysicsController::shadowFilter);
-
-		pd.object->getObject()->setLinearVelocity(Vec2(0.0f, 0.0f));
-		pd.object->getShadow()->setLinearVelocity(Vec2(0.0f, 0.0f));
+			/ (PEDESTRIAN_SCALE_DOWN * scale.y)), &shadowFilter);
 
 		pd.object->getObject()->setDrawScale(scale);
 		pd.object->getObject()->positionSceneNode();
@@ -551,9 +554,8 @@ void GameController::populate() {
 		pd.object->getObject()->setDebugNode(newDebugNode());
 		pd.object->getShadow()->setDebugNode(newDebugNode());
 		addObstacle(pd.object->getObject(), PEDESTRIAN_OBJECT_Z);
-		pd.object->getObject()->getBody()->GetFixtureList()->SetUserData(pd.object);
 		addObstacle(pd.object->getShadow(), PEDESTRIAN_SHADOW_Z);
-
+		pd.object->getShadow()->getBody()->SetUserData(pd.object->getShadow());
 	}
 
 	for (LevelInstance::CarMetadata pd : _level->_cars) {
@@ -563,25 +565,33 @@ void GameController::populate() {
 		animNodePtr->setScale(cscale / CAR_SCALE_DOWN);
 		pd.object->getObject()->init(pd.position, Size((animNodePtr->getContentSize().width * cscale)
 			/ (scale.x * CAR_SCALE_DOWN), (animNodePtr->getContentSize().height * cscale)
-			/ (scale.y * CAR_SCALE_DOWN)), &PhysicsController::shadowFilter);
+			/ (scale.y * CAR_SCALE_DOWN)), &shadowFilter);
 		pd.object->getObject()->setDrawScale(scale);
 		pd.object->getObject()->positionSceneNode();
 		pd.object->getObject()->resetSceneNode();
 		pd.object->getObject()->setDebugNode(newDebugNode());
 		addObstacle(pd.object->getObject(), CAR_OBJECT_Z);
+		pd.object->getObject()->getBody()->SetUserData(pd.object->getShadow()); // TODO get rid of this when car is actually made into a non-shadow
 
 		polyNodePtr = (PolygonNode*)(pd.object->getShadow()->getSceneNode());
 		polyNodePtr->initWithTexture(_assets->get<Texture2D>(CAR_SHADOW_TEXTURE));
 		polyNodePtr->setScale(cscale / CAR_SCALE_DOWN);
 		pd.object->getShadow()->init(pd.position, Size((polyNodePtr->getContentSize().width * cscale)
 			/ (scale.x * CAR_SCALE_DOWN), (polyNodePtr->getContentSize().height * cscale)
-			/ (scale.y * CAR_SCALE_DOWN)), &PhysicsController::shadowFilter);
+			/ (scale.y * CAR_SCALE_DOWN)), &shadowFilter);
 		pd.object->getShadow()->setDrawScale(scale);
 		pd.object->getShadow()->positionSceneNode();
 		pd.object->getShadow()->resetSceneNode();
 		pd.object->getShadow()->setDebugNode(newDebugNode());
 		addObstacle(pd.object->getShadow(), CAR_SHADOW_Z);
+		pd.object->getShadow()->getBody()->SetUserData(pd.object->getShadow());
+        
 	}
+    
+    latchposition = WheelObstacle::create(Vec2(0.01f,0.01f), 0.0001f, &(PhysicsController::emptyFilter));
+	latchposition->setSensor(true);
+	addObstacle(latchposition, 7);
+    
 }
 
 /**
@@ -621,7 +631,6 @@ void GameController::reset() {
 	_physics.update(dt);
 	_physics.update(dt);*/
 	_physics.reset();
-	_ai.reset();
     _worldnode->removeAllChildren();
     _debugnode->removeAllChildren();
     
@@ -645,10 +654,7 @@ void GameController::reset() {
 		ped.object->_actionQueue->release();
 		ped.object->_actionQueue = ActionQueue<Pedestrian>::create(*(ped.actions));
 		ped.object->_actionQueue->retain();
-		ped.object->getObject()->getSceneNode()->setVisible(true);
-		ped.object->getShadow()->getSceneNode()->setVisible(true);
 	}
-	_ai.init(_level);
 
 	_worldnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO uncomment when lazy camera implemented
 	_debugnode->runAction(Follow::create(_level->_playerPos.object->getSceneNode())); // TODO uncomment when lazy camera implemented
@@ -672,8 +678,7 @@ void GameController::setComplete(bool value) {
         SoundEngine::getInstance()->playMusic(source,false,MUSIC_VOLUME);
         _winnode->setVisible(true);
 		_countdown = EXIT_COUNT;
-    } 
-	if (!value && isActive()) {
+    } else {
         _winnode->setVisible(false);
         _countdown = -1;
     }
@@ -724,30 +729,36 @@ void GameController::update(float dt) {
 	if (_input.didPause() && !_failed && !_complete) {
 		togglePause();
 	}
-
+    
 	if (!_paused) {
 		if (!_failed && !_complete) {
 			if (_input.didDebug()) { setDebug(!isDebug()); }
 			// Process the movement
 			if (!_input._screencoords) { // Tap position is raw, need to compute screen coordinates
-				//CCLOG("Last tap: %f,%f", _input._lasttap.x, _input._lasttap.y);
-				int signx = _input._lasttap.x / abs(_input._lasttap.x);
-				int signy = _input._lasttap.y / abs(_input._lasttap.y);
-				_input._lasttap = (_level->_playerPos.object->getPosition() + (_input._lasttap / (BOX2D_SCALE)) + Vec2(_level->_playerPos.object->getWidth()*signx, _level->_playerPos.object->getHeight()*signy));
-				//CCLOG("On Game World: %f,%f", _input._lasttap.x, _input._lasttap.y);
-				//CCLOG("%f,%f", (_level->_playerPos.object->getPosition()).x, (_level->_playerPos.object->getPosition().y));
+				_input._lasttap = _level->_playerPos.object->getPosition() + (_input._lasttap / (BOX2D_SCALE));
 				_input._screencoords = true;
+				_physics._latchedOnto = nullptr;
 			}
-			//CCLOG("%f", (_level->_playerPos.object->getPosition() - _input._lasttap).lengthSquared());
-			//CCLOG("%f,%f", (_level->_playerPos.object->getPosition()).x, (_level->_playerPos.object->getPosition()));
-			if (_input.getHorizontal() * _input.getHorizontal() + _input.getVertical()
-				* _input.getVertical() < DEADSPACE_SIZE * DEADSPACE_SIZE || 
-				(_level->_playerPos.object->getPosition() - _input._lasttap).lengthSquared() < 0.01f) {
-				_level->_playerPos.object->stopMovement();
+			if (_input.didDoubleTap()) {
+				latchposition->getBody()->GetFixtureList()->SetFilterData(latchFilter);
+				latchposition->setPosition(_input._lasttap);
 			}
 			else {
-				Vec2 movVec = _input._lasttap - _level->_playerPos.object->getPosition();
-				_level->_playerPos.object->changeVelocity(movVec.x, movVec.y);
+				latchposition->getBody()->GetFixtureList()->SetFilterData(PhysicsController::emptyFilter);
+			}
+			if (_physics._latchedOnto == nullptr) {
+				if (_input.getHorizontal() * _input.getHorizontal() + _input.getVertical()
+					* _input.getVertical() < DEADSPACE_SIZE * DEADSPACE_SIZE ||
+					(_level->_playerPos.object->getPosition() - _input._lasttap).lengthSquared() < 0.01f) {
+					_level->_playerPos.object->stopMovement();
+				}
+				else {
+					Vec2 movVec = _input._lasttap - _level->_playerPos.object->getPosition();
+					_level->_playerPos.object->changeVelocity(movVec.x, movVec.y);
+				}
+			}
+			else {
+				_level->_playerPos.object->getBody()->SetLinearVelocity(_physics._latchedOnto->getBody()->GetLinearVelocity());
 			}
 			for (LevelInstance::CarMetadata car : _level->_cars)
 				car.object->act();
@@ -755,13 +766,23 @@ void GameController::update(float dt) {
 				ped.object->act();
 			
 			_physics.update(dt);
-			_ai.update();
+
+			if (_physics._justLatched) {
+				_level->_playerPos.object->setPosition(
+					_physics._latchedOnto->getPosition().x,
+					_physics._latchedOnto->getPosition().y);
+				_physics._justLatched = false;
+			}
 			
 			// Update the indicator direction
 			// Subtract the found angle from 90 since getAngle returns angle with x-axis instead of y
 			_indicator->setRotation(90.0f - CC_RADIANS_TO_DEGREES(
 				(_level->_casterPos.object->getObject()->getPosition() - 
 					_level->_playerPos.object->getPosition()).getAngle()));
+            
+            
+            
+          
 		}
 
 
@@ -777,7 +798,6 @@ void GameController::update(float dt) {
 
 		if (!_failed) {
 			if (!_complete && _physics._reachedCaster) setComplete(true);
-			if (!_complete && _physics._hasDied) setFailure(true);
 			if (!_complete) {
 				// Check for exposure or cover
 				_exposure += dt * (1.0f - ((1.0f + EXPOSURE_COOLDOWN_RATIO) * _level->_playerPos.object->getCoverRatio()));
@@ -800,7 +820,9 @@ void GameController::update(float dt) {
 		else if (_countdown == 0) {
 			if (_failed || _complete) {
 				_backButton->setVisible(true);
-				_tryAgainButton->setVisible(true);
+				if (_failed) {
+					_tryAgainButton->setVisible(true);
+				}
 			}
 		}
 	}

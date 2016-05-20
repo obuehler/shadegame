@@ -83,6 +83,30 @@ WheelObstacle* WheelObstacle::create(const Vec2& pos, float radius) {
     return nullptr;
 }
 
+/**
+* Creates a new wheel object of the given radius and collision filter.
+*
+* The scene graph is completely decoupled from the physics system.
+* The node does not have to be the same size as the physics body. We
+* only guarantee that the scene graph node is positioned correctly
+* according to the drawing scale.
+*
+* @param  pos      Initial position in world coordinates
+* @param  radius   The wheel radius
+* @param  filter   The collision filter for this obstacle
+*
+* @return  An autoreleased physics object
+*/
+WheelObstacle* WheelObstacle::create(const Vec2& pos, float radius, const b2Filter* const filter) {
+	WheelObstacle* obstacle = new (std::nothrow) WheelObstacle();
+	if (obstacle && obstacle->init(pos, radius, filter)) {
+		obstacle->autorelease();
+		return obstacle;
+	}
+	CC_SAFE_DELETE(obstacle);
+	return nullptr;
+}
+
 
 #pragma mark -
 #pragma mark Initializers

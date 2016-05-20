@@ -57,9 +57,8 @@ private:
 	bool  _keyUp;
 	bool  _keyDown;
 	/** Whether the doubletap is down */
-	bool _keySwipe;
-	bool  _keyDoubleTap;
-
+	bool  _keySwipe;
+    bool  _keyDoubleTap;
 
 protected:
 	// EVENT LISTENERS
@@ -87,6 +86,7 @@ protected:
 
 	/** Whether the pause action was chosen. */
 	bool _swipeStarted;
+
 	Vec2 startposition;
 	Vec2 pos;
 
@@ -329,11 +329,13 @@ public:
 	bool didExit() const { return _exitPressed; }
 
 	/**
-	* Returns true if it double tapped to stop.
+	* Returns true if it swipes to pause.
 	*
-	* @returns true if it double tapped to stop.
+	* @returns true if it swipes to pause.
 	*/
 	bool didPause() const { return _keySwipe; }
+
+    bool didDoubleTap() const { return _keyDoubleTap; }
 
 #pragma mark -
 #pragma mark Touch Callbacks

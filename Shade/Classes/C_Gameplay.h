@@ -34,6 +34,8 @@
 #include "C_AI.h"
 #include "C_Physics.h"
 #include "M_LevelInstance.h"
+#include <cornell.h>
+#include <cornell/CUWheelObstacle.h>
 
 // All key and file path macros are here since the main controller needs them
 
@@ -75,6 +77,7 @@
 namespace cocos2d {
 class RootLayer;
 class ComplexObstacle;
+class WheelObstacle;
 class ObstacleSelector;
 class SceneManager;
 }
@@ -110,7 +113,6 @@ private:
 		draw->setOpacity(DEBUG_OPACITY);
 		return draw;
 	}
-
 
 protected:
 
@@ -182,6 +184,7 @@ protected:
 	float _exposure;
     /** Countdown active for winning or losing */
     int _countdown;
+    WheelObstacle* latchposition;
     
     
 #pragma mark Internal Object Management
@@ -227,6 +230,24 @@ protected:
     
     
 public:
+
+	/** The const collision filters for the character */
+	static const b2Filter characterFilter;
+	/** The const collision filters for the character sensors */
+	static const b2Filter characterSensorFilter;
+	/** The const collision filters for regular objects */
+	static const b2Filter objectFilter;
+	/** The const collision filters for shadows */
+	static const b2Filter shadowFilter;
+	/** The const collision filters for the caster */
+	static const b2Filter casterFilter;
+	/** The const collision filters for the pedestrian */
+	static const b2Filter pedestrianFilter;
+	/** The const collision filters for the latching marker */
+	static const b2Filter latchFilter;
+	/** The const collision filters for the car */
+	static const b2Filter carFilter;
+
 #pragma mark -
 #pragma mark Initialization
     /**
